@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>color pick</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                100: "#F5F8FF",
+                200: "#EBF4FF",
+                300: "#C3D9FF",
+                400: "#9BBFFF",
+                500: "#0286FF",
+                600: "#6A85E6",
+                700: "#475A99",
+                800: "#364573",
+                900: "#242B4D",
+              },
+              secondary: {
+                100: "#F8F8F8",
+                200: "#F1F1F1",
+                300: "#D9D9D9",
+                400: "#C2C2C2",
+                500: "#AAAAAA",
+                600: "#999999",
+                700: "#666666",
+                800: "#4D4D4D",
+                900: "#333333",
+              },
+              success: {
+                100: "#F0FFF4",
+                200: "#C6F6D5",
+                300: "#9AE6B4",
+                400: "#68D391",
+                500: "#38A169",
+                600: "#2F855A",
+                700: "#276749",
+                800: "#22543D",
+                900: "#1C4532",
+              },
+              danger: {
+                100: "#FFF5F5",
+                200: "#FED7D7",
+                300: "#FEB2B2",
+                400: "#FC8181",
+                500: "#F56565",
+                600: "#E53E3E",
+                700: "#C53030",
+                800: "#9B2C2C",
+                900: "#742A2A",
+              },
+              warning: {
+                100: "#FFFBEB",
+                200: "#FEF3C7",
+                300: "#FDE68A",
+                400: "#FACC15",
+                500: "#EAB308",
+                600: "#CA8A04",
+                700: "#A16207",
+                800: "#854D0E",
+                900: "#713F12",
+              },
+              general: {
+                100: "#CED1DD",
+                200: "#858585",
+                300: "#EEEEEE",
+                400: "#0CC25F",
+                500: "#F6F8FA",
+                600: "#E6F3FF",
+                700: "#EBEBEB",
+                800: "#ADADAD",
+              },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto space-y-8">
+      <h1 class="text-3xl font-bold text-center mb-8">color pick</h1>
+
+      <!-- Primary Colors -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold">Primary Colors</h2>
+        <div class="grid grid-cols-9 gap-4">
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-100 shadow-sm"></div>
+            <p class="text-sm text-center">100<br />#F5F8FF</p>
+          </div>
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-200 shadow-sm"></div>
+            <p class="text-sm text-center">200<br />#EBF4FF</p>
+          </div>
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-300 shadow-sm"></div>
+            <p class="text-sm text-center">300<br />#C3D9FF</p>
+          </div>
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-400 shadow-sm"></div>
+            <p class="text-sm text-center">400<br />#9BBFFF</p>
+          </div>
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-500 shadow-sm"></div>
+            <p class="text-sm text-center">500<br />#0286FF</p>
+          </div>
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-600 shadow-sm"></div>
+            <p class="text-sm text-center">600<br />#6A85E6</p>
+          </div>
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-700 shadow-sm"></div>
+            <p class="text-sm text-center">700<br />#475A99</p>
+          </div>
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-800 shadow-sm"></div>
+            <p class="text-sm text-center">800<br />#364573</p>
+          </div>
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-primary-900 shadow-sm"></div>
+            <p class="text-sm text-center">900<br />#242B4D</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Colors -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold">Secondary Colors</h2>
+        <div class="grid grid-cols-9 gap-4">
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-secondary-100 shadow-sm"></div>
+            <p class="text-sm text-center">100<br />#F8F8F8</p>
+          </div>
+          <!-- 重复类似的结构到 900 -->
+        </div>
+      </div>
+
+      <!-- Success Colors -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold">Success Colors</h2>
+        <div class="grid grid-cols-9 gap-4">
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-success-100 shadow-sm"></div>
+            <p class="text-sm text-center">100<br />#F0FFF4</p>
+          </div>
+          <!-- 重复类似的结构到 900 -->
+        </div>
+      </div>
+
+      <!-- Danger Colors -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold">Danger Colors</h2>
+        <div class="grid grid-cols-9 gap-4">
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-danger-100 shadow-sm"></div>
+            <p class="text-sm text-center">100<br />#FFF5F5</p>
+          </div>
+          <!-- 重复类似的结构到 900 -->
+        </div>
+      </div>
+
+      <!-- Warning Colors -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold">Warning Colors</h2>
+        <div class="grid grid-cols-9 gap-4">
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-warning-100 shadow-sm"></div>
+            <p class="text-sm text-center">100<br />#FFFBEB</p>
+          </div>
+          <!-- 重复类似的结构到 900 -->
+        </div>
+      </div>
+
+      <!-- General Colors -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-semibold">General Colors</h2>
+        <div class="grid grid-cols-8 gap-4">
+          <div class="space-y-2">
+            <div class="h-20 rounded-lg bg-general-100 shadow-sm"></div>
+            <p class="text-sm text-center">100<br />#CED1DD</p>
+          </div>
+          <!-- 重复类似的结构到 800 -->
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
