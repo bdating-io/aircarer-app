@@ -1,13 +1,5 @@
-import { View, Text } from "react-native";
+import { registerRootComponent } from "expo";
+import App from "./app";
 
-const Home = () => {
-  return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-black text-5xl font-bold text-center">
-        Aircarer
-      </Text>
-    </View>
-  );
-};
-
-export default Home;
+// 注册应用的根组件
+registerRootComponent(App);
