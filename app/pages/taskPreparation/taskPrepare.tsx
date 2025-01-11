@@ -2,13 +2,14 @@ import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { useState, useEffect } from "react";
 import * as Location from "expo-location";
 import { router } from "expo-router";
+import ConfirmationForm from "@/components/confirmationForm";
 
 const TaskPrepare = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null
   );
   const [taskStartTime, setTaskStartTime] = useState(
-    new Date("2025-01-09T10:00:00")
+    new Date("2025-01-10T10:00:00")
   );
   const [timeRemaining, setTimeRemaining] = useState({
     // 计算时间差
@@ -19,6 +20,7 @@ const TaskPrepare = () => {
   const handleCheckIn = async () => {
     try {
       // Request location permission
+      
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setStatus("failed");
@@ -188,9 +190,8 @@ const TaskPrepare = () => {
                     Customer Notification
                   </Text>
                 </View>
-                <Text className="text-gray-600 ml-4 mt-2">
-                  Please confirm your estimated arrival time
-                </Text>
+
+                <ConfirmationForm />
               </View>
             </View>
           )}

@@ -19,6 +19,10 @@ function RootLayoutNav() {
         name="pages/taskPreparation/taskHeading.tsx"
         options={{ headerShown: true }}
       />
+      <Stack.Screen   
+        name="pages/taskPreparation/taskAccept.tsx"
+        options={{ headerShown: true }}
+      />
     </Stack>
   );
 }

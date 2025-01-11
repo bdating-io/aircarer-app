@@ -7,3 +7,19 @@ declare interface User {
   email: string;
   password: string;
 }
+
+interface TaskInfo {
+  date: string;
+  time: string;
+  budget: number;
+  rooms: string[];
+  photos: string[];
+  needsBedding: boolean;
+}
+
+declare interface Task {
+  task_id: number;
+  task_name: string;
+  task_description: string;
+  task_status: string;
+}
