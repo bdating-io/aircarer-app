@@ -5,7 +5,7 @@ const Home = () => {
   return (
     <View className="flex-1 items-center justify-center bg-white">
       <Text className="text-black text-xl font-bold text-center">
-        <Redirect href="/pages/taskPreparation/taskPrepare" />
+        <Redirect href="/pages/taskPreparation/taskAccept" />
       </Text>
     </View>
   );
