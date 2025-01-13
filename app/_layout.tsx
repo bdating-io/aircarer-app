@@ -10,7 +10,10 @@ function RootLayoutNav() {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="launch" options={{ title: 'Create a task' }} />
       <Stack.Screen name="+not-found" />
+      <Stack.Screen name="placeDetails" options={{ title: 'Property Details' }} />
+      <Stack.Screen name="dateSelection" options={{ title: 'Choose a Time' }} />
     </Stack>
   );
 }
