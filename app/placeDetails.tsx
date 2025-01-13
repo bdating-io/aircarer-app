@@ -66,7 +66,7 @@ export default function PlaceDetails() {
   
       console.log('Form data:', payload);
       // 跳转到“日期选择”页面
-      router.push('/dateSelection');
+      router.push('/recyclingPage');
     };
   
     return (

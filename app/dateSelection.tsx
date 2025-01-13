@@ -1,8 +1,9 @@
 // app/dateSelection.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+
 
 export default function DateSelection() {
   const router = useRouter();
@@ -22,7 +23,34 @@ export default function DateSelection() {
   const [estimatedHours, setEstimatedHours] = useState('');
 
   const handleSubmit = () => {
-    // 把所选的时间数据收集起来
+    const isValidDate = (dateString: string): boolean => {
+      const regex = /^\d{2}\/\d{2}\/\d{4}$/; // 检查是否符合 DD/MM/YYYY 格式
+      if (!regex.test(dateString)) return false;
+    
+      const [day, month, year] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      return (
+        date.getFullYear() === year &&
+        date.getMonth() === month - 1 &&
+        date.getDate() === day
+      );
+    };
+    
+
+    if (dateOption === 'exact' && !isValidDate(exactDate)) {
+      Alert.alert('Error', 'Please enter a valid exact date in DD/MM/YYYY format.');
+      return;
+    }
+    if (dateOption === 'before' && !isValidDate(beforeDate)) {
+      Alert.alert('Error', 'Please enter a valid before date in DD/MM/YYYY format.');
+      return;
+    }
+
+    if (!estimatedHours || isNaN(Number(estimatedHours)) || Number(estimatedHours) <= 0) {
+      Alert.alert('Error', 'Please enter a valid estimated time in hours.');
+      return;
+    }
+
     let timeData;
     if (dateOption === 'exact') {
       timeData = {
@@ -88,7 +116,7 @@ export default function DateSelection() {
         <View style={{ marginBottom: 16 }}>
           <Text style={{ fontWeight: '600' }}>Exact date</Text>
           <TextInput
-            placeholder="YYYY-MM-DD"
+            placeholder="DD/MM/YYYY"
             value={exactDate}
             onChangeText={setExactDate}
             style={{
@@ -119,7 +147,7 @@ export default function DateSelection() {
         <View style={{ marginBottom: 16 }}>
           <Text style={{ fontWeight: '600' }}>Before date</Text>
           <TextInput
-            placeholder="YYYY-MM-DD"
+            placeholder="DD/MM/YYYY"
             value={beforeDate}
             onChangeText={setBeforeDate}
             style={{
@@ -183,7 +211,7 @@ export default function DateSelection() {
       <TouchableOpacity
         onPress={handleSubmit}
         style={{
-          backgroundColor: '#28A745', // 你提到过accent绿色
+          backgroundColor: '#28A745', 
           padding: 16,
           borderRadius: 8,
           alignItems: 'center',
