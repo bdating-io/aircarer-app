@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
-import { TaskInfo } from "@/types/type";
+import { TaskInfo,Task } from "@/types/type";
 
 // Example data
 const taskInfo: TaskInfo = {
@@ -10,11 +10,13 @@ const taskInfo: TaskInfo = {
   rooms: ["Bedroom", "Kitchen", "Bathroom", "Living Room"],
   photos: ["../../assets/images/task1.png"],
   needsBedding: true,
+  location: "123 Main St, City",
+  status: "pending",
 };
 
-export default function TaskInfoCard() {
+  export default function TaskInfoCard({task}: {task: Task}) {
   const handleAccept = () => {
-    console.log("Task accepted");
+    console.log(task);
   };
 
   const handleDecline = () => {
@@ -51,7 +53,7 @@ export default function TaskInfoCard() {
       <View className="mb-4">
         <Text className="text-gray-700 font-semibold mb-2">Rooms to Clean</Text>
         <View className="flex-row flex-wrap gap-2">
-          {taskInfo.rooms.map((room, index) => (
+          {task.rooms.map((room, index) => (
             <View
               key={index}
               className="bg-gray-50 px-3 py-2 rounded-full border border-gray-200"
@@ -69,7 +71,7 @@ export default function TaskInfoCard() {
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View className="flex-row gap-2">
-            {taskInfo.photos.map((photo, index) => (
+            {task.photos.map((photo, index) => (
               <View
                 key={index}
                 className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden"
@@ -94,7 +96,7 @@ export default function TaskInfoCard() {
           <View>
             <Text className="text-gray-700 font-semibold">Bedding Change</Text>
             <Text className="text-gray-500">
-              {taskInfo.needsBedding ? "Required" : "Not Required"}
+            {task.needsBedding ? "Required" : "Not Required"}
             </Text>
           </View>
         </View>

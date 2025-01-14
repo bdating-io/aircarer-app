@@ -15,11 +15,18 @@ interface TaskInfo {
   rooms: string[];
   photos: string[];
   needsBedding: boolean;
+  location: string;
+  status: string;
 }
 
 declare interface Task {
-  task_id: number;
-  task_name: string;
-  task_description: string;
-  task_status: string;
+  id: string;
+  date: string;
+  time: string;
+  budget: number;
+  location: string;
+  rooms: string[];
+  status: "pending" | "accepted" | "completed";
+  photos: string[];
+  needsBedding: boolean;
 }

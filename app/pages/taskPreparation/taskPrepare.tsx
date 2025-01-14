@@ -9,7 +9,7 @@ const TaskPrepare = () => {
     null
   );
   const [taskStartTime, setTaskStartTime] = useState(
-    new Date("2025-01-10T10:00:00")
+    new Date("2025-01-14T18:00:00")
   );
   const [timeRemaining, setTimeRemaining] = useState({
     // 计算时间差
@@ -20,7 +20,7 @@ const TaskPrepare = () => {
   const handleCheckIn = async () => {
     try {
       // Request location permission
-      
+
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setStatus("failed");

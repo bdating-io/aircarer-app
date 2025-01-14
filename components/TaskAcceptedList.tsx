@@ -1,42 +1,18 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { router } from "expo-router";
+import { Task } from "@/types/type";
 
-interface Task {
-  id: string;
-  date: string;
-  time: string;
-  budget: number;
-  location: string;
-  rooms: string[];
-  status: "pending" | "accepted" | "completed";
+interface TaskListProps {
+  tasks: Task[];
 }
 
-// Example data
-const tasks: Task[] = [
-  {
-    id: "1",
-    date: "2024-03-20",
-    time: "14:00-16:00",
-    budget: 150,
-    location: "123 Main St, City",
-    rooms: ["Bedroom", "Kitchen"],
-    status: "pending",
-  },
-  {
-    id: "2",
-    date: "2024-03-21",
-    time: "10:00-12:00",
-    budget: 120,
-    location: "456 Park Ave, City",
-    rooms: ["Living Room", "Bathroom"],
-    status: "pending",
-  },
-];
-
-export default function TaskList() {
+export default function TaskAcceptedList({ tasks }: TaskListProps) {
   const handleTaskPress = (taskId: string) => {
-    router.push(`/pages/taskPreparation/taskAccept?id=${taskId}`);
+    router.push({
+      pathname: "/pages/taskPreparation/taskDetail",
+      params: { id: taskId }
+    });
   };
 
   return (

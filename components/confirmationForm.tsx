@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
 
 export default function ConfirmationForm() {
   const [estimatedTime, setEstimatedTime] = useState("");
@@ -7,6 +8,17 @@ export default function ConfirmationForm() {
   const handleSubmit = () => {
     // Handle the submission of estimated time
     console.log("Estimated arrival time:", estimatedTime);
+
+    // Navigate to taskHeading page
+    router.push({
+      pathname: "/pages/taskPreparation/taskHeading",
+      // 可以传递任何需要的参数
+      params: {
+        estimatedTime: estimatedTime,
+        // taskId: task.id,
+        // destination: task.location
+      },
+    });
   };
 
   return (
@@ -40,7 +52,7 @@ export default function ConfirmationForm() {
           className="bg-purple-500 p-4 rounded-lg"
         >
           <Text className="text-white text-center font-semibold">
-            Confirm Arrival Time
+            Confirm & Start Navigation
           </Text>
         </TouchableOpacity>
       </View>
