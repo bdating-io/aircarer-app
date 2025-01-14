@@ -11,6 +11,7 @@ function RootLayoutNav() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
+      <Stack.Screen name="Linen-management/usedLinenRecycled" />
     </Stack>
   );
 }
