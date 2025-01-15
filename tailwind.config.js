@@ -7,6 +7,10 @@ module.exports = {
     "./navigation/**/*.{js,jsx,ts,tsx}",
     "./*.{js,jsx,ts,tsx}",
     "./assets/fonts/fontsDisplay.html",
+    "./assets/images/google-icon.png",
+    "./assets/images/icon.png",
+    "./assets/images/splash-icon.png",
+    "./assets/images/adaptive-icon.png",
   ],
   presets: [require("nativewind/preset")],
   theme: {
