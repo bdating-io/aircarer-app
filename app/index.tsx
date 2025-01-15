@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 
-type RouteType = 
+type RouteType =
   | "Linen-management/usedLinenRecycled"
   | "Linen-management/linenHandover"
   | "Linen-management/linenProcessing";

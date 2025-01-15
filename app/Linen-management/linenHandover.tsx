@@ -5,8 +5,8 @@ import { LinenBag } from "@/types/linen";
 
 const LinenHandoverScreen = () => {
   const { linenBags, updateBagStatus } = useLinenContext();
-  
-  const pendingBags = linenBags.filter(bag => bag.status === "pending");
+
+  const pendingBags = linenBags.filter((bag) => bag.status === "pending");
 
   const handleCollect = (bagId: string) => {
     updateBagStatus(bagId, "collected");
@@ -28,7 +28,7 @@ const LinenHandoverScreen = () => {
       </View>
       <Text className="text-gray-600 mb-1">Location: {item.location}</Text>
       <Text className="text-gray-600 mb-3">Time: {item.timestamp}</Text>
-      
+
       {item.status === "pending" && (
         <TouchableOpacity
           className="bg-blue-500 p-3 rounded-lg"
@@ -58,4 +58,4 @@ const LinenHandoverScreen = () => {
   );
 };
 
-export default LinenHandoverScreen; 
+export default LinenHandoverScreen;
