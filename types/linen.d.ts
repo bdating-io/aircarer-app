@@ -5,6 +5,7 @@ export interface LinenBag {
   roomNumber?: string;
   status: "pending" | "collected" | "cleaning" | "sorted" | "returned";
   collectedAt?: string;
+  notes?: string;
 }
 
 export interface LinenContextType {
