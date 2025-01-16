@@ -11,8 +11,7 @@ function RootLayoutNav() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
-<<<<<<< Updated upstream
-=======
+
       <Stack.Screen
         name="pages/taskPreparation/taskPrepare.tsx"
         options={{ headerShown: true }}
@@ -47,7 +46,6 @@ function RootLayoutNav() {
         name="pages/authentication/signup.tsx"
         options={{ headerShown: true }}
       />
->>>>>>> Stashed changes
     </Stack>
   );
 }
