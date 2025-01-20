@@ -7,3 +7,7 @@ declare interface User {
   email: string;
   password: string;
 }
+
+declare interface ClerkProviderProps {
+  publishableKey: string;
+}
