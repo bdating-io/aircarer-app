@@ -150,14 +150,13 @@ export default function Booking() {
         <View className="flex-row">{renderStars(serviceRating, setServiceRating)}</View>
       </View>
 
-      {/* Next Button */}
-      <TouchableOpacity
-        className="bg-blue-600 p-4 rounded-lg mt-6"
-        onPress={handleNext}
-      >
-        <Text className="text-white text-center text-lg">Next</Text>
-      </TouchableOpacity>
-      
+      {/* Next Button */}      
+            <TouchableOpacity
+                  className="bg-blue-600 p-4 rounded-lg mt-6"
+              onPress={() => navigation.navigate('instruction')}
+            >
+              <Text className="text-white text-lg">Next</Text>
+            </TouchableOpacity>
     </View>
 
 

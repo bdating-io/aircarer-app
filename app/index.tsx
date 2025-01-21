@@ -18,21 +18,29 @@ const Index: React.FC = () => {
       </TouchableOpacity>
 
 
+
+
       <TouchableOpacity
         className="bg-purple-500 p-4 rounded-lg"
-        onPress={() => navigation.navigate('task')}
+        onPress={() => navigation.navigate('CreateUser')}
       >
-        <Text className="text-white text-lg">task</Text>
+        <Text className="text-white text-lg">注册流程</Text>
       </TouchableOpacity>
 
-      {/* 跳转到清洁图片上传页面按钮 */}
+
       <TouchableOpacity
         className="bg-purple-500 p-4 rounded-lg"
-        onPress={() => navigation.navigate('booking')}
+        onPress={() => navigation.navigate('TaskList')}
       >
-        <Text className="text-white text-lg">task-detail</Text>
+        <Text className="text-white text-lg">Task </Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        className="bg-purple-500 p-4 rounded-lg"
+        onPress={() => navigation.navigate('RecycleTask')}
+      >
+        <Text className="text-white text-lg">Recycle流程 </Text>
+      </TouchableOpacity>
 
 
 

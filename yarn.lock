@@ -2264,6 +2264,11 @@
   dependencies:
     invariant "^2.2.4"
 
+"@react-native-picker/picker@^2.11.0":
+  version "2.11.0"
+  resolved "https://registry.npmjs.org/@react-native-picker/picker/-/picker-2.11.0.tgz"
+  integrity sha512-QuZU6gbxmOID5zZgd/H90NgBnbJ3VV6qVzp6c7/dDrmWdX8S0X5YFYgDcQFjE3dRen9wB9FWnj2VVdPU64adSg==
+
 "@react-native/assets-registry@0.76.5":
   version "0.76.5"
   resolved "https://registry.npmjs.org/@react-native/assets-registry/-/assets-registry-0.76.5.tgz"
@@ -6131,25 +6136,15 @@ lighthouse-logger@^1.0.0:
     debug "^2.6.9"
     marky "^1.2.2"
 
-lightningcss-linux-x64-gnu@1.27.0:
+lightningcss-win32-x64-msvc@1.27.0:
   version "1.27.0"
-  resolved "https://registry.npmjs.org/lightningcss-linux-x64-gnu/-/lightningcss-linux-x64-gnu-1.27.0.tgz"
-  integrity sha512-Dk/jovSI7qqhJDiUibvaikNKI2x6kWPN79AQiD/E/KeQWMjdGe9kw51RAgoWFDi0coP4jinaH14Nrt/J8z3U4A==
+  resolved "https://registry.npmjs.org/lightningcss-win32-x64-msvc/-/lightningcss-win32-x64-msvc-1.27.0.tgz"
+  integrity sha512-/OJLj94Zm/waZShL8nB5jsNj3CfNATLCTyFxZyouilfTmSoLDX7VlVAmhPHoZWVFp4vdmoiEbPEYC8HID3m6yw==
 
-lightningcss-linux-x64-gnu@1.29.1:
+lightningcss-win32-x64-msvc@1.29.1:
   version "1.29.1"
-  resolved "https://registry.npmjs.org/lightningcss-linux-x64-gnu/-/lightningcss-linux-x64-gnu-1.29.1.tgz"
-  integrity sha512-u1S+xdODy/eEtjADqirA774y3jLcm8RPtYztwReEXoZKdzgsHYPl0s5V52Tst+GKzqjebkULT86XMSxejzfISw==
-
-lightningcss-linux-x64-musl@1.27.0:
-  version "1.27.0"
-  resolved "https://registry.npmjs.org/lightningcss-linux-x64-musl/-/lightningcss-linux-x64-musl-1.27.0.tgz"
-  integrity sha512-QKjTxXm8A9s6v9Tg3Fk0gscCQA1t/HMoF7Woy1u68wCk5kS4fR+q3vXa1p3++REW784cRAtkYKrPy6JKibrEZA==
-
-lightningcss-linux-x64-musl@1.29.1:
-  version "1.29.1"
-  resolved "https://registry.npmjs.org/lightningcss-linux-x64-musl/-/lightningcss-linux-x64-musl-1.29.1.tgz"
-  integrity sha512-L0Tx0DtaNUTzXv0lbGCLB/c/qEADanHbu4QdcNOXLIe1i8i22rZRpbT3gpWYsCh9aSL9zFujY/WmEXIatWvXbw==
+  resolved "https://registry.npmjs.org/lightningcss-win32-x64-msvc/-/lightningcss-win32-x64-msvc-1.29.1.tgz"
+  integrity sha512-NygcbThNBe4JElP+olyTI/doBNGJvLs3bFCRPdvuCcxZCcCZ71B858IHpdm7L1btZex0FvCmM17FK98Y9MRy1Q==
 
 lightningcss@^1.27.0, lightningcss@^1.29.1:
   version "1.29.1"

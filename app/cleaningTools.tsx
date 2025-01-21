@@ -38,6 +38,8 @@ export default function CleaningTools() {
       >
         <Text className="text-white text-center text-lg font-bold">Back</Text>
       </TouchableOpacity>
+      
     </ScrollView>
+    
   );
 }

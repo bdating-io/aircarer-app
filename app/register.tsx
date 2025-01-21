@@ -12,6 +12,8 @@ const Register: React.FC = () => {
   const [birthday, setBirthday] = useState('');
   const router = useRouter();
 
+const { addItemToList } = route.params || {};
+
   // 提交注册表单
   const handleRegister = () => {
     // 简单的验证逻辑

@@ -69,7 +69,7 @@ export default function TaskList() {
         className="bg-blue-600 p-4 rounded-lg mt-6"
         onPress={() => navigation.navigate('booking')}
       >
-        <Text className="text-white text-center text-lg">Next</Text>
+        <Text className="text-white text-center text-lg">Confirm</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
