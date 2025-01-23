@@ -10,12 +10,17 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
+
 export default function Login() {
   const router = useRouter();
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+
+  const googleLogin = async () => {
+    console.log("Google Login");
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#1B1B1B]">
@@ -100,7 +105,10 @@ export default function Login() {
 
           {/* Social Login */}
           <View className="mt-6">
-            <TouchableOpacity className="flex-row items-center justify-center space-x-2 border border-white/20 rounded-lg py-4">
+            <TouchableOpacity
+              className="flex-row items-center justify-center space-x-2 border border-white/20 rounded-lg py-4"
+              onPress={googleLogin}
+            >
               <AntDesign name="google" size={20} color="white" />
               <Text className="text-white">Continue with Google</Text>
             </TouchableOpacity>

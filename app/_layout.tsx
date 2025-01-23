@@ -52,6 +52,42 @@ function RootLayoutNav() {
             name="pages/authentication/signup.tsx"
             options={{ headerShown: true }}
           />
+          <Stack.Screen
+            name="pages/profile/userTerms.tsx"
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="pages/profile/userProfile.tsx"
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="pages/profile/propertyList.tsx"
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="pages/profile/houseOwner.tsx"
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="pages/profile/cleanerProfile/cleanerProfile.tsx"
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="pages/profile/cleanerProfile/workingArea.tsx"
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="pages/profile/cleanerProfile/experience.tsx"
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="pages/profile/cleanerProfile/pricing.tsx"
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="pages/profile/cleanerProfile/skills.tsx"
+            options={{ headerShown: true }}
+          />
         </Stack>
       </ClerkLoaded>
     </ClerkProvider>
