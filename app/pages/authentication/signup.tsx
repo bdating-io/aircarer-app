@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useOAuth } from "@clerk/clerk-expo";
 
 export default function Signup() {
   const router = useRouter();
