@@ -1,51 +1,35 @@
-// app/dateSelection.tsx
-
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Calendar } from 'react-native-calendars';
 
+type DateObject = {
+  dateString: string; // 日期字符串，格式为 YYYY-MM-DD
+  day: number;        // 日期中的日（1-31）
+  month: number;      // 日期中的月（1-12）
+  year: number;       // 日期中的年（完整年份）
+  timestamp: number;  // 时间戳
+};
 
 export default function DateSelection() {
   const router = useRouter();
 
-  // 选项： 'exact' or 'before'
   const [dateOption, setDateOption] = useState<'exact' | 'before'>('exact');
-
-  // 当用户选 'exact' 时，可以输入具体日期/时间区间
   const [exactDate, setExactDate] = useState('');
-  const [timeRange, setTimeRange] = useState('');
-
-  // 当用户选 'before' 时，可以输入截止日期 + 早上/下午
   const [beforeDate, setBeforeDate] = useState('');
-  const [dayPeriod, setDayPeriod] = useState<'morning' | 'afternoon'>('morning');
-
-  // 预估时长
+  const [timeRange, setTimeRange] = useState('');
   const [estimatedHours, setEstimatedHours] = useState('');
+  const [dayPeriod, setDayPeriod] = useState<'morning' | 'afternoon'>('morning'); // 新增
 
   const handleSubmit = () => {
-    const isValidDate = (dateString: string): boolean => {
-      const regex = /^\d{2}\/\d{2}\/\d{4}$/; // 检查是否符合 DD/MM/YYYY 格式
-      if (!regex.test(dateString)) return false;
-    
-      const [day, month, year] = dateString.split('-').map(Number);
-      const date = new Date(year, month - 1, day);
-      return (
-        date.getFullYear() === year &&
-        date.getMonth() === month - 1 &&
-        date.getDate() === day
-      );
-    };
-    
-
-    if (dateOption === 'exact' && !isValidDate(exactDate)) {
-      Alert.alert('Error', 'Please enter a valid exact date in DD/MM/YYYY format.');
+    if (!exactDate && dateOption === 'exact') {
+      Alert.alert('Error', 'Please select a valid date.');
       return;
     }
-    if (dateOption === 'before' && !isValidDate(beforeDate)) {
-      Alert.alert('Error', 'Please enter a valid before date in DD/MM/YYYY format.');
+    if (!beforeDate && dateOption === 'before') {
+      Alert.alert('Error', 'Please select a valid date.');
       return;
     }
-
     if (!estimatedHours || isNaN(Number(estimatedHours)) || Number(estimatedHours) <= 0) {
       Alert.alert('Error', 'Please enter a valid estimated time in hours.');
       return;
@@ -63,15 +47,13 @@ export default function DateSelection() {
       timeData = {
         dateOption: 'before',
         beforeDate,
-        dayPeriod,
+        dayPeriod, // 新增
         estimatedHours,
       };
     }
 
     console.log('Selected time data:', timeData);
-
-    // TODO: 这里可以把 timeData 发送到后端，或存到全局状态
-
+    router.push('/takePhotoPage');
   };
 
   return (
@@ -112,23 +94,22 @@ export default function DateSelection() {
       </View>
 
       {dateOption === 'exact' ? (
-        /* 如果选了 Exact，就显示这块表单 */
         <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontWeight: '600' }}>Exact date</Text>
-          <TextInput
-            placeholder="DD/MM/YYYY"
-            value={exactDate}
-            onChangeText={setExactDate}
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              padding: 8,
-              borderRadius: 6,
-              marginVertical: 8,
+          <Text style={{ fontWeight: '600', marginBottom: 8 }}>Select Exact Date</Text>
+          <Calendar
+            onDayPress={(day: DateObject) => setExactDate(day.dateString)}
+            markedDates={{
+              [exactDate]: { selected: true, marked: true, selectedColor: '#007BFF' },
+            }}
+            theme={{
+              todayTextColor: '#FF7E7E',
+              arrowColor: '#007BFF',
             }}
           />
-
-          <Text style={{ fontWeight: '600' }}>Time range (e.g. 9AM - 12PM)</Text>
+          <Text style={{ marginTop: 16, fontSize: 16 }}>
+            Selected Date: {exactDate || 'None'}
+          </Text>
+          <Text style={{ fontWeight: '600', marginTop: 16 }}>Time range (e.g. 9AM - 12PM)</Text>
           <TextInput
             placeholder="e.g. 9:00 - 12:00"
             value={timeRange}
@@ -138,28 +119,29 @@ export default function DateSelection() {
               borderColor: '#ccc',
               padding: 8,
               borderRadius: 6,
-              marginVertical: 8,
+              marginTop: 8,
             }}
           />
         </View>
       ) : (
-        /* 如果选了 Before a date，就显示这块表单 */
         <View style={{ marginBottom: 16 }}>
-          <Text style={{ fontWeight: '600' }}>Before date</Text>
-          <TextInput
-            placeholder="DD/MM/YYYY"
-            value={beforeDate}
-            onChangeText={setBeforeDate}
-            style={{
-              borderWidth: 1,
-              borderColor: '#ccc',
-              padding: 8,
-              borderRadius: 6,
-              marginVertical: 8,
+          <Text style={{ fontWeight: '600', marginBottom: 8 }}>Select Before Date</Text>
+          <Calendar
+            onDayPress={(day: DateObject) => setBeforeDate(day.dateString)}
+            markedDates={{
+              [beforeDate]: { selected: true, marked: true, selectedColor: '#007BFF' },
+            }}
+            theme={{
+              todayTextColor: '#FF7E7E',
+              arrowColor: '#007BFF',
             }}
           />
+          <Text style={{ marginTop: 16, fontSize: 16 }}>
+            Selected Date: {beforeDate || 'None'}
+          </Text>
 
-          <Text style={{ fontWeight: '600' }}>Morning or Afternoon?</Text>
+          {/* Morning or Afternoon Buttons */}
+          <Text style={{ fontWeight: '600', marginTop: 16 }}>Morning or Afternoon?</Text>
           <View style={{ flexDirection: 'row', marginTop: 8 }}>
             <TouchableOpacity
               onPress={() => setDayPeriod('morning')}
@@ -192,7 +174,7 @@ export default function DateSelection() {
         </View>
       )}
 
-      {/* 预估时长 */}
+      {/* Estimated Time */}
       <Text style={{ fontWeight: '600' }}>How long do you expect the cleaning will take? (hours)</Text>
       <TextInput
         placeholder="e.g. 3"
@@ -211,7 +193,7 @@ export default function DateSelection() {
       <TouchableOpacity
         onPress={handleSubmit}
         style={{
-          backgroundColor: '#28A745', 
+          backgroundColor: '#28A745',
           padding: 16,
           borderRadius: 8,
           alignItems: 'center',
