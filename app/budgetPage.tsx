@@ -16,7 +16,7 @@ export default function BudgetPage() {
     console.log('Budget:', budget);
 
     // 跳转到下一页
-    // router.push('/nextPage');
+    router.push('/paymentMethodScreen');
   };
 
   return (
