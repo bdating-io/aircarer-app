@@ -1,28 +1,164 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
   SafeAreaView,
   TextInput,
   TouchableOpacity,
-  Image,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { supabase } from "@/lib/supabase";
+import PhoneInput from "react-native-phone-number-input";
 
 export default function Signup() {
   const router = useRouter();
-  const [signupMethod, setSignupMethod] = useState<"email" | "phone">("email");
-  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+61");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [showVerification, setShowVerification] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [formattedValue, setFormattedValue] = useState("");
+  const phoneInput = useRef<PhoneInput>(null);
 
   const googleSignup = () => {
     console.log("Google Signup");
   };
+
+  const sendVerificationCode = async () => {
+    if (!phone) {
+      Alert.alert("Error", "Please enter your phone number");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        phone: `${countryCode}${phone}`,
+        password: Math.random().toString(36).slice(-8),
+      });
+
+      if (error) throw error;
+
+      setShowVerification(true);
+      Alert.alert("Success", "Verification code sent to your phone");
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyPhone = async () => {
+    if (!verificationCode) {
+      Alert.alert("Error", "Please enter verification code");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        phone: `${countryCode}${phone}`,
+        token: verificationCode,
+        type: "sms",
+      });
+
+      if (error) throw error;
+      setPhoneVerified(true);
+      Alert.alert(
+        "Success",
+        "Phone verified successfully! Please complete your registration."
+      );
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completeSignUp = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        email,
+        password,
+        data: {
+          phone_verified: true,
+          phone: `${countryCode}${phone}`,
+        },
+      });
+
+      if (error) throw error;
+
+      Alert.alert("Success", "Account created successfully!");
+      router.push("/pages/authentication/login");
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderPhoneInput = () => (
+    <View className="mb-4">
+      <PhoneInput
+        ref={phoneInput}
+        defaultValue={phone}
+        defaultCode="AU"
+        layout="first"
+        onChangeText={(text) => {
+          setPhone(text);
+        }}
+        onChangeFormattedText={(text) => {
+          setFormattedValue(text);
+          const countryCode = text.split(phone)[0];
+          setCountryCode(countryCode);
+        }}
+        withDarkTheme
+        withShadow
+        containerStyle={{
+          width: "100%",
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          borderRadius: 8,
+        }}
+        textContainerStyle={{
+          backgroundColor: "transparent",
+        }}
+        textInputStyle={{
+          color: "white",
+        }}
+        codeTextStyle={{
+          color: "white",
+        }}
+        flagButtonStyle={{
+          backgroundColor: "transparent",
+        }}
+        countryPickerButtonStyle={{
+          backgroundColor: "transparent",
+        }}
+      />
+    </View>
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-[#1B1B1B]">
@@ -34,98 +170,81 @@ export default function Signup() {
           </Text>
         </View>
 
-        {/* Signup Method Switcher */}
-        <View className="flex-row justify-center mb-6">
-          <TouchableOpacity
-            className={`px-6 py-2 rounded-full ${
-              signupMethod === "email" ? "bg-blue-500" : "bg-transparent"
-            }`}
-            onPress={() => setSignupMethod("email")}
-          >
-            <Text className="text-white">Email</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`px-6 py-2 rounded-full ${
-              signupMethod === "phone" ? "bg-blue-500" : "bg-transparent"
-            }`}
-            onPress={() => setSignupMethod("phone")}
-          >
-            <Text className="text-white">Phone</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Input Fields */}
         <View className="px-6">
-          {/* Username Field */}
-          <View className="mb-4">
-            <TextInput
-              className="bg-white/10 rounded-lg p-4 text-white"
-              placeholder="Username"
-              placeholderTextColor="gray"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-            />
-          </View>
+          {!phoneVerified ? (
+            <>
+              {renderPhoneInput()}
 
-          {/* Email/Phone Fields */}
-          {signupMethod === "email" ? (
-            <View className="mb-4">
+              {!showVerification ? (
+                <TouchableOpacity
+                  className="bg-blue-500 rounded-lg py-4 mb-4"
+                  onPress={sendVerificationCode}
+                  disabled={loading}
+                >
+                  <Text className="text-white text-center">
+                    Send Verification Code
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <TextInput
+                    className="bg-white/10 rounded-lg p-4 text-white mb-4"
+                    placeholder="Enter verification code"
+                    placeholderTextColor="gray"
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                    keyboardType="number-pad"
+                    editable={!loading}
+                  />
+                  <TouchableOpacity
+                    className="bg-blue-500 rounded-lg py-4 mb-4"
+                    onPress={verifyPhone}
+                    disabled={loading}
+                  >
+                    <Text className="text-white text-center">Verify Phone</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </>
+          ) : (
+            <>
               <TextInput
-                className="bg-white/10 rounded-lg p-4 text-white"
+                className="bg-white/10 rounded-lg p-4 text-white mb-4"
                 placeholder="Email"
                 placeholderTextColor="gray"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!loading}
               />
-            </View>
-          ) : (
-            <View className="mb-4">
               <TextInput
-                className="bg-white/10 rounded-lg p-4 text-white"
-                placeholder="Phone Number"
+                className="bg-white/10 rounded-lg p-4 text-white mb-4"
+                placeholder="Password"
                 placeholderTextColor="gray"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!loading}
               />
-            </View>
+              <TouchableOpacity
+                className={`bg-blue-500 rounded-lg py-4 mb-4 ${
+                  loading ? "opacity-50" : ""
+                }`}
+                onPress={completeSignUp}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white text-center font-semibold">
+                    Complete Registration
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </>
           )}
-
-          {/* Password Fields */}
-          <View className="mb-4">
-            <TextInput
-              className="bg-white/10 rounded-lg p-4 text-white mb-3"
-              placeholder="Password"
-              placeholderTextColor="gray"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-            <TextInput
-              className="bg-white/10 rounded-lg p-4 text-white"
-              placeholder="Confirm Password"
-              placeholderTextColor="gray"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-            />
-          </View>
-
-          {/* Sign Up Button */}
-          <TouchableOpacity
-            className="bg-blue-500 rounded-lg py-4 mb-4"
-            onPress={() => {
-              // Handle signup logic
-              router.push("/pages/authentication/home");
-            }}
-          >
-            <Text className="text-white text-center font-semibold">
-              Create Account
-            </Text>
-          </TouchableOpacity>
 
           {/* Social Signup */}
           <View className="mt-6">
