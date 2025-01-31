@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,36 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-
-
-
+import { Session } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const router = useRouter();
+  const [session, setSession] = useState<Session | null>(null);
+  const [hasProfile, setHasProfile] = useState<boolean>(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        checkProfile(session.user.id);
+      }
+    });
+  }, []);
+
+  const checkProfile = async (userId: string) => {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", userId)
+      .single();
+
+    setHasProfile(!!profile?.display_name);
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#1B1B1B]">
@@ -21,28 +45,68 @@ export default function Home() {
         {/* Logo and Title Section */}
         <View className="items-center mb-8">
           <Text className="text-white text-3xl font-bold">AirCarer</Text>
-          <Text className="text-white text-3xl font-bold">AirCarer</Text>
-          <Text className="text-gray-400 mt-2">Get cleaning done</Text>
+          {session ? (
+            <Text className="text-gray-400 mt-2">
+              Welcome, you have signed in as {session.user.email}， create your
+              profile now to get started.
+            </Text>
+          ) : (
+            <Text className="text-gray-400 mt-2">Get cleaning done</Text>
+          )}
         </View>
 
         {/* Login/Signup Buttons */}
-        <View className="w-full space-y-4 mt-8">
-          <TouchableOpacity
-            className="w-full bg-[#FF6B6B] rounded-xl py-4"
-            onPress={() => router.push("/pages/authentication/login")}
-          >
-            <Text className="text-white text-center font-semibold">Log in</Text>
-          </TouchableOpacity>
+        {!session ? (
+          <View className="w-full space-y-4 mt-8">
+            <TouchableOpacity
+              className="w-full bg-[#4A90E2] rounded-xl py-4"
+              onPress={() => router.push("/pages/authentication/login")}
+            >
+              <Text className="text-white text-center font-semibold">
+                Log in
+              </Text>
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              className="w-full bg-[#4A90E2] rounded-xl py-4"
+              onPress={() => router.push("/pages/authentication/signup")}
+            >
+              <Text className="text-white text-center font-semibold">
+                Sign up
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
           <TouchableOpacity
             className="w-full bg-[#4A90E2] rounded-xl py-4"
-            onPress={() => router.push("/pages/authentication/signup")}
+            onPress={() => supabase.auth.signOut()}
           >
             <Text className="text-white text-center font-semibold">
-              Sign up
+              Sign Out
             </Text>
           </TouchableOpacity>
-        </View>
+        )}
+
+        {/* Create Profile Button */}
+        {hasProfile === false ? (
+          <View className="items-center">
+            <Text className="text-gray-400 mt-2">
+              Welcome! Please create your profile to continue.
+            </Text>
+            <TouchableOpacity
+              className="bg-[#4A90E2] rounded-xl py-4 px-8 mt-4"
+              onPress={() => router.push("/pages/profile/welcome")}
+            >
+              <Text className="text-white font-semibold">Create Profile</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View className="items-center">
+            <Text className="text-gray-400 mt-2">
+              Profile created! You can now use the app.
+            </Text>
+          </View>
+        )}
 
         {/* Language Selector */}
         <View className="flex-row mt-8">

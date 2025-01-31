@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { ProfileData } from '@/types/type';
+import { ProfileData } from "@/types/type";
 
 export default function HouseOwnerProfile() {
   const router = useRouter();

@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { ProfileData } from "@/types/type";
 
 type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "House Owner";
 

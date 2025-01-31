@@ -16,6 +16,10 @@ function RootLayoutNav() {
         name="pages/taskPreparation/taskPrepare.tsx"
         options={{ headerShown: true }}
       />
+      <Stack.Screen
+        name="pages/profile/welcome.tsx"
+        options={{ headerShown: true }}
+      />
 
       <Stack.Screen
         name="pages/taskPreparation/taskAccept.tsx"

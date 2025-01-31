@@ -84,6 +84,7 @@ export default function Login() {
       Alert.alert(error.message);
     } else {
       Alert.alert("Success", "Successfully logged in!");
+      router.push("/pages/authentication/home");
     }
     setLoading(false);
   };
@@ -116,7 +117,7 @@ export default function Login() {
           Alert.alert("Error", error.message);
         } else {
           Alert.alert("Success", "Successfully logged in!");
-          router.push("/pages/profile/userProfile");
+          router.push("/pages/authentication/home");
         }
       }
     } catch (error) {
