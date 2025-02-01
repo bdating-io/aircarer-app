@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import {
   View,
   Text,
@@ -7,9 +8,11 @@ import {
   TouchableOpacity,
   Platform,
   ScrollView,
+  Alert
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
+import useStore from '../../utils/store';
 
 type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "House Owner";
 
@@ -20,6 +23,66 @@ export default function CreateProfile() {
   const [abn, setAbn] = useState("");
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [backgroundCheck, setBackgroundCheck] = useState<string>("");
+  const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
+  const [isLoading, setIsLoading] = useState(false);
+
+  const createPersonalProfile = async (profileData:any) => {
+
+    setIsLoading(true);
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Error getting user:', userError);
+        Alert.alert("Error", "Failed to get user information");
+        return;
+      }
+      
+      if (!user) {
+        console.error('No user found');
+        Alert.alert("Error", "User not found");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert({ 
+          id: user.id,
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          abn: profileData.abn,
+          role: profileData.role,
+          updated_at: new Date().toISOString()
+        })
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error.message, error.details);
+        throw error;
+      }
+      alert('Profile updated successfully')
+      console.log('Profile updated successfully:', data);
+    } catch (error: any) {
+      console.error('Error updating first name:', {
+        message: error?.message,
+        details: error?.details,
+        error
+      });
+      Alert.alert(
+        "Error",
+        error?.message || "Failed to update first name. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setFirstName(myProfile.first_name);
+    setLastName(myProfile.last_name);
+    setAbn(myProfile.abn);
+    setSelectedRole (myProfile.role);
+  }, []);
 
   const handleNext = async () => {
     try {
@@ -38,7 +101,7 @@ export default function CreateProfile() {
       };
 
       // 调用 API 保存数据
-      // const response = await createPersonalProfile(profileData);
+      const response = await createPersonalProfile(profileData);
 
       // 根据角色跳转到相应页面
       switch (selectedRole) {
@@ -67,6 +130,11 @@ export default function CreateProfile() {
           });
 
           break;
+        default: 
+         router.push({
+          pathname: "pages/authentication/home",
+          params: { profileData: JSON.stringify(profileData) },
+         });
       }
     } catch (error) {
       console.error("Error creating profile:", error);
@@ -74,6 +142,7 @@ export default function CreateProfile() {
     }
   };
 
+  
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}

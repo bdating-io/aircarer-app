@@ -9,11 +9,13 @@ import {
 import { useRouter } from "expo-router";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import useStore from '../../utils/store';
 
 export default function Home() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean>(false);
+  const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -31,11 +33,11 @@ export default function Home() {
   const checkProfile = async (userId: string) => {
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("display_name")
+      .select("first_name, last_name, abn, role")
       .eq("id", userId)
       .single();
-
-    setHasProfile(!!profile?.display_name);
+    setMyProfile(profile);
+    setHasProfile(!!profile?.first_name);
   };
 
   return (
@@ -47,7 +49,7 @@ export default function Home() {
           <Text className="text-white text-3xl font-bold">AirCarer</Text>
           {session ? (
             <Text className="text-gray-400 mt-2">
-              Welcome, you have signed in as {session.user.email}， create your
+              Welcome, {myProfile?.first_name} you have signed in as {session.user.email}， create your
               profile now to get started.
             </Text>
           ) : (
@@ -105,6 +107,13 @@ export default function Home() {
             <Text className="text-gray-400 mt-2">
               Profile created! You can now use the app.
             </Text>
+
+            <TouchableOpacity
+              className="bg-[#4A90E2] rounded-xl py-4 px-8 mt-4"
+              onPress={() => router.push("/pages/profile/welcome")}
+            >
+              <Text className="text-white font-semibold">Test Update Profile</Text>
+            </TouchableOpacity>
           </View>
         )}
 

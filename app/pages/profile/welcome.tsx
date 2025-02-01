@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,21 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
+import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import useStore from '../../utils/store';
 
 export default function Welcome() {
   const router = useRouter();
+  const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
 
+  useEffect(() => {
+    setNickname( myProfile.first_name);
+  }, []);
+  
   const handleContinue = async () => {
     if (!nickname.trim()) return;
     
@@ -39,7 +47,7 @@ export default function Welcome() {
         .from('profiles')
         .upsert({ 
           id: user.id,
-          display_name: nickname.trim(),
+          first_name: nickname.trim(),
           updated_at: new Date().toISOString()
         })
         .select();
@@ -50,16 +58,18 @@ export default function Welcome() {
       }
 
       console.log('Profile updated successfully:', data);
+      myProfile.first_name =  nickname.trim();
+      setMyProfile(myProfile);
       router.push("/pages/profile/userTerms");
     } catch (error: any) {
-      console.error('Error updating display name:', {
+      console.error('Error updating first name:', {
         message: error?.message,
         details: error?.details,
         error
       });
       Alert.alert(
         "Error",
-        error?.message || "Failed to update display name. Please try again."
+        error?.message || "Failed to update first name. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -100,10 +110,10 @@ export default function Welcome() {
 
         <TouchableOpacity
           className={`bg-[#4A90E2] rounded-xl py-4 ${
-            !nickname.trim() ? "opacity-50" : ""
+            !myProfile.first_name.trim() ? "opacity-50" : ""
           }`}
           onPress={handleContinue}
-          disabled={!nickname.trim()}
+          disabled={!myProfile.first_name.trim()}
         >
           <Text className="text-white text-center font-semibold">Continue</Text>
         </TouchableOpacity>

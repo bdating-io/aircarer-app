@@ -55,7 +55,6 @@ export default function UserTerms() {
         <View className="mb-8">
           <Text className="text-xl font-semibold mb-4">Clause 1</Text>
           <Text className="text-gray-600 mb-2">Some Terms and conditions</Text>
-
           <View className="ml-4 mb-4">
             <Text className="text-gray-600 mb-2">
               1. Some Terms and conditions
@@ -71,7 +70,6 @@ export default function UserTerms() {
         <View className="mb-8">
           <Text className="text-xl font-semibold mb-4">Clause 2</Text>
           <Text className="text-gray-600 mb-2">Some Terms and conditions</Text>
-
           <View className="ml-4 mb-4">
             <Text className="text-gray-600 mb-2">
               1. Some Terms and conditions
@@ -122,7 +120,7 @@ export default function UserTerms() {
             </Text>
           </View>
         </View>
-        <View className="h-20" /> {/* Bottom spacing */}
+        <View className="h-20" />{/* Bottom spacing */}
       </ScrollView>
 
       {/* Bottom Buttons */}
