@@ -12,7 +12,7 @@ const NextButton = ({ title, onPress, style }) => {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#007BFF",
+    backgroundColor: "#4E89CE",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",

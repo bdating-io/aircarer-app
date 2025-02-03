@@ -48,7 +48,7 @@ export default function BudgetPage() {
       <TouchableOpacity
         onPress={handleNext}
         style={{
-          backgroundColor: '#007BFF',
+          backgroundColor: '#4E89CE',
           padding: 16,
           borderRadius: 8,
           alignItems: 'center',

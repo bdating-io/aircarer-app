@@ -55,7 +55,7 @@ export default function SpecialRequestPage() {
           onPress={() => toggleRequest(request)}
           style={{
             padding: 12,
-            backgroundColor: selectedRequests.includes(request) ? '#007BFF' : '#ccc',
+            backgroundColor: selectedRequests.includes(request) ? '#4E89CE' : '#ccc',
             borderRadius: 8,
             marginBottom: 8,
             alignItems: 'center',
@@ -91,7 +91,7 @@ export default function SpecialRequestPage() {
       <TouchableOpacity
         onPress={handleNext}
         style={{
-          backgroundColor: '#007BFF',
+          backgroundColor: '#4E89CE',
           padding: 16,
           borderRadius: 8,
           alignItems: 'center',

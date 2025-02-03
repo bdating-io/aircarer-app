@@ -18,7 +18,7 @@ function RootLayoutNav() {
       <Stack.Screen name="takePhotoPage" options={{ title: 'Task Details' }} />
       <Stack.Screen name="specialRequestPage" options={{ title: 'Special Request' }} />
       <Stack.Screen name="budgetPage" options={{ title: 'Budget' }} />
-      
+      <Stack.Screen name="paymentMethodScreen" options={{ title: 'Payment' }} />
     </Stack>
   );
 }

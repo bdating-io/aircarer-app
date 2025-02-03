@@ -12,7 +12,7 @@ export default function HomePage() {
 
       {/* 跳转按钮 */}
       <Link href="../launch" asChild>
-        <TouchableOpacity className="bg-[#007BFF] px-6 py-3 rounded-full">
+        <TouchableOpacity className="bg-[#4E89CE] px-6 py-3 rounded-full">
           <Text className="text-white text-base font-semibold">
             Go to launch a cleaning task
           </Text>

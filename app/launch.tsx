@@ -18,7 +18,7 @@ export default function LaunchTaskPage() {
       {/* 通过 expo-router 的 <Stack.Screen /> 配置当前页面标题 */}
       <Stack.Screen options={{ title: 'Create a task' }} />
       
-      <View style={{ flex: 1, backgroundColor: '#007BFF', padding: 24 }}>
+      <View style={{ flex: 1, backgroundColor: '#4E89CE', padding: 24 }}>
         <Text style={{ fontSize: 24, color: '#fff', fontWeight: 'bold' }}>
           Good day, username!
         </Text>
