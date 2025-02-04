@@ -30,7 +30,7 @@ export default function Pricing() {
     };
 
     // 完成注册，跳转到主页或成功页面
-    router.push("/pages/authentication/home");
+    router.push("/home");
   };
 
   return (

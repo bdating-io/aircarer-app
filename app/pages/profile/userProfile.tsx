@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
   Platform,
   ScrollView,
-  Alert
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import useStore from '../../utils/store';
+import useStore from "../../utils/store";
 
 type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "House Owner";
 
@@ -26,47 +26,49 @@ export default function CreateProfile() {
   const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
   const [isLoading, setIsLoading] = useState(false);
 
-  const createPersonalProfile = async (profileData:any) => {
-
+  const createPersonalProfile = async (profileData: any) => {
     setIsLoading(true);
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
       if (userError) {
-        console.error('Error getting user:', userError);
+        console.error("Error getting user:", userError);
         Alert.alert("Error", "Failed to get user information");
         return;
       }
-      
+
       if (!user) {
-        console.error('No user found');
+        console.error("No user found");
         Alert.alert("Error", "User not found");
         return;
       }
 
       const { data, error } = await supabase
-        .from('profiles')
-        .upsert({ 
+        .from("profiles")
+        .upsert({
           id: user.id,
           first_name: profileData.firstName,
           last_name: profileData.lastName,
           abn: profileData.abn,
           role: profileData.role,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .select();
 
       if (error) {
-        console.error('Supabase error:', error.message, error.details);
+        console.error("Supabase error:", error.message, error.details);
         throw error;
       }
-      alert('Profile updated successfully')
-      console.log('Profile updated successfully:', data);
+      alert("Profile updated successfully");
+      console.log("Profile updated successfully:", data);
     } catch (error: any) {
-      console.error('Error updating first name:', {
+      console.error("Error updating first name:", {
         message: error?.message,
         details: error?.details,
-        error
+        error,
       });
       Alert.alert(
         "Error",
@@ -81,7 +83,7 @@ export default function CreateProfile() {
     setFirstName(myProfile.first_name);
     setLastName(myProfile.last_name);
     setAbn(myProfile.abn);
-    setSelectedRole (myProfile.role);
+    setSelectedRole(myProfile.role);
   }, []);
 
   const handleNext = async () => {
@@ -130,11 +132,11 @@ export default function CreateProfile() {
           });
 
           break;
-        default: 
-         router.push({
-          pathname: "pages/authentication/home",
-          params: { profileData: JSON.stringify(profileData) },
-         });
+        default:
+          router.push({
+            pathname: "/(tabs)/home",
+            params: { profileData: JSON.stringify(profileData) },
+          });
       }
     } catch (error) {
       console.error("Error creating profile:", error);
@@ -142,7 +144,6 @@ export default function CreateProfile() {
     }
   };
 
-  
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}

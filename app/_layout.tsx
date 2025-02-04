@@ -54,6 +54,7 @@ function RootLayoutNav() {
         name="pages/profile/userTerms.tsx"
         options={{ headerShown: true }}
       />
+      <Stack.Screen name="(tabs)/home" options={{ headerShown: true }} />
       <Stack.Screen
         name="pages/profile/userProfile.tsx"
         options={{ headerShown: true }}
