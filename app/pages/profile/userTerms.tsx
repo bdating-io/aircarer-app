@@ -1,24 +1,24 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Platform,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function UserTerms() {
   const router = useRouter();
   const [isBottom, setIsBottom] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+  const handleScroll = ({
+    layoutMeasurement,
+    contentOffset,
+    contentSize,
+  }: any) => {
     const paddingToBottom = 20;
     const isCloseToBottom =
       layoutMeasurement.height + contentOffset.y >=
@@ -27,8 +27,14 @@ export default function UserTerms() {
     setIsBottom(isCloseToBottom);
   };
 
-  const scrollToBottom = () => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
+  const handleAcceptTerms = () => {
+    // 模拟接受条款
+    Alert.alert("Success", "Terms accepted", [
+      {
+        text: "OK",
+        onPress: () => router.push("/pages/profile/userProfile"),
+      },
+    ]);
   };
 
   return (
@@ -37,107 +43,65 @@ export default function UserTerms() {
       <View className="px-4 py-4 border-b border-gray-200">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()}>
-            <AntDesign name="left" size={24} color="black" />
+            <Ionicons name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
-          <Text className="text-xl font-semibold ml-4">AGREEMENT</Text>
+          <Text className="text-xl font-semibold ml-4">Terms of Service</Text>
         </View>
       </View>
 
       {/* Terms Content */}
       <ScrollView
-        ref={scrollViewRef}
         className="flex-1 px-4"
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
+        onScroll={({ nativeEvent }) => handleScroll(nativeEvent)}
+        scrollEventThrottle={400}
       >
         <Text className="text-2xl font-bold mt-4 mb-2">Terms of Service</Text>
-        <Text className="text-gray-500 mb-6">Last updated on 5/12/2022</Text>
-        <View className="mb-8">
-          <Text className="text-xl font-semibold mb-4">Clause 1</Text>
-          <Text className="text-gray-600 mb-2">Some Terms and conditions</Text>
-          <View className="ml-4 mb-4">
-            <Text className="text-gray-600 mb-2">
-              1. Some Terms and conditions
-            </Text>
-            <Text className="text-gray-600 mb-2">
-              2. Some Terms and conditions
-            </Text>
-            <Text className="text-gray-600 mb-2">
-              3. Some Terms and conditions
-            </Text>
-          </View>
-        </View>
-        <View className="mb-8">
-          <Text className="text-xl font-semibold mb-4">Clause 2</Text>
-          <Text className="text-gray-600 mb-2">Some Terms and conditions</Text>
-          <View className="ml-4 mb-4">
-            <Text className="text-gray-600 mb-2">
-              1. Some Terms and conditions
-            </Text>
-            <Text className="text-gray-600 mb-2">
-              2. Some Terms and conditions
-            </Text>
-            <Text className="text-gray-600 mb-2">
-              3. Some Terms and conditions
-            </Text>
-          </View>
-        </View>
-        <View className="mb-8">
-          <Text className="text-xl font-semibold mb-4">Clause 3</Text>
-          <Text className="text-gray-600 mb-2">Some Terms and conditions</Text>
+        <Text className="text-gray-500 mb-6">Last updated: May 2024</Text>
 
-          <View className="ml-4 mb-4">
-            <Text className="text-gray-600 mb-2">
-              1. Some Terms and conditions
+        {/* Terms Sections */}
+        {[1, 2, 3].map((section) => (
+          <View key={section} className="mb-8">
+            <Text className="text-xl font-semibold mb-4">
+              Section {section}
             </Text>
-            <Text className="text-gray-600 mb-2">
-              2. Some Terms and conditions
+            <Text className="text-gray-600 mb-4">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
             </Text>
-            <Text className="text-gray-600 mb-2">
-              3. Some Terms and conditions
-            </Text>
+            {[1, 2, 3].map((point) => (
+              <View key={point} className="ml-4 mb-2">
+                <Text className="text-gray-600">
+                  {point}. Ut enim ad minim veniam, quis nostrud exercitation
+                  ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                </Text>
+              </View>
+            ))}
           </View>
-          <View className="ml-4 mb-4">
-            <Text className="text-gray-600 mb-2">
-              1. Some Terms and conditions
-            </Text>
-            <Text className="text-gray-600 mb-2">
-              2. Some Terms and conditions
-            </Text>
-            <Text className="text-gray-600 mb-2">
-              3. Some Terms and conditions
-            </Text>
-          </View>
-          <View className="ml-4 mb-4">
-            <Text className="text-gray-600 mb-2">
-              1. Some Terms and conditions
-            </Text>
-            <Text className="text-gray-600 mb-2">
-              2. Some Terms and conditions
-            </Text>
-            <Text className="text-gray-600 mb-2">
-              3. Some Terms and conditions
-            </Text>
-          </View>
-        </View>
-        <View className="h-20" />{/* Bottom spacing */}
+        ))}
+
+        <View className="h-20" />
       </ScrollView>
 
-      {/* Bottom Buttons */}
+      {/* Bottom Button */}
       <View className="px-4 py-4 border-t border-gray-200">
         {!isBottom ? (
           <TouchableOpacity
-            className="bg-gray-200 rounded-full py-3 items-center"
-            onPress={scrollToBottom}
+            className="bg-gray-200 rounded-lg py-3"
+            onPress={() => {
+              // 模拟滚动到底部
+              setIsBottom(true);
+            }}
           >
-            <Text>Scroll to Bottom</Text>
+            <Text className="text-center">Scroll to Bottom</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            className="bg-[#4A90E2] rounded-full py-3 items-center"
-            onPress={() => router.push("/pages/profile/userProfile")}
+            className="bg-[#4A90E2] rounded-lg py-3"
+            onPress={handleAcceptTerms}
           >
-            <Text className="text-white font-medium">Accept & Continue</Text>
+            <Text className="text-white text-center font-medium">
+              Accept & Continue
+            </Text>
           </TouchableOpacity>
         )}
       </View>

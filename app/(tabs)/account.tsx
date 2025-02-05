@@ -47,17 +47,17 @@ export default function Account() {
     {
       title: "Notifications",
       icon: "notifications-outline",
-      // onPress: () => router.push("/pages/account/notifications"),
+      onPress: () => router.push("/pages/account/notifications"),
     },
     {
       title: "Settings",
       icon: "settings-outline",
-      // onPress: () => router.push("/pages/account/settings"),
+      onPress: () => router.push("/pages/account/settings"),
     },
     {
       title: "Property List",
       icon: "home-outline",
-      // onPress: () => router.push("/pages/account/properties"),
+      onPress: () => router.push("/pages/profile/propertyList"),
     },
   ];
 
@@ -76,15 +76,13 @@ export default function Account() {
             <Text className="text-white text-lg font-semibold">
               Hi, {myProfile?.first_name}
             </Text>
-            <Text className="text-white opacity-80">
-              {userEmail}
-            </Text>
+            <Text className="text-white opacity-80">{userEmail}</Text>
             <Text className="text-white opacity-80">
               Melbourne VIC, Australia
             </Text>
           </View>
           <TouchableOpacity
-            // onPress={() => router.push("/pages/profile/editProfile")}
+            onPress={() => router.push("/pages/profile/editProfile")}
             className="bg-white/20 px-4 py-2 rounded-lg"
           >
             <Text className="text-white">Edit</Text>
@@ -102,7 +100,7 @@ export default function Account() {
             <TouchableOpacity
               key={index}
               className="flex-row items-center py-3"
-              // onPress={item.onPress}
+              onPress={item.onPress}
             >
               <Ionicons name={item.icon as any} size={24} color="#4A90E2" />
               <Text className="flex-1 ml-4 text-lg">{item.title}</Text>

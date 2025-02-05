@@ -127,7 +127,7 @@ export default function CreateProfile() {
           break;
         case "House Owner":
           router.push({
-            pathname: "/pages/profile/houseOwner",
+            pathname: "/pages/profile/houseOwner/houseOwner",
             params: { profileData: JSON.stringify(profileData) },
           });
 

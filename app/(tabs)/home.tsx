@@ -116,7 +116,7 @@ export default function Home() {
           </View>
           <TouchableOpacity
             className="bg-[#FF6B6B] rounded-lg p-4 mt-8"
-            onPress={() => router.push("/pages/profile/userProfile")}
+            onPress={() => router.push("/pages/profile/userTerms")}
           >
             <Text className="text-white text-center text-lg font-semibold">
               Create Profile
