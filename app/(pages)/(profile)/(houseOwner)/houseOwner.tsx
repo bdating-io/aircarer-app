@@ -11,7 +11,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { ProfileData } from "@/types/type";
 
-export default function HouseOwnerProfile() {
+export default function HouseOwner() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const profileData = JSON.parse(params.profileData as string) as ProfileData;
@@ -34,7 +34,7 @@ export default function HouseOwnerProfile() {
     };
 
     router.push({
-      pathname: "/pages/profile/propertyList",
+      pathname: "/(pages)/(profile)/propertyList",
       params: { propertyData: JSON.stringify(propertyData) },
     });
   };

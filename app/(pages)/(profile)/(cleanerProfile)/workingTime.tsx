@@ -40,7 +40,7 @@ export default function WorkingTime() {
     };
 
     router.push({
-      pathname: "/pages/profile/cleanerProfile/experience",
+      pathname: "/(pages)/(profile)/(cleanerProfile)/experience",
       params: { profileData: JSON.stringify(profileData) },
     });
   };

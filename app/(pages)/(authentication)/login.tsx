@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { supabase } from "../../../lib/supabase";
 import PhoneInput from "react-native-phone-number-input";
@@ -167,142 +167,91 @@ export default function Login() {
     </View>
   );
 
+  // 添加会话检查
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  const checkSession = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session) {
+      // 如果已登录，重定向到首页
+      router.replace("/(tabs)/home");
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-[#1B1B1B]">
-      <ScrollView className="flex-1">
-        {/* Header Section */}
-        <View className="items-center mt-10 mb-8">
-          <Text className="text-white text-2xl font-bold mt-4">
-            Welcome Back
+    <SafeAreaView className="flex-1 bg-[#4A90E2]">
+      <View className="flex-1 px-6">
+        {/* Header */}
+        <View className="flex-row items-center pt-4">
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Logo & Welcome */}
+        <View className="items-center mt-12">
+          <Text className="text-4xl font-bold text-white">AirCarer</Text>
+          <Text className="text-white text-lg mt-2 opacity-80">
+            Welcome back!
           </Text>
         </View>
 
-        {/* Login Method Switcher */}
-        <View className="flex-row justify-center mb-6">
-          <TouchableOpacity
-            className={`px-6 py-2 rounded-full ${
-              loginMethod === "email" ? "bg-blue-500" : "bg-transparent"
-            }`}
-            onPress={() => setLoginMethod("email")}
-          >
-            <Text className="text-white">Email</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`px-6 py-2 rounded-full ${
-              loginMethod === "phone" ? "bg-blue-500" : "bg-transparent"
-            }`}
-            onPress={() => setLoginMethod("phone")}
-          >
-            <Text className="text-white">Phone</Text>
+        {/* Login Form */}
+        <View className="mt-12">
+          <View className="bg-white/10 rounded-xl p-4 mb-4">
+            <TextInput
+              className="text-white text-lg"
+              placeholder="Email"
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+
+          <View className="bg-white/10 rounded-xl p-4">
+            <TextInput
+              className="text-white text-lg"
+              placeholder="Password"
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+          </View>
+
+          <TouchableOpacity className="mt-4">
+            <Text className="text-white text-right">Forgot password?</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Input Fields */}
-        <View className="px-6">
-          {/* Email/Phone Fields */}
-          {loginMethod === "email" ? (
-            <View className="mb-4">
-              <TextInput
-                className="bg-white/10 rounded-lg p-4 text-white"
-                placeholder="Email"
-                placeholderTextColor="gray"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-          ) : (
-            renderPhoneInput()
-          )}
-
-          {/* Password Field */}
-          {loginMethod === "email" && (
-            <View className="mb-4">
-              <TextInput
-                className="bg-white/10 rounded-lg p-4 text-white"
-                placeholder="Password"
-                placeholderTextColor="gray"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-            </View>
-          )}
-
-          {loginMethod === "phone" && (
-            <View>
-              {isCodeSent ? (
-                <View className="mb-4">
-                  <TextInput
-                    className="bg-white/10 rounded-lg p-4 text-white"
-                    placeholder="Enter verification code"
-                    placeholderTextColor="gray"
-                    value={verificationCode}
-                    onChangeText={setVerificationCode}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                  />
-                </View>
-              ) : null}
-              <TouchableOpacity
-                className="bg-blue-500 rounded-lg py-4 mb-4"
-                onPress={handlePhoneLogin}
-                disabled={loading}
-              >
-                <Text className="text-white text-center font-semibold">
-                  {loading
-                    ? "Loading..."
-                    : isCodeSent
-                    ? "Verify Code"
-                    : "Send Code"}
-                </Text>
-              </TouchableOpacity>
-              {isCodeSent && (
-                <TouchableOpacity
-                  className="mb-4"
-                  onPress={() => {
-                    setIsCodeSent(false);
-                    setVerificationCode("");
-                  }}
-                >
-                  <Text className="text-blue-500 text-center">Resend Code</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-
-          {/* Login Button */}
+        {/* Login Button */}
+        <View className="mt-8">
           <TouchableOpacity
-            className="bg-blue-500 rounded-lg py-4 mb-4"
+            className="bg-[#FF6B6B] rounded-xl p-4"
             onPress={signInWithEmail}
-            disabled={loading}
           >
-            <Text className="text-white text-center font-semibold">Login </Text>
+            <Text className="text-white text-center text-lg font-semibold">
+              Log in
+            </Text>
           </TouchableOpacity>
-
-          {/* Social Login */}
-          <View className="mt-6">
-            <TouchableOpacity
-              className="flex-row items-center justify-center space-x-2 border border-white/20 rounded-lg py-4"
-              onPress={googleLogin}
-            >
-              <AntDesign name="google" size={20} color="white" />
-              <Text className="text-white">Continue with Google</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Sign Up Link */}
-          <View className="flex-row justify-center mt-6 mb-8">
-            <Text className="text-gray-400">Don't have an account? </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/pages/authentication/signup")}
-            >
-              <Text className="text-blue-500">Sign Up</Text>
-            </TouchableOpacity>
-          </View>
         </View>
-      </ScrollView>
+
+        {/* Sign Up Link */}
+        <View className="flex-row justify-center mt-6">
+          <Text className="text-white opacity-80">Don't have an account? </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/(pages)/(authentication)/signup")}
+          >
+            <Text className="text-white font-semibold">Sign up</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }

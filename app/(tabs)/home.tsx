@@ -53,6 +53,7 @@ export default function Home() {
     } catch (error) {
       Alert.alert("Error signing out", (error as Error).message);
     }
+    router.push("/(tabs)/home");
   };
 
   // 如果没有登录，显示登录界面
@@ -73,10 +74,10 @@ export default function Home() {
           </View>
 
           {/* Login/Signup Buttons */}
-          <View className="space-y-4 mt-8 mb-12">
+          <View className="absolute bottom-12 left-6 right-6">
             <TouchableOpacity
-              className="bg-[#FF6B6B] rounded-lg p-4"
-              onPress={() => router.push("/pages/authentication/login")}
+              className="bg-[#FF6B6B] rounded-xl p-4 mb-4"
+              onPress={() => router.push("/(pages)/(authentication)/login")}
             >
               <Text className="text-white text-center text-lg font-semibold">
                 Log in
@@ -84,11 +85,11 @@ export default function Home() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="bg-[#FF6B6B] rounded-lg p-4"
-              onPress={() => router.push("/pages/authentication/signup")}
+              className="bg-[#FF6B6B] rounded-xl p-4"
+              onPress={() => router.push("/(pages)/(authentication)/signup")}
             >
               <Text className="text-white text-center text-lg font-semibold">
-                Sign up
+                Create an account
               </Text>
             </TouchableOpacity>
           </View>
@@ -116,7 +117,7 @@ export default function Home() {
           </View>
           <TouchableOpacity
             className="bg-[#FF6B6B] rounded-lg p-4 mt-8"
-            onPress={() => router.push("/pages/profile/userTerms")}
+            onPress={() => router.push("/(pages)/(profile)/userTerms")}
           >
             <Text className="text-white text-center text-lg font-semibold">
               Create Profile
@@ -147,31 +148,43 @@ export default function Home() {
           Good day, {myProfile?.first_name}!
         </Text>
         <Text className="text-white opacity-80">{userEmail}</Text>
-        <Text className="text-2xl text-white font-semibold mt-2">
-          Need a hand? We've got you covered.
-        </Text>
-      </View>
 
-      {/* Task Input Section */}
-      <View className="px-6 mt-8 space-y-4">
-        <View className="bg-white rounded-lg p-4">
-          <TextInput
-            placeholder="Task title"
-            className="text-lg"
-            placeholderTextColor="#666"
-          />
-        </View>
-
-        <TouchableOpacity
-          className="bg-[#FF6B6B] rounded-lg p-4"
-          onPress={() => {
-            // Handle task creation
-          }}
-        >
-          <Text className="text-white text-center text-lg font-semibold">
-            Get it done!
-          </Text>
-        </TouchableOpacity>
+        {myProfile?.role === "House Owner" ? (
+          // House Owner View
+          <View className="mt-8 space-y-4">
+            <Text className="text-2xl text-white font-semibold">
+              Need cleaning service? Post a task now.
+            </Text>
+            <TouchableOpacity
+              className="bg-[#FF6B6B] rounded-lg p-4"
+              // onPress={() => router.push("/(pages)/tasks/createTask")}
+            >
+              <Text className="text-white text-center text-lg font-semibold">
+                Post New Task
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : myProfile?.role === "Cleaner" ? (
+          // Cleaner View
+          <View className="mt-8 space-y-4">
+            <Text className="text-2xl text-white font-semibold">
+              Ready to work? Find tasks nearby.
+            </Text>
+            <TouchableOpacity
+              className="bg-[#FF6B6B] rounded-lg p-4"
+              // onPress={() => router.push("/(pages)/tasks/taskList")}
+            >
+              <Text className="text-white text-center text-lg font-semibold">
+                Browse Tasks
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          // Default View or Loading State
+          <View className="mt-8">
+            <Text className="text-white text-lg">Loading...</Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

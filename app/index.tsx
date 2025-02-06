@@ -34,7 +34,7 @@ export default function Index() {
       {session ? (
         <Redirect href="/(tabs)/home" />
       ) : (
-        <Redirect href="/pages/authentication/login" />
+        <Redirect href="/(pages)/(authentication)/login" />
       )}
     </View>
   );

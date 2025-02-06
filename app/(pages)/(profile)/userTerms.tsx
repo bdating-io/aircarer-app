@@ -32,7 +32,7 @@ export default function UserTerms() {
     Alert.alert("Success", "Terms accepted", [
       {
         text: "OK",
-        onPress: () => router.push("/pages/profile/userProfile"),
+        onPress: () => router.push("/(pages)/(profile)/createUserProfile"),
       },
     ]);
   };

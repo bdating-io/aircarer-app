@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import useStore from "../../utils/store";
 
-type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "House Owner";
+type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "HouseOwner";
 
 export default function CreateProfile() {
   const router = useRouter();
@@ -29,23 +29,17 @@ export default function CreateProfile() {
   const createPersonalProfile = async (profileData: any) => {
     setIsLoading(true);
     try {
+      // 获取当前用户
       const {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) {
-        console.error("Error getting user:", userError);
-        Alert.alert("Error", "Failed to get user information");
-        return;
+      if (userError || !user) {
+        throw new Error("User not found");
       }
 
-      if (!user) {
-        console.error("No user found");
-        Alert.alert("Error", "User not found");
-        return;
-      }
-
+      // 创建或更新用户档案
       const { data, error } = await supabase
         .from("profiles")
         .upsert({
@@ -56,24 +50,26 @@ export default function CreateProfile() {
           role: profileData.role,
           updated_at: new Date().toISOString(),
         })
-        .select();
+        .select()
+        .single();
 
-      if (error) {
-        console.error("Supabase error:", error.message, error.details);
-        throw error;
-      }
-      alert("Profile updated successfully");
-      console.log("Profile updated successfully:", data);
-    } catch (error: any) {
-      console.error("Error updating first name:", {
-        message: error?.message,
-        details: error?.details,
-        error,
+      if (error) throw error;
+
+      // 更新本地状态
+      setMyProfile({
+        ...myProfile,
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        abn: profileData.abn,
+        role: profileData.role,
       });
-      Alert.alert(
-        "Error",
-        error?.message || "Failed to update first name. Please try again."
-      );
+
+      Alert.alert("Success", "Profile created successfully!");
+      return data;
+    } catch (error: any) {
+      console.error("Error creating profile:", error.message);
+      Alert.alert("Error", error.message);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -87,13 +83,12 @@ export default function CreateProfile() {
   }, []);
 
   const handleNext = async () => {
-    try {
-      // 验证输入
-      if (!firstName || !lastName || !abn || !selectedRole) {
-        return;
-      }
+    if (!firstName || !lastName || !abn || !selectedRole) {
+      Alert.alert("Error", "Please fill in all required fields");
+      return;
+    }
 
-      // 创建个人资料
+    try {
       const profileData = {
         firstName,
         lastName,
@@ -102,45 +97,27 @@ export default function CreateProfile() {
         backgroundCheck,
       };
 
-      // 调用 API 保存数据
-      const response = await createPersonalProfile(profileData);
+      await createPersonalProfile(profileData);
 
-      // 根据角色跳转到相应页面
+      // 根据角色导航到不同页面
       switch (selectedRole) {
-        // case "Laundry Partner":
-        //   router.push({
-        //     pathname: "/pages/profile/laundryPartner",
-        //     params: { profileData: JSON.stringify(profileData) },
-        //   });
-        //   break;
-        // case "Supervisor":
-        //   router.push({
-        //     pathname: "/pages/profile/supervisor",
-        //     params: { profileData: JSON.stringify(profileData) },
-        //   });
-        //   break;
         case "Cleaner":
           router.push({
-            pathname: "/pages/profile/cleanerProfile/cleanerProfile",
+            pathname: "/(pages)/(profile)/(cleanerProfile)/cleanerProfile",
             params: { profileData: JSON.stringify(profileData) },
           });
           break;
-        case "House Owner":
+        case "HouseOwner":
           router.push({
-            pathname: "/pages/profile/houseOwner/houseOwner",
+            pathname: "/(pages)/(profile)/(houseOwner)/houseOwner",
             params: { profileData: JSON.stringify(profileData) },
           });
-
           break;
         default:
-          router.push({
-            pathname: "/(tabs)/home",
-            params: { profileData: JSON.stringify(profileData) },
-          });
+          router.push("/(tabs)/home");
       }
     } catch (error) {
-      console.error("Error creating profile:", error);
-      // 处理错误
+      console.error("Navigation error:", error);
     }
   };
 

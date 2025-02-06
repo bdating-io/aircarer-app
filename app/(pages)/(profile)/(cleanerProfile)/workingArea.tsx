@@ -38,7 +38,7 @@ export default function WorkingArea() {
     };
 
     router.push({
-      pathname: "/pages/profile/cleanerProfile/workingTime",
+      pathname: "/workingTime",
       params: { profileData: JSON.stringify(profileData) },
     });
   };

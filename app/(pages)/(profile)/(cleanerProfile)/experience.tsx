@@ -43,7 +43,7 @@ export default function Experience() {
     };
 
     router.push({
-      pathname: "/pages/profile/cleanerProfile/pricing",
+      pathname: "/pricing",
       params: { profileData: JSON.stringify(profileData) },
     });
   };

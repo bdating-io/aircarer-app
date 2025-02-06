@@ -21,6 +21,38 @@ AIRCARER/
 ├── types/ # TypeScript 类型定义
 └── node_modules/ # 安装包
 
+app/
+├── (tabs)/
+│ ├── \_layout.tsx
+│ ├── account.tsx
+│ ├── chat.tsx
+│ └── home.tsx
+├── (pages)/
+│ ├── (authentication)/
+│ │ ├── login.tsx
+│ │ ├── signup.tsx
+│ │ └── profile.tsx
+│ ├── (profile)/
+│ │ ├── (cleanerProfile)/
+│ │ │ ├── \_layout.tsx
+│ │ │ └── cleanerProfile.tsx
+│ │ ├── (houseOwner)/
+│ │ │ ├── \_layout.tsx
+│ │ │ └── userProfile.tsx
+│ │ ├── experience.tsx
+│ │ ├── pricing.tsx
+│ │ ├── workingArea.tsx
+│ │ ├── workingTime.tsx
+│ │ ├── createUserProfile.tsx
+│ │ └── userTerms.tsx
+│ ├── account/
+│ │ ├── notifications.tsx
+│ │ └── settings.tsx
+│ └── tasks/
+│ ├── createTask.tsx
+│ └── taskList.tsx
+├── \_layout.tsx
+└── index.tsx
 
 ## 技术栈
 
@@ -42,10 +74,8 @@ AIRCARER/
 ### 安装步骤
 
 1. 克隆项目
-   
-2. 安装node
-npm install    yarn install
-
+2. 安装 node
+   npm install yarn install
 
 ## 项目配置文件
 
@@ -61,17 +91,20 @@ npm install    yarn install
 ## 目录说明
 
 ### app 目录
+
 - `_layout.tsx` - 应用布局文件
 - `+html.tsx` - HTML 相关组件
 - `+not-found.tsx` - 404 错误页面
 - `index.tsx` - 应用入口文件
 
 ### assets 目录
+
 - `fonts/` - 字体资源
 - `icons/` - 图标资源
 - `images/` - 图片资源
 
 ### components 目录
+
 可复用的组件集合
 
 ## 开发
@@ -79,4 +112,3 @@ npm install    yarn install
 - 使用 `yarn start`或者 `npm start` 启动开发服务器
 - 使用 Expo Go 应用扫描二维码在真机上调试
 - 或使用模拟器进行开发调试
-   

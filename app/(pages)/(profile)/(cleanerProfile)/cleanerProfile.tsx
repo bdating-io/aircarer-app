@@ -3,79 +3,88 @@ import {
   View,
   Text,
   SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
   TextInput,
+  TouchableOpacity,
+  Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 
-export default function Pricing() {
+export default function CleanerAddress() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [hourlyRate, setHourlyRate] = useState("");
+  const [address, setAddress] = useState("");
 
-  const handleComplete = () => {
-    if (!hourlyRate) return;
+  const handleNext = () => {
+    if (!address.trim()) {
+      // Show error
+      return;
+    }
 
+    // 获取之前页面传来的数据
     const previousData = params.profileData
       ? JSON.parse(params.profileData as string)
       : {};
 
+    // 合并数据
     const profileData = {
       ...previousData,
-      pricing: {
-        hourlyRate: parseFloat(hourlyRate),
-      },
+      address,
     };
 
-    // 完成注册，跳转到主页或成功页面
-    router.push("/home");
+    // 跳转到下一个页面
+    router.push({
+      pathname: "/experience",
+      params: { profileData: JSON.stringify(profileData) },
+    });
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      {/* Header */}
       <View className="px-4 py-4 border-b border-gray-200">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()}>
             <AntDesign name="left" size={24} color="black" />
           </TouchableOpacity>
-          <Text className="text-xl font-semibold ml-4">Set Your Rate</Text>
+          <Text className="text-xl font-semibold ml-4">
+            Create your profile
+          </Text>
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-4">
+      {/* Content */}
+      <View className="flex-1 px-4">
+        {/* Address Input */}
         <View className="mt-6">
           <Text className="text-gray-700 text-lg font-medium mb-2">
-            Hourly Rate (AUD)
+            Address
           </Text>
           <TextInput
             className="border border-gray-300 rounded-lg p-4"
-            placeholder="Enter your hourly rate"
-            value={hourlyRate}
-            onChangeText={setHourlyRate}
-            keyboardType="numeric"
+            placeholder="111/111 Road Street, Melbourne"
+            value={address}
+            onChangeText={setAddress}
+            autoFocus
           />
-          <Text className="text-gray-500 mt-2">
-            Recommended rate: $25-35/hour
-          </Text>
         </View>
-      </ScrollView>
+      </View>
 
+      {/* Next Button */}
       <View className="px-4 py-4 border-t border-gray-200">
         <TouchableOpacity
           className={`rounded-lg py-4 items-center ${
-            hourlyRate ? "bg-[#4A90E2]" : "bg-gray-200"
+            address.trim() ? "bg-[#4A90E2]" : "bg-gray-200"
           }`}
-          onPress={handleComplete}
-          disabled={!hourlyRate}
+          onPress={handleNext}
+          disabled={!address.trim()}
         >
           <Text
             className={`font-medium ${
-              hourlyRate ? "text-white" : "text-gray-500"
+              address.trim() ? "text-white" : "text-gray-500"
             }`}
           >
-            Complete
+            Next
           </Text>
         </TouchableOpacity>
       </View>

@@ -67,7 +67,7 @@ export default function PropertyList() {
           className="bg-[#4A90E2] rounded-full py-3 items-center"
           onPress={() => {
             // Handle completion
-            router.push("/pages/profile/houseOwner/houseOwner");
+            router.push("/（houseOwner）/houseOwner");
           }}
         >
           <Text className="text-white font-medium">Next</Text>

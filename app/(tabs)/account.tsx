@@ -30,7 +30,7 @@ export default function Account() {
     try {
       const { error } = await supabase.auth.signOut();
       Alert.alert("Success", "Successfully logged out!");
-      router.push("/pages/authentication/login");
+      router.push("/(pages)/(authentication)/login");
       if (error) throw error;
       setMyProfile(null);
     } catch (error) {
@@ -47,17 +47,17 @@ export default function Account() {
     {
       title: "Notifications",
       icon: "notifications-outline",
-      onPress: () => router.push("/pages/account/notifications"),
+      onPress: () => router.push("/(pages)/(account)/notifications"),
     },
     {
       title: "Settings",
       icon: "settings-outline",
-      onPress: () => router.push("/pages/account/settings"),
+      onPress: () => router.push("/(pages)/(account)/settings"),
     },
     {
       title: "Property List",
       icon: "home-outline",
-      onPress: () => router.push("/pages/profile/propertyList"),
+      onPress: () => router.push("/(pages)/(profile)/propertyList"),
     },
   ];
 
@@ -82,7 +82,7 @@ export default function Account() {
             </Text>
           </View>
           <TouchableOpacity
-            onPress={() => router.push("/pages/profile/editProfile")}
+            onPress={() => router.push("/(pages)/(profile)/editProfile")}
             className="bg-white/20 px-4 py-2 rounded-lg"
           >
             <Text className="text-white">Edit</Text>
