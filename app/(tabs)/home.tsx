@@ -55,6 +55,7 @@ export default function Home() {
       .from("addresses")
       .select("*")
       .eq("user_id", userId)
+      .eq("type", "USER_ADDRESS")
       .single();
 
     if (error) {
