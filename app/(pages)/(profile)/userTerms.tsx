@@ -31,7 +31,7 @@ export default function UserTerms() {
       const { data, error } = await supabase
         .from("profiles")
         .select("terms_accepted")
-        .eq("id", user.id)
+        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
@@ -55,7 +55,7 @@ export default function UserTerms() {
       if (!user) return;
 
       const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
+        user_id: user.id,
         terms_accepted: true,
         terms_accepted_at: new Date().toISOString(),
       });

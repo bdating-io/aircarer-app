@@ -8,87 +8,90 @@ import {
   TouchableOpacity,
   Platform,
   ScrollView,
-  Alert,
+  Alert
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import useStore from "../../utils/store";
+import useStore from '../../utils/store';
 
-type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "HouseOwner";
+type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "House Owner";
 
 export default function CreateProfile() {
   const router = useRouter();
-  const { myProfile, setMyProfile } = useStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [abn, setAbn] = useState("");
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [backgroundCheck, setBackgroundCheck] = useState<string>("");
+  const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (myProfile) {
-      setFirstName(myProfile.first_name || "");
-      setLastName(myProfile.last_name || "");
-      setAbn(myProfile.abn || "");
-      setSelectedRole(myProfile.role || null);
-    }
-  }, [myProfile]);
+  const createPersonalProfile = async (profileData:any) => {
 
-  const createPersonalProfile = async (profileData: any) => {
     setIsLoading(true);
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        throw new Error("User not found");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Error getting user:', userError);
+        Alert.alert("Error", "Failed to get user information");
+        return;
+      }
+      
+      if (!user) {
+        console.error('No user found');
+        Alert.alert("Error", "User not found");
+        return;
       }
 
       const { data, error } = await supabase
-        .from("profiles")
-        .upsert({
+        .from('profiles')
+        .upsert({ 
           user_id: user.id,
           first_name: profileData.firstName,
           last_name: profileData.lastName,
           abn: profileData.abn,
           role: profileData.role,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
-        .select()
-        .single();
+        .select();
 
-      if (error) throw error;
-
-      // 更新本地状态
-      setMyProfile({
-        ...myProfile,
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        abn: profileData.abn,
-        role: profileData.role,
-      });
-
-      Alert.alert("Success", "Profile created successfully!");
-      return data;
+      if (error) {
+        console.error('Supabase error:', error.message, error.details);
+        throw error;
+      }
+      alert('Profile updated successfully')
+      console.log('Profile updated successfully:', data);
     } catch (error: any) {
-      console.error("Error creating profile:", error.message);
-      Alert.alert("Error", error.message);
-      throw error;
+      console.error('Error updating first name:', {
+        message: error?.message,
+        details: error?.details,
+        error
+      });
+      Alert.alert(
+        "Error",
+        error?.message || "Failed to update first name. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleNext = async () => {
-    if (!firstName || !lastName || !abn || !selectedRole) {
-      Alert.alert("Error", "Please fill in all required fields");
-      return;
-    }
+  useEffect(() => {
+    setFirstName(myProfile.first_name);
+    setLastName(myProfile.last_name);
+    setAbn(myProfile.abn);
+    setSelectedRole (myProfile.role);
+  }, []);
 
+  const handleNext = async () => {
     try {
+      // 验证输入
+      if (!firstName || !lastName || !abn || !selectedRole) {
+        return;
+      }
+
+      // 创建个人资料
       const profileData = {
         firstName,
         lastName,
@@ -97,30 +100,49 @@ export default function CreateProfile() {
         backgroundCheck,
       };
 
-      await createPersonalProfile(profileData);
+      // 调用 API 保存数据
+      const response = await createPersonalProfile(profileData);
 
-      // 根据角色导航到不同页面
+      // 根据角色跳转到相应页面
       switch (selectedRole) {
+        // case "Laundry Partner":
+        //   router.push({
+        //     pathname: "/pages/profile/laundryPartner",
+        //     params: { profileData: JSON.stringify(profileData) },
+        //   });
+        //   break;
+        // case "Supervisor":
+        //   router.push({
+        //     pathname: "/pages/profile/supervisor",
+        //     params: { profileData: JSON.stringify(profileData) },
+        //   });
+        //   break;
         case "Cleaner":
           router.push({
-            pathname: "/(pages)/(profile)/(cleanerProfile)/cleanerProfile",
+            pathname: "/pages/profile/cleanerProfile/cleanerProfile",
             params: { profileData: JSON.stringify(profileData) },
           });
           break;
-        case "HouseOwner":
+        case "House Owner":
           router.push({
-            pathname: "/(pages)/(profile)/(houseOwner)/houseOwner",
+            pathname: "/pages/profile/houseOwner",
             params: { profileData: JSON.stringify(profileData) },
           });
+
           break;
-        default:
-          router.push("/(tabs)/home");
+        default: 
+         router.push({
+          pathname: "pages/authentication/home",
+          params: { profileData: JSON.stringify(profileData) },
+         });
       }
     } catch (error) {
-      console.error("Navigation error:", error);
+      console.error("Error creating profile:", error);
+      // 处理错误
     }
   };
 
+  
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}

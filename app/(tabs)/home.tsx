@@ -43,7 +43,7 @@ export default function Home() {
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("first_name, last_name, abn, role")
-      .eq("id", userId)
+      .eq("user_id", userId)
       .single();
     setMyProfile(profile);
     setHasProfile(!!profile?.first_name);
@@ -54,7 +54,7 @@ export default function Home() {
     const { data: address, error } = await supabase
       .from("addresses")
       .select("*")
-      .eq("id", userId)
+      .eq("user_id", userId)
       .single();
 
     if (error) {

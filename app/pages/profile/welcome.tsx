@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import useStore from "../../utils/store";
+import useStore from '../../utils/store';
 
 export default function Welcome() {
   const router = useRouter();
@@ -21,54 +21,51 @@ export default function Welcome() {
   const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
 
   useEffect(() => {
-    setNickname(myProfile.first_name);
+    setNickname( myProfile.first_name);
   }, []);
-
+  
   const handleContinue = async () => {
     if (!nickname.trim()) return;
-
+    
     setIsLoading(true);
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
       if (userError) {
-        console.error("Error getting user:", userError);
+        console.error('Error getting user:', userError);
         Alert.alert("Error", "Failed to get user information");
         return;
       }
-
+      
       if (!user) {
-        console.error("No user found");
+        console.error('No user found');
         Alert.alert("Error", "User not found");
         return;
       }
 
       const { data, error } = await supabase
-        .from("profiles")
-        .upsert({
+        .from('profiles')
+        .upsert({ 
           user_id: user.id,
           first_name: nickname.trim(),
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .select();
 
       if (error) {
-        console.error("Supabase error:", error.message, error.details);
+        console.error('Supabase error:', error.message, error.details);
         throw error;
       }
 
-      console.log("Profile updated successfully:", data);
-      myProfile.first_name = nickname.trim();
+      console.log('Profile updated successfully:', data);
+      myProfile.first_name =  nickname.trim();
       setMyProfile(myProfile);
-      router.push("/(pages)/(profile)/userTerms");
+      router.push("/pages/profile/userTerms");
     } catch (error: any) {
-      console.error("Error updating first name:", {
+      console.error('Error updating first name:', {
         message: error?.message,
         details: error?.details,
-        error,
+        error
       });
       Alert.alert(
         "Error",

@@ -40,7 +40,7 @@ export default function AddressForm() {
       const { data, error } = await supabase
         .from("addresses")
         .upsert({
-          id: user.id,
+          user_id: user.id,
           type: formData.type,
           street_number: formData.street_number,
           street_name: formData.street_name,
