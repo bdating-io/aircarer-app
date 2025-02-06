@@ -5,88 +5,192 @@ import {
   SafeAreaView,
   TextInput,
   TouchableOpacity,
-  Platform,
+  Alert,
+  ScrollView,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "@/lib/supabase";
+import { AddressFormData, AustralianState } from "@/types/address";
 
-export default function CleanerAddress() {
+export default function AddressForm() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const [address, setAddress] = useState("");
+  const [formData, setFormData] = useState<AddressFormData>({
+    type: "",
+    street_number: "",
+    street_name: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    country: "Australia", // 默认值
+    latitude: "",
+    longitude: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleNext = () => {
-    if (!address.trim()) {
-      // Show error
-      return;
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("User not found");
+
+      const { data, error } = await supabase
+        .from("addresses")
+        .upsert({
+          id: user.id,
+          type: formData.type,
+          street_number: formData.street_number,
+          street_name: formData.street_name,
+          city: formData.city,
+          state: formData.state,
+          postal_code: formData.postal_code,
+          country: formData.country,
+          latitude: formData.latitude || null,
+          longitude: formData.longitude || null,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      Alert.alert("Success", "Address saved successfully!");
+      router.push("/(pages)/(profile)/(cleanerProfile)/workingArea");
+    } catch (error: any) {
+      console.error("Error saving address:", error.message);
+      Alert.alert("Error", error.message);
+    } finally {
+      setIsLoading(false);
     }
-
-    // 获取之前页面传来的数据
-    const previousData = params.profileData
-      ? JSON.parse(params.profileData as string)
-      : {};
-
-    // 合并数据
-    const profileData = {
-      ...previousData,
-      address,
-    };
-
-    // 跳转到下一个页面
-    router.push({
-      pathname: "/experience",
-      params: { profileData: JSON.stringify(profileData) },
-    });
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="px-4 py-4 border-b border-gray-200">
-        <View className="flex-row items-center">
+    <SafeAreaView className="flex-1 bg-[#4A90E2]">
+      <View className="flex-1 px-6">
+        {/* Header */}
+        <View className="flex-row items-center pt-4">
           <TouchableOpacity onPress={() => router.back()}>
-            <AntDesign name="left" size={24} color="black" />
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-semibold ml-4">
-            Create your profile
+          <Text className="text-xl font-semibold text-white ml-4">
+            Add Address
           </Text>
         </View>
-      </View>
 
-      {/* Content */}
-      <View className="flex-1 px-4">
-        {/* Address Input */}
-        <View className="mt-6">
-          <Text className="text-gray-700 text-lg font-medium mb-2">
-            Address
-          </Text>
-          <TextInput
-            className="border border-gray-300 rounded-lg p-4"
-            placeholder="111/111 Road Street, Melbourne"
-            value={address}
-            onChangeText={setAddress}
-            autoFocus
-          />
-        </View>
-      </View>
+        <ScrollView className="flex-1 mt-8">
+          {/* Address Type */}
+          <View className="mb-4">
+            <Text className="text-white text-lg mb-2">Address Type</Text>
+            <View className="bg-white/10 rounded-xl p-4">
+              <TextInput
+                className="text-white text-lg"
+                placeholder="Home, Work, etc."
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                value={formData.type}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, type: text }))
+                }
+              />
+            </View>
+          </View>
 
-      {/* Next Button */}
-      <View className="px-4 py-4 border-t border-gray-200">
-        <TouchableOpacity
-          className={`rounded-lg py-4 items-center ${
-            address.trim() ? "bg-[#4A90E2]" : "bg-gray-200"
-          }`}
-          onPress={handleNext}
-          disabled={!address.trim()}
-        >
-          <Text
-            className={`font-medium ${
-              address.trim() ? "text-white" : "text-gray-500"
-            }`}
+          {/* Street Number */}
+          <View className="mb-4">
+            <Text className="text-white text-lg mb-2">Street Number *</Text>
+            <View className="bg-white/10 rounded-xl p-4">
+              <TextInput
+                className="text-white text-lg"
+                placeholder="123"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                value={formData.street_number}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, street_number: text }))
+                }
+              />
+            </View>
+          </View>
+
+          {/* Street Name */}
+          <View className="mb-4">
+            <Text className="text-white text-lg mb-2">Street Name *</Text>
+            <View className="bg-white/10 rounded-xl p-4">
+              <TextInput
+                className="text-white text-lg"
+                placeholder="Main Street"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                value={formData.street_name}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, street_name: text }))
+                }
+              />
+            </View>
+          </View>
+
+          {/* City */}
+          <View className="mb-4">
+            <Text className="text-white text-lg mb-2">City *</Text>
+            <View className="bg-white/10 rounded-xl p-4">
+              <TextInput
+                className="text-white text-lg"
+                placeholder="Melbourne"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                value={formData.city}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, city: text }))
+                }
+              />
+            </View>
+          </View>
+
+          {/* State */}
+          <View className="mb-4">
+            <Text className="text-white text-lg mb-2">State *</Text>
+            <View className="bg-white/10 rounded-xl p-4">
+              <TextInput
+                className="text-white text-lg"
+                placeholder="VIC"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                value={formData.state}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, state: text }))
+                }
+              />
+            </View>
+          </View>
+
+          {/* Postal Code */}
+          <View className="mb-4">
+            <Text className="text-white text-lg mb-2">Postal Code *</Text>
+            <View className="bg-white/10 rounded-xl p-4">
+              <TextInput
+                className="text-white text-lg"
+                placeholder="3000"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                value={formData.postal_code}
+                keyboardType="number-pad"
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, postal_code: text }))
+                }
+              />
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Submit Button */}
+        <View className="py-4">
+          <TouchableOpacity
+            className="bg-[#FF6B6B] rounded-xl p-4"
+            onPress={handleSubmit}
+            disabled={isLoading}
           >
-            Next
-          </Text>
-        </TouchableOpacity>
+            <Text className="text-white text-center text-lg font-semibold">
+              {isLoading ? "Saving..." : "Save Address"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );

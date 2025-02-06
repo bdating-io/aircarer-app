@@ -18,18 +18,26 @@ type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "HouseOwner";
 
 export default function CreateProfile() {
   const router = useRouter();
+  const { myProfile, setMyProfile } = useStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [abn, setAbn] = useState("");
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [backgroundCheck, setBackgroundCheck] = useState<string>("");
-  const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (myProfile) {
+      setFirstName(myProfile.first_name || "");
+      setLastName(myProfile.last_name || "");
+      setAbn(myProfile.abn || "");
+      setSelectedRole(myProfile.role || null);
+    }
+  }, [myProfile]);
 
   const createPersonalProfile = async (profileData: any) => {
     setIsLoading(true);
     try {
-      // 获取当前用户
       const {
         data: { user },
         error: userError,
@@ -39,7 +47,6 @@ export default function CreateProfile() {
         throw new Error("User not found");
       }
 
-      // 创建或更新用户档案
       const { data, error } = await supabase
         .from("profiles")
         .upsert({
@@ -74,13 +81,6 @@ export default function CreateProfile() {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    setFirstName(myProfile.first_name);
-    setLastName(myProfile.last_name);
-    setAbn(myProfile.abn);
-    setSelectedRole(myProfile.role);
-  }, []);
 
   const handleNext = async () => {
     if (!firstName || !lastName || !abn || !selectedRole) {

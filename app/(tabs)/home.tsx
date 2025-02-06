@@ -16,18 +16,24 @@ export default function Home() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean>(false);
+  const [hasAddress, setHasAddress] = useState<boolean>(false);
   const { myProfile, setMyProfile } = useStore();
   const [userEmail, setUserEmail] = useState<string>("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session?.user) {
+        checkProfile(session.user.id);
+        checkAddress(session.user.id);
+      }
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session?.user) {
         checkProfile(session.user.id);
+        checkAddress(session.user.id);
         setUserEmail(session.user.email || "");
       }
     });
@@ -41,6 +47,22 @@ export default function Home() {
       .single();
     setMyProfile(profile);
     setHasProfile(!!profile?.first_name);
+  };
+
+  // 检查地址
+  const checkAddress = async (userId: string) => {
+    const { data: address, error } = await supabase
+      .from("addresses")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error checking address:", error);
+      return;
+    }
+
+    setHasAddress(!!address);
   };
 
   const handleSignOut = async () => {
@@ -149,7 +171,41 @@ export default function Home() {
         </Text>
         <Text className="text-white opacity-80">{userEmail}</Text>
 
-        {myProfile?.role === "House Owner" ? (
+        {myProfile?.role === "Cleaner" && !hasAddress ? (
+          // Cleaner without address
+          <View className="mt-8 space-y-4">
+            <Text className="text-2xl text-white font-semibold">
+              Complete your profile to start working
+            </Text>
+            <TouchableOpacity
+              className="bg-[#FF6B6B] rounded-lg p-4"
+              onPress={() =>
+                router.push(
+                  "/(pages)/(profile)/(cleanerProfile)/cleanerProfile"
+                )
+              }
+            >
+              <Text className="text-white text-center text-lg font-semibold">
+                Add Your Address
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : myProfile?.role === "Cleaner" ? (
+          // Cleaner with address
+          <View className="mt-8 space-y-4">
+            <Text className="text-2xl text-white font-semibold">
+              Ready to work? Find tasks nearby.
+            </Text>
+            <TouchableOpacity
+              className="bg-[#FF6B6B] rounded-lg p-4"
+              // onPress={() => router.push("/(pages)/tasks/taskList")}
+            >
+              <Text className="text-white text-center text-lg font-semibold">
+                Browse Tasks
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : myProfile?.role === "HouseOwner" ? (
           // House Owner View
           <View className="mt-8 space-y-4">
             <Text className="text-2xl text-white font-semibold">
@@ -161,21 +217,6 @@ export default function Home() {
             >
               <Text className="text-white text-center text-lg font-semibold">
                 Post New Task
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : myProfile?.role === "Cleaner" ? (
-          // Cleaner View
-          <View className="mt-8 space-y-4">
-            <Text className="text-2xl text-white font-semibold">
-              Ready to work? Find tasks nearby.
-            </Text>
-            <TouchableOpacity
-              className="bg-[#FF6B6B] rounded-lg p-4"
-              // onPress={() => router.push("/(pages)/tasks/taskList")}
-            >
-              <Text className="text-white text-center text-lg font-semibold">
-                Browse Tasks
               </Text>
             </TouchableOpacity>
           </View>

@@ -127,46 +127,6 @@ export default function Login() {
     }
   };
 
-  // 替换原来的手机号输入部分
-  const renderPhoneInput = () => (
-    <View className="mb-4">
-      <PhoneInput
-        ref={phoneInput}
-        defaultValue={phone}
-        defaultCode="AU"
-        layout="first"
-        onChangeText={(text) => {
-          setPhone(text);
-        }}
-        onChangeFormattedText={(text) => {
-          setFormattedValue(text);
-        }}
-        withDarkTheme
-        withShadow
-        containerStyle={{
-          width: "100%",
-          backgroundColor: "rgba(255, 255, 255, 0.1)",
-          borderRadius: 8,
-        }}
-        textContainerStyle={{
-          backgroundColor: "transparent",
-        }}
-        textInputStyle={{
-          color: "white",
-        }}
-        codeTextStyle={{
-          color: "white",
-        }}
-        flagButtonStyle={{
-          backgroundColor: "transparent",
-        }}
-        countryPickerButtonStyle={{
-          backgroundColor: "transparent",
-        }}
-      />
-    </View>
-  );
-
   // 添加会话检查
   useEffect(() => {
     checkSession();
@@ -185,7 +145,7 @@ export default function Login() {
   return (
     <SafeAreaView className="flex-1 bg-[#4A90E2]">
       <View className="flex-1 px-6">
-        {/* Header */}
+        {/* Header with Back Button */}
         <View className="flex-row items-center pt-4">
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="white" />
@@ -200,44 +160,122 @@ export default function Login() {
           </Text>
         </View>
 
-        {/* Login Form */}
-        <View className="mt-12">
-          <View className="bg-white/10 rounded-xl p-4 mb-4">
-            <TextInput
-              className="text-white text-lg"
-              placeholder="Email"
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-          </View>
-
-          <View className="bg-white/10 rounded-xl p-4">
-            <TextInput
-              className="text-white text-lg"
-              placeholder="Password"
-              placeholderTextColor="rgba(255,255,255,0.7)"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
-          </View>
-
-          <TouchableOpacity className="mt-4">
-            <Text className="text-white text-right">Forgot password?</Text>
+        {/* Login Method Toggle */}
+        <View className="flex-row justify-center mt-8">
+          <TouchableOpacity
+            className={`px-6 py-2 rounded-l-xl ${
+              loginMethod === "email" ? "bg-white" : "bg-white/20"
+            }`}
+            onPress={() => setLoginMethod("email")}
+          >
+            <Text
+              className={
+                loginMethod === "email" ? "text-[#4A90E2]" : "text-white"
+              }
+            >
+              Email
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`px-6 py-2 rounded-r-xl ${
+              loginMethod === "phone" ? "bg-white" : "bg-white/20"
+            }`}
+            onPress={() => setLoginMethod("phone")}
+          >
+            <Text
+              className={
+                loginMethod === "phone" ? "text-[#4A90E2]" : "text-white"
+              }
+            >
+              Phone
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Login Button */}
+        {/* Login Form */}
+        <View className="mt-8">
+          {loginMethod === "email" ? (
+            // Email Login Form
+            <>
+              <View className="bg-white/10 rounded-xl p-4 mb-4">
+                <TextInput
+                  className="text-white text-lg"
+                  placeholder="Email"
+                  placeholderTextColor="rgba(255,255,255,0.7)"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
+              <View className="bg-white/10 rounded-xl p-4">
+                <TextInput
+                  className="text-white text-lg"
+                  placeholder="Password"
+                  placeholderTextColor="rgba(255,255,255,0.7)"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
+              </View>
+            </>
+          ) : (
+            // Phone Login Form
+            <>
+              <View className="mb-4">
+                <PhoneInput
+                  ref={phoneInput}
+                  defaultValue={phone}
+                  defaultCode="AU"
+                  layout="first"
+                  onChangeText={(text) => setPhone(text)}
+                  onChangeFormattedText={(text) => setFormattedValue(text)}
+                  containerStyle={{
+                    width: "100%",
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    borderRadius: 12,
+                  }}
+                  textContainerStyle={{
+                    backgroundColor: "transparent",
+                  }}
+                  textInputStyle={{
+                    color: "white",
+                  }}
+                  codeTextStyle={{
+                    color: "white",
+                  }}
+                />
+              </View>
+              {isCodeSent && (
+                <View className="bg-white/10 rounded-xl p-4">
+                  <TextInput
+                    className="text-white text-lg"
+                    placeholder="Verification Code"
+                    placeholderTextColor="rgba(255,255,255,0.7)"
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                    keyboardType="number-pad"
+                  />
+                </View>
+              )}
+            </>
+          )}
+        </View>
+
+        {/* Action Button */}
         <View className="mt-8">
           <TouchableOpacity
             className="bg-[#FF6B6B] rounded-xl p-4"
-            onPress={signInWithEmail}
+            onPress={
+              loginMethod === "email" ? signInWithEmail : handlePhoneLogin
+            }
           >
             <Text className="text-white text-center text-lg font-semibold">
-              Log in
+              {loginMethod === "email"
+                ? "Log in"
+                : isCodeSent
+                ? "Verify Code"
+                : "Send Code"}
             </Text>
           </TouchableOpacity>
         </View>

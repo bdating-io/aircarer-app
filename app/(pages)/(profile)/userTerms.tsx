@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,65 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "@/lib/supabase";
 
 export default function UserTerms() {
   const router = useRouter();
   const [isBottom, setIsBottom] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // 检查用户是否已同意条款
+  useEffect(() => {
+    checkTermsAcceptance();
+  }, []);
+
+  const checkTermsAcceptance = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("terms_accepted")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data?.terms_accepted) {
+        // 如果已同意条款，直接跳转到创建档案
+        router.replace("/(pages)/(profile)/createUserProfile");
+      }
+    } catch (error) {
+      console.error("Error checking terms:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAcceptTerms = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
+        terms_accepted: true,
+        terms_accepted_at: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      router.push("/(pages)/(profile)/createUserProfile");
+    } catch (error) {
+      console.error("Error accepting terms:", error);
+      Alert.alert("Error", "Failed to accept terms");
+    }
+  };
 
   const handleScroll = ({
     layoutMeasurement,
@@ -27,15 +82,15 @@ export default function UserTerms() {
     setIsBottom(isCloseToBottom);
   };
 
-  const handleAcceptTerms = () => {
-    // 模拟接受条款
-    Alert.alert("Success", "Terms accepted", [
-      {
-        text: "OK",
-        onPress: () => router.push("/(pages)/(profile)/createUserProfile"),
-      },
-    ]);
-  };
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
+        <View className="flex-1 justify-center items-center">
+          <Text>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
