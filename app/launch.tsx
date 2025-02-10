@@ -1,23 +1,32 @@
 // app/launch.tsx
-import { Stack, useRouter } from 'expo-router';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
-
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LaunchTaskPage() {
   const router = useRouter();
   const [taskTitle, setTaskTitle] = useState('');
 
-  const handleCreateTask = () => {
-    console.log('Task title:', taskTitle);
-    router.push('/placeDetails');
+  const handleCreateTask = async () => {
+    try {
+      // 1) Store the taskTitle in AsyncStorage
+      await AsyncStorage.setItem('TASK_TITLE', taskTitle);
+
+      console.log('Task title saved:', taskTitle);
+
+      // 2) Navigate to the next screen
+      router.push('/placeDetails');
+    } catch (error) {
+      console.error('Error saving task title to AsyncStorage:', error);
+    }
   };
 
   return (
     <>
-      {/* 通过 expo-router 的 <Stack.Screen /> 配置当前页面标题 */}
+      {/* Set screen title using expo-router's <Stack.Screen /> */}
       <Stack.Screen options={{ title: 'Create a task' }} />
-      
+
       <View style={{ flex: 1, backgroundColor: '#4E89CE', padding: 24 }}>
         <Text style={{ fontSize: 24, color: '#fff', fontWeight: 'bold' }}>
           Good day, username!
