@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import { AddressFormData, AustralianState } from "@/types/address";
 export default function AddressForm() {
   const router = useRouter();
   const [formData, setFormData] = useState<AddressFormData>({
-    type: "",
+    type: "USER_ADDRESS",
     street_number: "",
     street_name: "",
     city: "",
@@ -27,6 +27,41 @@ export default function AddressForm() {
     longitude: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        getAddress(session.user.id);
+      }
+    });
+  }, []);
+
+  const getAddress = async (userId: string) => {
+    const { data: address, error } = await supabase
+      .from("addresses")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("type", "USER_ADDRESS")
+      .single();
+
+    if (error) {
+      console.error("Error checking address:", error);
+      return;
+    }
+
+    setFormData({
+      type: "USER_ADDRESS",
+      street_number: address.street_number,
+      street_name: address.street_name,
+      city: address.city,
+      state: address.state,
+      postal_code: address.postal_code,
+      country: "Australia", // 默认值
+      latitude: address.latitude,
+      longitude: address.longitude
+    })
+  };
+
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -40,8 +75,8 @@ export default function AddressForm() {
       const { data, error } = await supabase
         .from("addresses")
         .upsert({
-          id: user.id,
-          type: formData.type,
+          user_id: user.id,
+          type: 'USER_ADDRESS',
           street_number: formData.street_number,
           street_name: formData.street_name,
           city: formData.city,
@@ -51,7 +86,8 @@ export default function AddressForm() {
           latitude: formData.latitude || null,
           longitude: formData.longitude || null,
           updated_at: new Date().toISOString(),
-        })
+        },
+        { onConflict: 'user_id,type' })
         .select()
         .single();
 
@@ -76,27 +112,11 @@ export default function AddressForm() {
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-xl font-semibold text-white ml-4">
-            Add Address
+            Enter your address
           </Text>
         </View>
 
         <ScrollView className="flex-1 mt-8">
-          {/* Address Type */}
-          <View className="mb-4">
-            <Text className="text-white text-lg mb-2">Address Type</Text>
-            <View className="bg-white/10 rounded-xl p-4">
-              <TextInput
-                className="text-white text-lg"
-                placeholder="Home, Work, etc."
-                placeholderTextColor="rgba(255,255,255,0.7)"
-                value={formData.type}
-                onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, type: text }))
-                }
-              />
-            </View>
-          </View>
-
           {/* Street Number */}
           <View className="mb-4">
             <Text className="text-white text-lg mb-2">Street Number *</Text>

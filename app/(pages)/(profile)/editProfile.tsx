@@ -34,7 +34,7 @@ export default function EditProfile() {
       if (!user) throw new Error("No user found");
 
       const updates = {
-        id: user.id,
+        user_id: user.id,
         ...formData,
         updated_at: new Date(),
       };

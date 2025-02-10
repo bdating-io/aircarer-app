@@ -118,6 +118,18 @@ export default function Account() {
             Log out
           </Text>
         </TouchableOpacity>
+
+        <View className="mt-8 space-y-4">
+          <TouchableOpacity
+              className="bg-[#FF6B6B] rounded-lg p-4 mt-8"
+              onPress={() => router.push("/(pages)/(profile)/userTerms")}
+            >
+              <Text className="text-white text-center text-lg font-semibold">
+                Update Profile test
+              </Text>
+            </TouchableOpacity>
+          </View>
+
       </View>
     </SafeAreaView>
   );

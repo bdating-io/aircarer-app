@@ -6,14 +6,54 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  Alert
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
+import { supabase } from "@/lib/supabase";
 
 export default function Pricing() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [hourlyRate, setHourlyRate] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const updateWorkPreferences= async(profileData: any )=>{
+    setIsLoading(true);
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("User not found");
+
+      const { data, error } = await supabase
+        .from("work_preferences")
+        .upsert({
+          user_id: user.id,
+          areas: profileData.workingAreas,
+          time: profileData.workingTime,
+          experience: profileData.experience,
+          pricing: profileData.pricing,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      Alert.alert("Success", "work preferences saved successfully!");
+      router.push("/account");
+     
+    } catch (error: any) {
+      console.error("Error saving work preferences:", error.message);
+      Alert.alert("Error", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const handleComplete = () => {
     if (!hourlyRate) return;
@@ -29,8 +69,9 @@ export default function Pricing() {
       },
     };
 
+    updateWorkPreferences(profileData);
+
     // 完成注册，跳转到主页或成功页面
-    router.push("../(tabs)/home");
   };
 
   return (
