@@ -8,6 +8,7 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="houseOwner" options={{ headerShown: false }} />
+      <Stack.Screen name="expectedPricing" options={{ headerShown: false }} />
     </Stack>
   );
 }

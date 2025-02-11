@@ -13,8 +13,7 @@ import {
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import useStore from "../../utils/store";
-
-type Role = "Laundry Partner" | "Supervisor" | "Cleaner" | "HouseOwner";
+import { ProfileData } from "@/types/type";
 
 export default function CreateProfile() {
   const router = useRouter();
@@ -22,7 +21,9 @@ export default function CreateProfile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [abn, setAbn] = useState("");
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [selectedRole, setSelectedRole] = useState<ProfileData["role"] | null>(
+    null
+  );
   const [backgroundCheck, setBackgroundCheck] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -107,14 +108,14 @@ export default function CreateProfile() {
             params: { profileData: JSON.stringify(profileData) },
           });
           break;
-        case "HouseOwner":
+        case "House Owner":
           router.push({
             pathname: "/(pages)/(profile)/(houseOwner)/houseOwner",
             params: { profileData: JSON.stringify(profileData) },
           });
           break;
         default:
-          router.push("/(tabs)/home");
+          router.push("/(pages)/(profile)/(houseOwner)/houseOwner");
       }
     } catch (error) {
       console.error("Navigation error:", error);
@@ -180,7 +181,7 @@ export default function CreateProfile() {
                 className={`w-[48%] p-4 rounded-lg mb-4 ${role.color} ${
                   selectedRole === role.id ? "border-2 border-blue-500" : ""
                 }`}
-                onPress={() => setSelectedRole(role.id as Role)}
+                onPress={() => setSelectedRole(role.id as ProfileData["role"])}
               >
                 <Text className="text-center text-2xl mb-2">{role.icon}</Text>
                 <Text className="text-center">{role.id}</Text>

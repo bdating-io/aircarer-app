@@ -206,7 +206,7 @@ export default function Home() {
               </Text>
             </TouchableOpacity>
           </View>
-        ) : myProfile?.role === "HouseOwner" ? (
+        ) : myProfile?.role === "House Owner" ? (
           // House Owner View
           <View className="mt-8 space-y-4">
             <Text className="text-2xl text-white font-semibold">

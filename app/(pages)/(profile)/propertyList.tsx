@@ -1,30 +1,62 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
+import { supabase } from "@/lib/supabase";
+
+interface Property {
+  id: string;
+  address: string;
+  bedrooms: string[];
+  pet_cleaning: boolean;
+  carpet_cleaning: boolean;
+  range_hood_cleaning: boolean;
+  oven_cleaning: boolean;
+  entry_method: string;
+}
 
 export default function PropertyList() {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const properties = [
-    {
-      address: "123 Oak st",
-      location: "Burwood, VIC, 3920",
-      details: "2 bedrooms, 2 bathrooms",
-    },
-    {
-      address: "123 Oak st",
-      location: "Burwood, VIC, 3920",
-      details: "2 bedrooms, 2 bathrooms",
-    },
-  ];
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  const fetchProperties = async () => {
+    try {
+      // 获取当前用户
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        Alert.alert("Error", "Please login first");
+        return;
+      }
+
+      // 获取用户的房源
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      setProperties(data || []);
+    } catch (error: any) {
+      Alert.alert("Error", error?.message || "Failed to fetch properties");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -39,40 +71,73 @@ export default function PropertyList() {
       </View>
 
       <ScrollView className="flex-1 px-4">
-        {/* Property Cards */}
-        {properties.map((property, index) => (
-          <View key={index} className="bg-gray-100 rounded-lg p-4 mb-4">
-            <Text className="text-lg font-semibold">{property.address}</Text>
-            <Text className="text-gray-600 mb-2">{property.location}</Text>
-            <View className="flex-row items-center">
-              <AntDesign name="home" size={16} color="gray" />
-              <Text className="text-gray-600 ml-2">{property.details}</Text>
+        {loading ? (
+          <Text className="text-center py-4">Loading...</Text>
+        ) : properties.length === 0 ? (
+          <Text className="text-center py-4">No properties found</Text>
+        ) : (
+          /* Property Cards */
+          properties.map((property) => (
+            <View key={property.id} className="bg-gray-100 rounded-lg p-4 mb-4">
+              <Text className="text-lg font-semibold">{property.address}</Text>
+              <Text className="text-gray-600 mb-2">
+                {property.bedrooms.length} bedroom(s)
+              </Text>
+              <View className="space-y-2">
+                {property.pet_cleaning && (
+                  <View className="flex-row items-center">
+                    <AntDesign name="check" size={16} color="green" />
+                    <Text className="text-gray-600 ml-2">Pet Cleaning</Text>
+                  </View>
+                )}
+                {property.carpet_cleaning && (
+                  <View className="flex-row items-center">
+                    <AntDesign name="check" size={16} color="green" />
+                    <Text className="text-gray-600 ml-2">Carpet Cleaning</Text>
+                  </View>
+                )}
+                {property.range_hood_cleaning && (
+                  <View className="flex-row items-center">
+                    <AntDesign name="check" size={16} color="green" />
+                    <Text className="text-gray-600 ml-2">
+                      Range Hood Cleaning
+                    </Text>
+                  </View>
+                )}
+                {property.oven_cleaning && (
+                  <View className="flex-row items-center">
+                    <AntDesign name="check" size={16} color="green" />
+                    <Text className="text-gray-600 ml-2">Oven Cleaning</Text>
+                  </View>
+                )}
+              </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
 
         {/* Add New Property Button */}
         <TouchableOpacity
           className="flex-row items-center justify-center border border-blue-500 rounded-lg p-4 mb-6"
-          onPress={() => router.back()}
+          onPress={() =>
+            router.push("/(pages)/(profile)/(houseOwner)/houseOwner")
+          }
         >
           <AntDesign name="plus" size={20} color="#4A90E2" />
           <Text className="text-blue-500 ml-2">Add New Property</Text>
         </TouchableOpacity>
-      </ScrollView>
 
-      {/* Next Button */}
-      <View className="px-4 py-4 border-t border-gray-200">
-        <TouchableOpacity
-          className="bg-[#4A90E2] rounded-full py-3 items-center"
-          onPress={() => {
-            // Handle completion
-            router.push("/(pages)/(profile)/(houseOwner)/houseOwner");
-          }}
-        >
-          <Text className="text-white font-medium">Next</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Next Button */}
+        <View className="px-4 py-4 border-t border-gray-200">
+          <TouchableOpacity
+            className="bg-[#4A90E2] rounded-full py-3 items-center"
+            onPress={() => {
+              router.push("/(pages)/(profile)/(houseOwner)/expectedPricing");
+            }}
+          >
+            <Text className="text-white font-semibold">Next</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

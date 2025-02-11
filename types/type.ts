@@ -12,7 +12,7 @@ export interface Profile {
   last_name: string;
   email: string;
   avatar_url?: string;
-  role: 'cleaner' | 'house_owner';
+  role: "cleaner" | "house_owner";
   terms_accepted: boolean;
   terms_accepted_at?: string;
   created_at: string;
