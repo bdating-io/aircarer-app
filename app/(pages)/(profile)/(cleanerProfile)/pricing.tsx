@@ -31,7 +31,7 @@ export default function Pricing() {
         .from("work_preferences")
         .upsert({
           user_id: user.id,
-          areas: profileData.workingAreas,
+          areas: {'distance':profileData.workDistance},
           time: profileData.workingTime,
           experience: profileData.experience,
           pricing: profileData.pricing,
