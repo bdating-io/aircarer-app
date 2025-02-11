@@ -1,20 +1,75 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  StyleSheet
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
+//import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Circle } from 'react-native-maps';
+import * as Location from 'expo-location';
+import useStore from "@/app/utils/store";
 
 export default function WorkingArea() {
+
   const router = useRouter();
+  const { myAddress } = useStore();
   const params = useLocalSearchParams();
-  const [workDistance, setWorkDistance] = useState(0);
- 
+  const [workDistance, setWorkDistance] = useState(10);
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [zoomDelta, setZoomDelta] = useState(0.2);
+
+  const geocodeAddress = async (address: string): Promise<{ latitude: number; longitude: number }> => {
+    const apiKey = process.env.GOOGLE_MAP_API_KEY;
+    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`);
+    const data = await response.json();
+    if (data.results.length > 0) {
+      const location = data.results[0].geometry.location;
+      return { latitude: location.lat, longitude: location.lng };
+    }
+    throw new Error('Address not found');
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+    map: {
+      width: '100%',
+      height: '70%',
+    },
+    slider: {
+      marginLeft: '14'
+    }
+  });
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.error('Permission to access location was denied');
+      }
+    })();
+
+    const fetchCoordinates = async () => {
+      try {
+        const coords = await geocodeAddress(`${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.post_code}, ${myAddress.country}`);
+        setCoordinates(coords);
+      
+      } catch (error) {
+        console.error('Error geocoding address:', error);
+      }
+    };
+
+    fetchCoordinates();
+
+  }, [params]);
 
   const handleNext = () => {
     if (!workDistance) return;
@@ -47,34 +102,58 @@ export default function WorkingArea() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-4">
+      <View className="flex-1 px-4">
         <Text className="text-gray-600 mt-6 mb-4">
           Set your preferred maximum working distance
         </Text>
-        <Text>{workDistance} KMs</Text>
-        <MultiSlider
-                        min={0}
-                        max={100}
-                        values={[workDistance]}
-                        onValuesChangeFinish={(v) => { setWorkDistance(v[0]) }}
-                        onValuesChange={(v) => { setWorkDistance(v[0]) }}
-                    />
-    
-      </ScrollView>
+
+        <View>
+          {coordinates && <MapView
+            style={styles.map}
+            region={{
+              latitude: coordinates.latitude,
+              longitude: coordinates.longitude,
+              latitudeDelta: zoomDelta,
+              longitudeDelta: zoomDelta,
+            }}
+            provider={undefined}
+          >
+            <Marker
+              coordinate={{
+                latitude: coordinates.latitude,
+                longitude: coordinates.longitude,
+              }}
+            />
+            <Circle center={{
+              latitude: coordinates.latitude,
+              longitude: coordinates.longitude,
+            }} 
+            radius={workDistance*1000} 
+            strokeColor="rgba(0,0,255,0.5)" // Red border
+            fillColor="rgba(0,0,255,0.2)" // Semi-transparent red fill
+            />
+          </MapView>}
+
+          <View style={styles.slider}>
+            <MultiSlider
+              min={3}
+              max={100}
+              values={[workDistance]}
+              onValuesChangeFinish={(v) => { setWorkDistance(v[0]) ; setZoomDelta(v[0]/50) }}
+              onValuesChange={(v) => { setWorkDistance(v[0]); setZoomDelta(v[0]/50)}}
+            />
+            <Text>{workDistance} KMs</Text>
+          </View>
+        </View>
+      </View>
 
       <View className="px-4 py-4 border-t border-gray-200">
         <TouchableOpacity
-          className={`rounded-lg py-4 items-center ${
-            workDistance > 0 ? "bg-[#4A90E2]" : "bg-gray-200"
-          }`}
+          className={`rounded-lg py-4 items-center ${workDistance > 0 ? "bg-[#4A90E2]" : "bg-gray-200"}`}
           onPress={handleNext}
           disabled={workDistance < 0}
         >
-          <Text
-            className={`font-medium ${
-              workDistance > 0 ? "text-white" : "text-gray-500"
-            }`}
-          >
+          <Text className={`font-medium ${workDistance > 0 ? "text-white" : "text-gray-500"}`}>
             Next
           </Text>
         </TouchableOpacity>
