@@ -14,25 +14,29 @@ import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
 import useStore from "@/app/utils/store";
+import { supabase, SUPABASE_URL } from "@/lib/supabase";
 
 export default function WorkingArea() {
 
   const router = useRouter();
-  const { myAddress } = useStore();
+  const { myAddress, mySession } = useStore();
   const params = useLocalSearchParams();
   const [workDistance, setWorkDistance] = useState(10);
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
   const [zoomDelta, setZoomDelta] = useState(0.2);
+  // const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
 
   const geocodeAddress = async (address: string): Promise<{ latitude: number; longitude: number }> => {
-    const apiKey = process.env.GOOGLE_MAP_API_KEY;
-    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`);
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/geodecode`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${mySession.access_token}`,
+    },
+    body: JSON.stringify({address: address}),
+    });
     const data = await response.json();
-    if (data.results.length > 0) {
-      const location = data.results[0].geometry.location;
-      return { latitude: location.lat, longitude: location.lng };
-    }
-    throw new Error('Address not found');
+    return data;
   };
 
   const styles = StyleSheet.create({
@@ -49,27 +53,33 @@ export default function WorkingArea() {
     }
   });
 
+  const fetchCoordinatesFromMyAddress = async () => {
+    try {
+      const coords = await geocodeAddress(`${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.post_code}, ${myAddress.country}`);
+      setCoordinates(coords);
+    
+    } catch (error) {
+      setCoordinates({longitude:0, latitude:0});
+      console.error('Error geocoding address:', error);
+    }
+  };
+
+
   useEffect(() => {
-    (async () => {
+    // For getting users current location
+   /* (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         console.error('Permission to access location was denied');
       }
+      let location = await Location.getCurrentPositionAsync({});
+      // setCurrentLocation(location); TODO: give option to use current or arbitrary location on map as center
     })();
+  */
+  
+    fetchCoordinatesFromMyAddress();
 
-    const fetchCoordinates = async () => {
-      try {
-        const coords = await geocodeAddress(`${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.post_code}, ${myAddress.country}`);
-        setCoordinates(coords);
-      
-      } catch (error) {
-        console.error('Error geocoding address:', error);
-      }
-    };
-
-    fetchCoordinates();
-
-  }, [params]);
+  }, []);
 
   const handleNext = () => {
     if (!workDistance) return;
@@ -97,7 +107,7 @@ export default function WorkingArea() {
             <AntDesign name="left" size={24} color="black" />
           </TouchableOpacity>
           <Text className="text-xl font-semibold ml-4">
-            Select Working Areas
+            Select Working Area
           </Text>
         </View>
       </View>

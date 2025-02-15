@@ -13,17 +13,18 @@ import useStore from '../../utils/store';
 
 export default function Home() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean>(false);
-  const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
+  const { myProfile, setMyProfile, 
+          mySession, setMySession } 
+          = useStore();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+      setMySession(session);
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      setMySession(session);
       if (session?.user) {
         checkProfile(session.user.id);
       }
@@ -47,9 +48,9 @@ export default function Home() {
         {/* Logo and Title Section */}
         <View className="items-center mb-8">
           <Text className="text-white text-3xl font-bold">AirCarer</Text>
-          {session ? (
+          {mySession ? (
             <Text className="text-gray-400 mt-2">
-              Welcome, {myProfile?.first_name} you have signed in as {session.user.email}， create your
+              Welcome, {myProfile?.first_name} you have signed in as {mySession.user.email}， create your
               profile now to get started.
             </Text>
           ) : (
@@ -58,7 +59,7 @@ export default function Home() {
         </View>
 
         {/* Login/Signup Buttons */}
-        {!session ? (
+        {!mySession ? (
           <View className="w-full space-y-4 mt-8">
             <TouchableOpacity
               className="w-full bg-[#4A90E2] rounded-xl py-4"
@@ -79,7 +80,7 @@ export default function Home() {
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity
+         <TouchableOpacity
             className="w-full bg-[#4A90E2] rounded-xl py-4"
             onPress={() => supabase.auth.signOut()}
           >

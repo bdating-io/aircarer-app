@@ -9,20 +9,18 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import useStore from '../../utils/store';
 
 export default function Welcome() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
 
   useEffect(() => {
-    setNickname( myProfile.first_name);
-  }, []);
+    myProfile && myProfile.first_name && setNickname( myProfile.first_name);
+  }, [myProfile]);
   
   const handleContinue = async () => {
     if (!nickname.trim()) return;
@@ -110,10 +108,10 @@ export default function Welcome() {
 
         <TouchableOpacity
           className={`bg-[#4A90E2] rounded-xl py-4 ${
-            !myProfile.first_name.trim() ? "opacity-50" : ""
+            !nickname?.trim() ? "opacity-50" : ""
           }`}
           onPress={handleContinue}
-          disabled={!myProfile.first_name.trim()}
+          disabled={!nickname.trim()}
         >
           <Text className="text-white text-center font-semibold">Continue</Text>
         </TouchableOpacity>

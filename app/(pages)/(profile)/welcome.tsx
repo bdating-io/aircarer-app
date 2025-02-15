@@ -9,13 +9,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import useStore from "../../utils/store";
 
 export default function Welcome() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
