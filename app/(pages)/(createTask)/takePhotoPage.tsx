@@ -93,10 +93,10 @@ export default function TakePhotoWizard() {
   // 下一步
   const handleNext = () => {
     // 简单的必填校验
-    // if (!currentRoomData.instruction.trim()) {
-    //   Alert.alert('Error', 'Task instruction is compulsory for this room.');
-    //   return;
-    // }
+    if (!currentRoomData.instruction.trim()) {
+      Alert.alert('Error', 'Task instruction is compulsory for this room.');
+      return;
+    }
     // 如果还没到最后一个房间，则切换到下一个
     if (currentRoomIndex < roomList.length - 1) {
       setCurrentRoomIndex(currentRoomIndex + 1);

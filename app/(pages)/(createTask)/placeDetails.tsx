@@ -8,9 +8,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+<<<<<<< HEAD:app/(pages)/(createTask)/placeDetails.tsx
 import { Button } from 'react-native-paper';
 import { mockProperties, IProperty } from '../../mockData/mockData'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+=======
+import { Button } from 'react-native-paper';  // 如果想保留 paper 的按钮样式可继续使用
+import { mockProperties, IProperty } from '../mockData/mockData'; 
+>>>>>>> parent of ab556a4 (updated):app/placeDetails.tsx
 
 export default function PlaceDetails() {
   const router = useRouter();
@@ -23,13 +28,13 @@ export default function PlaceDetails() {
   const [cleaningLevel, setCleaningLevel] = useState('');
   const [equipmentProvided, setEquipmentProvided] = useState<'tasker' | 'owner'>('tasker');
 
-  // Control the open/close state for each dropdown
+  // 下面三个状态分别控制每个下拉菜单的打开/关闭
   const [propertyOpen, setPropertyOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
   const [levelOpen, setLevelOpen] = useState(false);
 
-  // Save data to AsyncStorage and navigate
-  const handleSubmit = async () => {
+  // 点击“Next”按钮
+  const handleSubmit = () => {
     const payload = {
       selectedPropertyId: selectedProperty?.id || null,
       cleaningType,
@@ -38,15 +43,6 @@ export default function PlaceDetails() {
     };
     console.log('Form data:', payload);
 
-    try {
-      // Save the payload in AsyncStorage under the key PLACE_DETAILS
-      await AsyncStorage.setItem('PLACE_DETAILS', JSON.stringify(payload));
-      console.log('PLACE_DETAILS saved to AsyncStorage!');
-    } catch (error) {
-      console.error('Error saving PLACE_DETAILS:', error);
-    }
-
-    // Navigate to dateSelection
     router.push({
       pathname: '/dateSelection',
       params: { propertyId: selectedProperty?.id },
@@ -81,6 +77,7 @@ export default function PlaceDetails() {
                 key={propertyItem.id}
                 style={styles.dropdownItem}
                 onPress={() => {
+                  // 直接将整条数据赋给 selectedProperty
                   setSelectedProperty(propertyItem);
                   setPropertyOpen(false);
                 }}
@@ -198,7 +195,7 @@ export default function PlaceDetails() {
         </Button>
       </View>
 
-      {/* Next Button */}
+      
       <TouchableOpacity
         onPress={handleSubmit}
         style={{
@@ -215,7 +212,6 @@ export default function PlaceDetails() {
   );
 }
 
-// ===================== STYLES =====================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -241,7 +237,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 
-  // ====== Dropdown Styles ======
+  // ====== 自定义下拉框的相关样式 ======
   dropdownWrapper: {
     marginBottom: 16,
   },
@@ -264,9 +260,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderColor: '#ccc',
     borderWidth: 1,
-    borderTopWidth: 0,
+    borderTopWidth: 0, // 让下拉菜单与按钮衔接
     borderRadius: 4,
-    marginTop: -1,
+    marginTop: -1, // 去除与触发按钮的边缝
   },
   dropdownItem: {
     paddingHorizontal: 12,
@@ -279,23 +275,29 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 
-  // ====== Buttons ======
+  // ====== 下面是按钮的关键样式 ======
   buttonBase: {
+    // 取消 flex:1 避免文字被压缩
+    // 或者可改成固定宽度/最小宽度来保证不截断
     minWidth: 150,
     marginHorizontal: 4,
   },
   selectedButton: {
+    // 被选中（Contained）的按钮底色
     backgroundColor: '#4E89CE',
   },
   unselectedButton: {
+    // 未选中（Outlined）按钮的描边颜色（在 paper v5+ 可以自动处理）
     borderColor: '#4E89CE',
     borderWidth: 1,
   },
   selectedLabel: {
+    // Contained 按钮文本颜色
     color: '#fff',
     fontSize: 14,
   },
   unselectedLabel: {
+    // Outlined 按钮文本颜色
     color: '#000',
     fontSize: 14,
   },

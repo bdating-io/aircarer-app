@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+<<<<<<< HEAD:app/(pages)/(createTask)/specialRequestPage.tsx
 import { useBookingContext } from '../../components/BookingContext';
+=======
+>>>>>>> parent of ab556a4 (updated):app/specialRequestPage.tsx
 
 export default function SpecialRequestPage() {
   const router = useRouter();
-  const { bookingData, setSpecialRequests } = useBookingContext();
 
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
   const [customRequest, setCustomRequest] = useState('');
@@ -33,8 +35,12 @@ export default function SpecialRequestPage() {
       return;
     }
 
-    // Store in the global context
-    setSpecialRequests(selectedRequests, customRequest.trim());
+    const requestData = {
+      selectedRequests,
+      customRequest: customRequest.trim(),
+    };
+
+    console.log('Special Request Data:', requestData);
 
     // 跳转到下一页
     router.push('/budgetPage');
