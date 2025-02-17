@@ -14,7 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import TimePickerModal from '../components/TimePickerModal/TimePickerModal'; 
+import TimePickerModal from '../../../components/TimePickerModal/TimePickerModal'; 
 
 type DateObject = {
   dateString: string;

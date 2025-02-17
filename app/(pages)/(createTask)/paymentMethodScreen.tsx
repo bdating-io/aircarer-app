@@ -7,8 +7,8 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import styles from "../styles/styles"; 
-import NextButton from "../styles/nextButton";
+import styles from "../../../styles/styles"; 
+import NextButton from "../../../styles/nextButton";
 
 const PaymentMethodScreen = ({ navigation }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);

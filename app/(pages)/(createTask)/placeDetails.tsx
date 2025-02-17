@@ -9,7 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Button } from 'react-native-paper';
-import { mockProperties, IProperty } from '../mockData/mockData'; 
+import { mockProperties, IProperty } from '../../../mockData/mockData'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PlaceDetails() {

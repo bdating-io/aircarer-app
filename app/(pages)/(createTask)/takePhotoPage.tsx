@@ -4,10 +4,10 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 
 // 如果分文件写PhotoGrid, 这里import
-import PhotoGrid from '../components/PhotoGrid';
+import PhotoGrid from '../../../components/PhotoGrid';
 
 // 引入 mockData
-import { mockProperties, IProperty } from '../mockData/mockData';
+import { mockProperties, IProperty } from '../../../mockData/mockData';
 
 export default function TakePhotoWizard() {
   const router = useRouter();
