@@ -87,6 +87,42 @@ function RootLayoutNav() {
         name="pages/profile/cleanerProfile/skills.tsx"
         options={{ headerShown: true }}
       />
+            <Stack.Screen
+        name="pages/createTask/index.tsx"
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="pages/createTask/budgetPage.tsx"
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="pages/createTask/dateSelection.tsx"
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="pages/createTask/launch.tsx"
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="pages/createTask/paymentMethodScreen.tsx"
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="pages/createTask/placeDetails.tsx"
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="pages/createTask/recyclingPage.tsx"
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="pages/createTask/specialRequestPage.tsx"
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="pages/createTask/takePhotoPage.tsx"
+        options={{ headerShown: true }}
+      />
     </Stack>
   );
 }
