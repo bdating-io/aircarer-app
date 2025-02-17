@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, TouchableOpacity, View, Text } from 'react-native';
-import { Colors } from '../../../../config';
+// import { Colors } from '../../../../config';
 import { TEXT_INPUT_HEIGHT, AM_PM_SWITCHER_WIDTH, TIME_LABEL } from './constants';
 
 

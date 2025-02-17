@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useBookingContext } from '../components/BookingContext';
+import { useBookingContext } from '../../components/BookingContext';
 
 export default function SpecialRequestPage() {
   const router = useRouter();

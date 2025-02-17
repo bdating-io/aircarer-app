@@ -9,8 +9,8 @@ import {
   Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useBookingContext } from '../components/BookingContext';
-import { calculateCleaningPrice } from '../utilities/priceCalculator';
+import { useBookingContext } from '../../components/BookingContext';
+import { calculateCleaningPrice } from '../../utilities/priceCalculator';
 
 export default function BudgetPage() {
   const router = useRouter();

@@ -2,13 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, Text, StyleSheet } from 'react-native';
 import { TextInputMask } from 'react-native-masked-text';
-import { Colors } from '../../../../config';
+// import { Colors } from '../../../../config';
 import AmPmSwitcher from './AmPmSwitcher';
 import {
   TEXT_INPUT_HEIGHT, TEXT_INPUT_WIDTH, HOUR_MINUTE_SEPARATOR_WIDTH,
   INPUT_SWITCHER_SEPARATOR_WIDTH, DEFAULT_TIME_VALUE, HOUR_HELPER_TEXT, MINUTE_HELPER_TEXT
 } from './constants';
-import { FuncUtils } from '../../../../utills';
+// import { FuncUtils } from '../../../../utills';
 
 const TimeInputUIComponent = (props) => {
   const { subTitle, hourRef, minuteRef, hourValue, minuteValue, is_selected_am,

@@ -7,10 +7,12 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import styles from "../styles/styles"; 
-import NextButton from "../styles/nextButton";
+import styles from "../../styles/styles"; 
+import NextButton from "../../styles/nextButton";
 
-const PaymentMethodScreen = ({ navigation }) => {
+import { NavigationProp } from "@react-navigation/native";
+
+const PaymentMethodScreen = ({ navigation }: { navigation: NavigationProp<any> }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("Add new payment method");
 
@@ -20,7 +22,7 @@ const PaymentMethodScreen = ({ navigation }) => {
     { id: "3", label: "PayPal" },
   ];
 
-  const handleSelectMethod = (method) => {
+  const handleSelectMethod = (method: string) => {
     setSelectedMethod(method);
     setDropdownOpen(false);
   };
