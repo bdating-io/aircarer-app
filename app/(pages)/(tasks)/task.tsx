@@ -8,26 +8,29 @@ import {
   Modal,
   Platform,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
 import * as Linking from "expo-linking";
 import * as Location from "expo-location";
+import { supabase } from "../../../lib/supabase";
+import { format } from "date-fns";
 
-interface TaskData {
-  id: string;
-  title: string;
-  requester: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  date: string;
-  time: string;
-  price: number;
-  description: string;
-  status: "pending" | "confirmed" | "started" | "completed";
-}
+type Task = {
+  task_id: number;
+  task_type: "Quick Cleaning" | "Regular Cleaning" | "Deep Cleaning";
+  estimated_price: number;
+  confirmed_price: number | null;
+  status: "Pending" | "In Progress" | "Completed" | "Cancelled";
+  payment_status: "Not Paid" | "Paid";
+  scheduled_start_time: string;
+  actual_start_time: string | null;
+  completion_time: string | null;
+  approval_status: "Pending" | "Approved" | "Rejected";
+  address: string;
+  latitude: number;
+  longitude: number;
+};
 
 const getOrdinalSuffix = (day: number) => {
   if (day > 3 && day < 21) return "th";
@@ -43,128 +46,120 @@ const getOrdinalSuffix = (day: number) => {
   }
 };
 
+const MELBOURNE_BOUNDS = {
+  latitude: {
+    min: -37.8869,
+    max: -37.7869,
+  },
+  longitude: {
+    min: 144.9,
+    max: 145.0,
+  },
+};
+
+const getRandomLocation = () => ({
+  latitude:
+    MELBOURNE_BOUNDS.latitude.min +
+    Math.random() *
+      (MELBOURNE_BOUNDS.latitude.max - MELBOURNE_BOUNDS.latitude.min),
+  longitude:
+    MELBOURNE_BOUNDS.longitude.min +
+    Math.random() *
+      (MELBOURNE_BOUNDS.longitude.max - MELBOURNE_BOUNDS.longitude.min),
+});
+
 export default function Task() {
   const router = useRouter();
+  const { id } = useLocalSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [task, setTask] = useState<Task | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showReminderModal, setShowReminderModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [taskStatus, setTaskStatus] = useState<TaskData["status"]>("pending");
   const [userLocation, setUserLocation] =
     useState<Location.LocationObject | null>(null);
   const [hasArrived, setHasArrived] = useState(false);
+  const randomLocation = getRandomLocation();
 
-  // 模拟任务数据
-  const mockTask: TaskData = {
-    id: "task-001",
-    title: "Task Title",
-    requester: "Requester",
-    location: {
-      latitude: -33.8688,
-      longitude: 151.2093,
-    },
-    date: "2025-02-12",
-    time: "12:00",
-    price: 150,
-    description: "Task description goes here...",
-    status: "pending",
-  };
-
-  // 检查是否在24小时内和4小时内
-  const taskDate = new Date(`${mockTask.date}T${mockTask.time}`);
-  const now = new Date();
-  const timeDiff = taskDate.getTime() - now.getTime();
-  const isWithin24Hours = timeDiff > 0 && timeDiff <= 24 * 60 * 60 * 1000;
-  const isWithin4Hours = timeDiff > 0 && timeDiff <= 4 * 60 * 60 * 1000;
-
-  // 检查位置权限并开始监听位置
+  // 获取任务数据
   useEffect(() => {
-    if (taskStatus === "started") {
-      (async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          console.log("Permission to access location was denied");
-          return;
-        }
+    const fetchTask = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("tasks")
+          .select("*")
+          .eq("task_id", id)
+          .single();
 
-        // 开始监听位置
-        const locationSubscription = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.High,
-            distanceInterval: 10, // 每10米更新一次
-          },
-          (location) => {
-            setUserLocation(location);
-            checkIfArrived(location);
-          }
-        );
+        if (error) throw error;
+        setTask(data);
+      } catch (error) {
+        console.error("Error fetching task:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        return () => {
-          locationSubscription.remove();
-        };
-      })();
-    }
-  }, [taskStatus]);
-
-  // 检查是否到达目的地（距离小于50米）
-  const checkIfArrived = (location: Location.LocationObject) => {
-    const distance = getDistance(
-      location.coords.latitude,
-      location.coords.longitude,
-      mockTask.location.latitude,
-      mockTask.location.longitude
-    );
-    if (distance <= 50) {
-      // 50米范围内
-      setHasArrived(true);
-    }
-  };
-
-  // 计算两点之间的距离（米）
-  const getDistance = (
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ) => {
-    const R = 6371e3; // 地球半径（米）
-    const φ1 = (lat1 * Math.PI) / 180;
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-    const a =
-      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-  };
+    fetchTask();
+  }, [id]);
 
   // 处理确认按钮
-  const handleConfirm = () => {
-    console.log("Confirming task...");
-    setTaskStatus("confirmed");
-    setShowConfirmModal(false);
+  const handleConfirm = async () => {
+    if (!task) return;
 
-    // 如果在4小时内，显示提醒
-    if (isWithin4Hours) {
-      console.log("Within 4 hours, showing reminder...");
-      setShowReminderModal(true);
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ status: "In Progress" })
+        .eq("task_id", task.task_id);
+
+      if (error) throw error;
+
+      setTask((prev) => (prev ? { ...prev, status: "In Progress" } : null));
+      setShowConfirmModal(false);
+    } catch (error) {
+      console.error("Error confirming task:", error);
+    }
+  };
+
+  // 处理取消按钮
+  const handleCancel = async () => {
+    if (!task) return;
+
+    try {
+      // 更新任务状态为 Cancelled
+      const { error } = await supabase
+        .from("tasks")
+        .update({
+          status: "Cancelled",
+          date_updated: new Date().toISOString(),
+        })
+        .eq("task_id", task.task_id);
+
+      if (error) {
+        console.error("Error cancelling task:", error);
+        return;
+      }
+
+      // 关闭取消确认弹窗
+      setShowCancelModal(false);
+
+      // 返回到任务列表页面
+      router.back();
+    } catch (error) {
+      console.error("Error cancelling task:", error);
     }
   };
 
   // 处理开始按钮
   const handleStart = () => {
-    console.log("Starting task...");
-    setTaskStatus("started");
+    if (!task) return;
 
-    // 打开地图导航
-    const { latitude, longitude } = mockTask.location;
-    // 对于 iOS 使用 Apple Maps，Android 使用 Google Maps
     const scheme = Platform.select({ ios: "maps:", android: "geo:" });
+    const latLng = `${task.latitude},${task.longitude}`;
+    const label = encodeURIComponent(task.address);
     const url = Platform.select({
-      ios: `${scheme}${latitude},${longitude}`,
-      android: `${scheme}${latitude},${longitude}?q=${latitude},${longitude}`,
+      ios: `${scheme}?q=${latLng}&ll=${latLng}&label=${label}`,
+      android: `${scheme}${latLng}?q=${latLng}(${label})`,
     });
 
     Linking.openURL(url as string).catch((err) =>
@@ -172,68 +167,23 @@ export default function Task() {
     );
   };
 
-  // 处理取消按钮
-  const handleCancel = () => {
-    setShowCancelModal(true);
-  };
-
-  // 确认取消任务
-  const confirmCancel = () => {
-    console.log("Cancelling task...");
-    // 这里可以添加取消任务的API调用
-    router.back(); // 返回上一页
-  };
-
-  // 修改底部按钮逻辑
-  const renderBottomButtons = () => {
-    if (!isWithin24Hours) {
-      return (
-        <TouchableOpacity
-          className="bg-[#4A90E2] py-3 rounded items-center"
-          onPress={handleCancel}
-        >
-          <Text className="text-white font-medium">Cancel</Text>
-        </TouchableOpacity>
-      );
-    }
-
+  if (loading) {
     return (
-      <View className="flex-row space-x-4">
-        <TouchableOpacity
-          className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
-          onPress={handleCancel}
-        >
-          <Text className="text-white font-medium">Cancel</Text>
-        </TouchableOpacity>
-        {taskStatus === "pending" && (
-          <TouchableOpacity
-            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
-            onPress={() => setShowConfirmModal(true)}
-          >
-            <Text className="text-white font-medium">Confirm</Text>
-          </TouchableOpacity>
-        )}
-        {taskStatus === "confirmed" && (
-          <TouchableOpacity
-            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
-            onPress={handleStart}
-          >
-            <Text className="text-white font-medium">Start</Text>
-          </TouchableOpacity>
-        )}
-        {taskStatus === "started" && hasArrived && (
-          <TouchableOpacity
-            className="flex-1 bg-green-500 py-3 rounded items-center"
-            onPress={() => setTaskStatus("completed")}
-          >
-            <Text className="text-white font-medium">Confirm Arrival</Text>
-          </TouchableOpacity>
-        )}
+      <View className="flex-1 justify-center items-center">
+        <Text>Loading...</Text>
       </View>
     );
-  };
+  }
 
-  const date = new Date(mockTask.date);
+  if (!task) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text>Task not found</Text>
+      </View>
+    );
+  }
+
+  const date = new Date(task.scheduled_start_time);
   const day = date.getDate();
   const month = date.toLocaleDateString("en-US", { month: "short" });
 
@@ -250,59 +200,89 @@ export default function Task() {
       </View>
 
       <ScrollView className="flex-1">
-        {/* Task Info */}
-        <View className="p-4">
-          <Text className="text-lg">{mockTask.title}</Text>
-          <View className="flex-row items-center mt-1">
-            <AntDesign name="user" size={16} color="gray" />
-            <Text className="text-gray-600 ml-2">{mockTask.requester}</Text>
-          </View>
-        </View>
-
         {/* Map */}
-        <View className="h-[180px]">
+        <View className="h-[200px]">
           <MapView
             style={{ flex: 1 }}
             initialRegion={{
-              ...mockTask.location,
-              latitudeDelta: 0.005,
-              longitudeDelta: 0.005,
+              latitude: task.latitude,
+              longitude: task.longitude,
+              latitudeDelta: 0.02,
+              longitudeDelta: 0.02,
             }}
           >
-            <Marker coordinate={mockTask.location} />
+            <Marker
+              coordinate={{
+                latitude: task.latitude,
+                longitude: task.longitude,
+              }}
+              title={task.address}
+            />
           </MapView>
         </View>
 
-        {/* Date and Price */}
-        <View className="p-4 flex-row items-center justify-between">
-          <View className="flex-row items-center">
+        {/* Task Info */}
+        <View className="p-4">
+          <Text className="text-lg font-bold">{task.task_type}</Text>
+          <View className="flex-row items-center mt-2">
             <AntDesign name="calendar" size={16} color="gray" />
             <Text className="text-gray-600 ml-2">
-              On {month} {day}
-              {getOrdinalSuffix(day)}
+              {format(
+                new Date(task.scheduled_start_time),
+                "MMM dd, yyyy HH:mm"
+              )}
             </Text>
           </View>
-          <Text className="text-xl font-bold">${mockTask.price}AUD</Text>
+          <View className="flex-row items-center mt-2">
+            <AntDesign name="enviromento" size={16} color="gray" />
+            <Text className="text-gray-600 ml-2">{task.address}</Text>
+          </View>
         </View>
 
-        {/* Description */}
-        <View className="px-4">
-          <Text className="text-gray-600">{mockTask.description}</Text>
+        {/* Status and Price */}
+        <View className="p-4 flex-row justify-between items-center bg-gray-50">
+          <View>
+            <Text className="text-gray-500">Status</Text>
+            <Text className="text-lg font-semibold mt-1">{task.status}</Text>
+          </View>
+          <View>
+            <Text className="text-gray-500">Price</Text>
+            <Text className="text-lg font-semibold mt-1">
+              ${task.confirmed_price || task.estimated_price}
+            </Text>
+          </View>
         </View>
 
-        {/* Property Photos */}
-        <View className="p-4">
-          <Text className="font-medium mb-2">Property Photos</Text>
-          <View className="h-40 bg-gray-100 rounded" />
+        {/* Bottom Buttons */}
+        <View className="p-4 mt-auto">
+          <View className="flex-row space-x-4">
+            <TouchableOpacity
+              className="flex-1 bg-red-500 py-3 rounded items-center"
+              onPress={() => setShowCancelModal(true)}
+            >
+              <Text className="text-white font-medium">Cancel</Text>
+            </TouchableOpacity>
+            {task.status === "Pending" && (
+              <TouchableOpacity
+                className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
+                onPress={() => setShowConfirmModal(true)}
+              >
+                <Text className="text-white font-medium">Confirm</Text>
+              </TouchableOpacity>
+            )}
+            {task.status === "In Progress" && (
+              <TouchableOpacity
+                className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
+                onPress={handleStart}
+              >
+                <Text className="text-white font-medium">Start</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </ScrollView>
 
-      {/* Bottom Buttons */}
-      <View className="p-4 border-t border-gray-200">
-        {renderBottomButtons()}
-      </View>
-
-      {/* Confirmation Modal */}
+      {/* Modals */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -311,10 +291,9 @@ export default function Task() {
       >
         <View className="flex-1 bg-black/50 justify-center items-center">
           <View className="bg-white p-4 rounded-lg w-[90%]">
-            <Text className="text-lg">Attendance confirmation</Text>
+            <Text className="text-lg">Confirm Task</Text>
             <Text className="text-gray-600 my-4">
-              This is confirmation that you will attend this cleaning task for
-              time {mockTask.time} tomorrow {mockTask.date}
+              Are you sure you want to confirm this task?
             </Text>
             <View className="flex-row justify-end space-x-6">
               <TouchableOpacity onPress={() => setShowConfirmModal(false)}>
@@ -328,33 +307,6 @@ export default function Task() {
         </View>
       </Modal>
 
-      {/* 4-Hour Reminder Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showReminderModal}
-        onRequestClose={() => setShowReminderModal(false)}
-      >
-        <View className="flex-1 bg-black/50 justify-center items-center">
-          <View className="bg-white p-4 rounded-lg w-[90%]">
-            <Text className="text-lg">Task Reminding</Text>
-            <Text className="text-gray-600 my-4">
-              This is reminding that this cleaning task is about to start in 4
-              hours. Please open GPS and moving to the place
-            </Text>
-            <View className="flex-row justify-end space-x-6">
-              <TouchableOpacity onPress={() => setShowReminderModal(false)}>
-                <Text className="text-red-500">No</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowReminderModal(false)}>
-                <Text className="text-[#4A90E2]">Yes</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Cancel Confirmation Modal */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -365,15 +317,14 @@ export default function Task() {
           <View className="bg-white p-4 rounded-lg w-[90%]">
             <Text className="text-lg">Cancel Task</Text>
             <Text className="text-gray-600 my-4">
-              Are you sure you want to cancel this task? This action cannot be
-              undone.
+              Are you sure you want to cancel this task?
             </Text>
             <View className="flex-row justify-end space-x-6">
               <TouchableOpacity onPress={() => setShowCancelModal(false)}>
                 <Text className="text-[#4A90E2]">No</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={confirmCancel}>
-                <Text className="text-red-500">Yes, Cancel</Text>
+              <TouchableOpacity onPress={handleCancel}>
+                <Text className="text-red-500">Yes</Text>
               </TouchableOpacity>
             </View>
           </View>
