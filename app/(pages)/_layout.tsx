@@ -10,6 +10,7 @@ function RootLayoutNav() {
       <Stack.Screen name="authentication" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="account" options={{ headerShown: false }} />
+      <Stack.Screen name="createTask" options={{ headerShown: false }} />
     </Stack>
   );
 }
