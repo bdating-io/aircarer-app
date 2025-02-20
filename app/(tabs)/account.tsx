@@ -42,7 +42,7 @@ export default function Account() {
     {
       title: "Payment Options",
       icon: "card-outline",
-      // onPress: () => router.push("/pages/account/payment"),
+      onPress: () => router.push("/(pages)/(account)/(payment)/payment"),
     },
     {
       title: "Notifications",
@@ -121,15 +121,14 @@ export default function Account() {
 
         <View className="mt-8 space-y-4">
           <TouchableOpacity
-              className="bg-[#FF6B6B] rounded-lg p-4 mt-8"
-              onPress={() => router.push("/(pages)/(profile)/userTerms")}
-            >
-              <Text className="text-white text-center text-lg font-semibold">
-                Update Profile test
-              </Text>
-            </TouchableOpacity>
-          </View>
-
+            className="bg-[#FF6B6B] rounded-lg p-4 mt-8"
+            onPress={() => router.push("/(pages)/(profile)/userTerms")}
+          >
+            <Text className="text-white text-center text-lg font-semibold">
+              Update Profile test
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
