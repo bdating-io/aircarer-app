@@ -214,7 +214,7 @@ export default function Home() {
             </Text>
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-lg p-4"
-              // onPress={() => router.push("/(pages)/tasks/createTask")}
+              onPress={() => router.push('/placeDetails')}
             >
               <Text className="text-white text-center text-lg font-semibold">
                 Post New Task
