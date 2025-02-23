@@ -49,9 +49,9 @@ export default function Layout() {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="launch"
         options={{
-          title: "Chat",
+          title: "Tasks",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} source={icons.chat} />
