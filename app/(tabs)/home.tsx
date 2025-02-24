@@ -103,7 +103,7 @@ export default function Home() {
 
       // 拿到自动生成的 task_id
       const newTaskId = data.task_id;
-      Alert.alert("Task Created!", `Task ID = ${newTaskId}`);
+      Alert.alert("Task Created!", `Task ID = ${newTaskId}`); // 弹出提示可之后删除
 
       // 跳转到 placeDetails 页面，传递 taskId 参数
       router.push(`/(pages)/(createTask)/placeDetails?taskId=${newTaskId}`);
