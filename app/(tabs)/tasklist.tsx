@@ -34,15 +34,23 @@ export default function TaskList() {
   // 获取任务列表
   const fetchTasks = async () => {
     try {
+      // 获取当前用户ID
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      // 获取该清洁工的已确认任务
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
         .eq("is_confirmed", true)
+        .eq("cleaner_id", user.id) // 只获取属于当前清洁工的任务
         .neq("status", "Cancelled")
         .order("scheduled_start_time", { ascending: true });
 
       if (error) throw error;
-
       setTasks(data || []);
     } catch (error) {
       console.error("Error fetching tasks:", error);

@@ -5,18 +5,31 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { format } from "date-fns";
 import { AntDesign } from "@expo/vector-icons";
 
+// 定义任务类型
 type Task = {
   task_id: number;
+  customer_id: string;
   task_type: string;
   estimated_price: number;
+  confirmed_price: number | null;
+  status: string;
+  payment_status: string;
   scheduled_start_time: string;
+  actual_start_time: string | null;
+  completion_time: string | null;
   address: string;
+  latitude: number;
+  longitude: number;
+  is_confirmed: boolean;
+  cleaner_id: string | null;
+  approval_status: string;
 };
 
 export default function Opportunity() {
@@ -27,17 +40,24 @@ export default function Opportunity() {
 
   const fetchTasks = async () => {
     try {
+      console.log("Fetching tasks...");
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .eq("is_confirmed", false) // 获取未确认的任务
-        .neq("status", "Cancelled")
+        .eq("is_confirmed", false)
+        .eq("status", "Pending")
+        .is("cleaner_id", null)
         .order("scheduled_start_time", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching tasks:", error);
+        throw error;
+      }
+
+      console.log("Fetched tasks:", data);
       setTasks(data || []);
     } catch (error) {
-      console.error("Error fetching tasks:", error);
+      console.error("Error in fetchTasks:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -55,46 +75,51 @@ export default function Opportunity() {
 
   const renderTask = ({ item }: { item: Task }) => (
     <TouchableOpacity
-      className="bg-white p-4 mb-4 rounded-lg shadow"
+      style={styles.taskCard}
       onPress={() => router.push(`/(pages)/(tasks)/task?id=${item.task_id}`)}
     >
-      <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-lg font-semibold">{item.task_type}</Text>
-        <Text className="text-[#4A90E2]">${item.estimated_price}</Text>
+      <View style={styles.taskHeader}>
+        <Text style={styles.taskType}>{item.task_type}</Text>
+        <Text style={styles.price}>${item.estimated_price}</Text>
       </View>
 
-      <View className="flex-row items-center mb-2">
+      <View style={styles.taskInfo}>
         <AntDesign name="calendar" size={16} color="gray" />
-        <Text className="text-gray-600 ml-2">
+        <Text style={styles.infoText}>
           {format(new Date(item.scheduled_start_time), "MMM dd, yyyy HH:mm")}
         </Text>
       </View>
 
-      <View className="flex-row items-center">
+      <View style={styles.taskInfo}>
         <AntDesign name="enviromento" size={16} color="gray" />
-        <Text className="text-gray-600 ml-2" numberOfLines={1}>
+        <Text style={styles.infoText} numberOfLines={1}>
           {item.address}
         </Text>
+      </View>
+
+      <View style={styles.taskInfo}>
+        <AntDesign name="tag" size={16} color="gray" />
+        <Text style={styles.statusText}>Status: {item.status}</Text>
       </View>
     </TouchableOpacity>
   );
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center">
+      <View style={styles.centerContainer}>
         <Text>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <View className="bg-[#4A90E2] p-4">
-        <Text className="text-white text-lg font-semibold">Opportunities</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Available Tasks</Text>
       </View>
 
       <FlatList
-        className="p-4"
+        style={styles.list}
         data={tasks}
         renderItem={renderTask}
         keyExtractor={(item) => item.task_id.toString()}
@@ -102,11 +127,84 @@ export default function Opportunity() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View className="flex-1 justify-center items-center py-8">
-            <Text className="text-gray-500">No opportunities available</Text>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No tasks available</Text>
           </View>
         }
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  header: {
+    backgroundColor: "#4A90E2",
+    padding: 16,
+    paddingTop: 60,
+  },
+  headerText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  list: {
+    padding: 16,
+  },
+  taskCard: {
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  taskHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  taskType: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  price: {
+    fontSize: 18,
+    color: "#4A90E2",
+    fontWeight: "600",
+  },
+  taskInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  infoText: {
+    marginLeft: 8,
+    color: "#666",
+    flex: 1,
+  },
+  statusText: {
+    marginLeft: 8,
+    color: "#666",
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyContainer: {
+    padding: 24,
+    alignItems: "center",
+  },
+  emptyText: {
+    color: "#666",
+    fontSize: 16,
+  },
+});

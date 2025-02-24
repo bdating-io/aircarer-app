@@ -108,11 +108,24 @@ export default function Task() {
     if (!task) return;
 
     try {
+      // 获取当前用户ID
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        console.error("Error getting user:", userError);
+        return;
+      }
+
+      // 更新任务，添加 cleaner_id
       const { error } = await supabase
         .from("tasks")
         .update({
           is_confirmed: true,
           status: "Pending",
+          cleaner_id: user.id, // 添加 cleaner_id
           date_updated: new Date().toISOString(),
         })
         .eq("task_id", task.task_id);
