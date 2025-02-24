@@ -20,6 +20,9 @@ export default function Home() {
   const { myProfile, setMyProfile } = useStore();
   const [userEmail, setUserEmail] = useState<string>("");
 
+  // 存放 Task Title 的本地状态
+  const [taskTitle, setTaskTitle] = useState<string>("");
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -77,6 +80,37 @@ export default function Home() {
       Alert.alert("Error signing out", (error as Error).message);
     }
     router.push("/(tabs)/home");
+  };
+
+  // 创建 Task 并跳转
+  const handleCreateTask = async () => {
+    if (!session?.user) {
+      Alert.alert("Not logged in", "Please log in first.");
+      return;
+    }
+    try {
+      // 向 tasks 表插入一条记录
+      const { data, error } = await supabase
+        .from("tasks")
+        .insert({
+          customer_id: session.user.id,
+          task_title: taskTitle, // 这里改成 task_title
+        })
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      // 拿到自动生成的 task_id
+      const newTaskId = data.task_id;
+      Alert.alert("Task Created!", `Task ID = ${newTaskId}`);
+
+      // 跳转到 placeDetails 页面，传递 taskId 参数
+      router.push(`/(pages)/(createTask)/placeDetails?taskId=${newTaskId}`);
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Failed to create task");
+    }
   };
 
   // 如果没有登录，显示登录界面
@@ -181,9 +215,7 @@ export default function Home() {
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-lg p-4"
               onPress={() =>
-                router.push(
-                  "/(pages)/(profile)/(cleanerProfile)/cleanerProfile"
-                )
+                router.push("/(pages)/(profile)/(cleanerProfile)/cleanerProfile")
               }
             >
               <Text className="text-white text-center text-lg font-semibold">
@@ -212,14 +244,26 @@ export default function Home() {
             <Text className="text-2xl text-white font-semibold">
               Need cleaning service? Post a task now.
             </Text>
-            <TouchableOpacity
-              className="bg-[#FF6B6B] rounded-lg p-4"
-              onPress={() => router.push('/placeDetails')}
-            >
-              <Text className="text-white text-center text-lg font-semibold">
-                Post New Task
-              </Text>
-            </TouchableOpacity>
+
+            {/* 输入框 + 创建按钮 */}
+            {/* 改成与背景相同的蓝色，去掉白色框 */}
+            <View className="bg-[#4A90E2] p-4 rounded-lg">
+              <TextInput
+                className="bg-gray-100 px-3 py-2 rounded"
+                placeholder="Enter your task title"
+                value={taskTitle}
+                onChangeText={setTaskTitle}
+              />
+
+              <TouchableOpacity
+                className="bg-[#FF6B6B] rounded-lg p-4 mt-4"
+                onPress={handleCreateTask}
+              >
+                <Text className="text-white text-center text-lg font-semibold">
+                  Create Task
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           // Default View or Loading State
