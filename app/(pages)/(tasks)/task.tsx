@@ -7,6 +7,7 @@ import {
   ScrollView,
   Modal,
   Platform,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -14,7 +15,7 @@ import MapView, { Marker } from "react-native-maps";
 import * as Linking from "expo-linking";
 import * as Location from "expo-location";
 import { supabase } from "../../../lib/supabase";
-import { format } from "date-fns";
+import { format, differenceInHours, addHours } from "date-fns";
 
 type Task = {
   task_id: number;
@@ -80,6 +81,9 @@ export default function Task() {
     useState<Location.LocationObject | null>(null);
   const [hasArrived, setHasArrived] = useState(false);
   const randomLocation = getRandomLocation();
+  const [canCheckIn, setCanCheckIn] = useState(false);
+  const [hasCheckedIn, setHasCheckedIn] = useState(false);
+  const [distanceToTask, setDistanceToTask] = useState<number | null>(null);
 
   // 获取任务数据
   useEffect(() => {
@@ -119,25 +123,37 @@ export default function Task() {
         return;
       }
 
-      // 更新任务，添加 cleaner_id
+      // 更新任务状态
       const { error } = await supabase
         .from("tasks")
         .update({
           is_confirmed: true,
-          status: "Pending",
-          cleaner_id: user.id, // 添加 cleaner_id
+          status: "In Progress", // 更改状态为进行中
+          cleaner_id: user.id,
           date_updated: new Date().toISOString(),
         })
         .eq("task_id", task.task_id);
 
       if (error) {
         console.error("Error accepting task:", error);
+        Alert.alert("Error", "Failed to accept task. Please try again.");
         return;
       }
 
-      router.back();
+      // 成功接受任务后显示提示
+      Alert.alert(
+        "Success",
+        "Task accepted successfully! You will receive reminders before the task.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]
+      );
     } catch (error) {
       console.error("Error accepting task:", error);
+      Alert.alert("Error", "Failed to accept task. Please try again.");
     }
   };
 
@@ -174,18 +190,163 @@ export default function Task() {
   const handleStart = () => {
     if (!task) return;
 
-    const scheme = Platform.select({ ios: "maps:", android: "geo:" });
+    const address = encodeURIComponent(task.address);
     const latLng = `${task.latitude},${task.longitude}`;
-    const label = encodeURIComponent(task.address);
+
+    // 根据平台选择不同的导航 URL
     const url = Platform.select({
-      ios: `${scheme}?q=${latLng}&ll=${latLng}&label=${label}`,
-      android: `${scheme}${latLng}?q=${latLng}(${label})`,
+      ios: `maps://app?daddr=${address}&ll=${latLng}`,
+      android: `google.navigation:q=${latLng}&mode=d`, // mode=d 表示驾驶模式
     });
 
-    Linking.openURL(url as string).catch((err) =>
-      console.error("An error occurred", err)
-    );
+    // 尝试打开导航
+    Linking.canOpenURL(url as string).then((supported) => {
+      if (supported) {
+        Linking.openURL(url as string);
+      } else {
+        // 如果无法打开默认导航，尝试打开 Google Maps
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latLng}&travelmode=driving`;
+        Linking.openURL(googleMapsUrl).catch((err) => {
+          console.error("Error opening navigation:", err);
+          Alert.alert("Navigation Error", "Could not open navigation app");
+        });
+      }
+    });
   };
+
+  // 计算两点之间的距离（公里）
+  const calculateDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ) => {
+    const R = 6371; // 地球半径（公里）
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // 检查是否可以签到
+  const checkIfCanCheckIn = async () => {
+    if (!task) return;
+
+    const taskTime = new Date(task.scheduled_start_time);
+    const now = new Date();
+    const hoursUntilTask = differenceInHours(taskTime, now);
+
+    // 只有在任务开始前4小时内才能签到
+    if (hoursUntilTask <= 4 && hoursUntilTask > 0) {
+      setCanCheckIn(true);
+    }
+  };
+
+  // 处理签到
+  const handleCheckIn = async () => {
+    try {
+      // 请求位置权限
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission denied",
+          "Location permission is required for check-in"
+        );
+        return;
+      }
+
+      // 获取当前位置
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      if (!task) return;
+
+      // 计算与任务地点的距离
+      const distance = calculateDistance(
+        latitude,
+        longitude,
+        task.latitude,
+        task.longitude
+      );
+
+      setDistanceToTask(distance);
+
+      // 检查距离是否在10公里以内
+      if (distance > 10) {
+        Alert.alert(
+          "Location Check Failed",
+          "You are too far from the task location. Please check in when you are closer."
+        );
+        return;
+      }
+
+      // 更新任务状态
+      const { error } = await supabase
+        .from("tasks")
+        .update({
+          check_in_time: new Date().toISOString(),
+          check_in_latitude: latitude,
+          check_in_longitude: longitude,
+        })
+        .eq("task_id", task.task_id);
+
+      if (error) throw error;
+
+      setHasCheckedIn(true);
+      Alert.alert("Success", "Check-in successful!");
+
+      // 发送通知给客户
+      // TODO: 实现通知功能
+    } catch (error) {
+      console.error("Error during check-in:", error);
+      Alert.alert("Error", "Failed to check in. Please try again.");
+    }
+  };
+
+  // 设置提醒
+  useEffect(() => {
+    if (!task) return;
+
+    const taskTime = new Date(task.scheduled_start_time);
+    const now = new Date();
+
+    // 24小时提醒
+    const reminder24h = setTimeout(() => {
+      Alert.alert(
+        "Task Reminder",
+        "Please check your cleaning tools and supplies for tomorrow's task."
+      );
+    }, Math.max(0, taskTime.getTime() - now.getTime() - 24 * 60 * 60 * 1000));
+
+    // 4小时提醒（签到开启）
+    const reminder4h = setTimeout(() => {
+      setCanCheckIn(true);
+      Alert.alert(
+        "Check-in Available",
+        "You can now check in for your upcoming task."
+      );
+    }, Math.max(0, taskTime.getTime() - now.getTime() - 4 * 60 * 60 * 1000));
+
+    // 2小时提醒
+    const reminder2h = setTimeout(() => {
+      Alert.alert(
+        "Task Approaching",
+        "Your task will start in 2 hours. Please ensure you're prepared."
+      );
+    }, Math.max(0, taskTime.getTime() - now.getTime() - 2 * 60 * 60 * 1000));
+
+    return () => {
+      clearTimeout(reminder24h);
+      clearTimeout(reminder4h);
+      clearTimeout(reminder2h);
+    };
+  }, [task]);
 
   if (loading) {
     return (
@@ -252,6 +413,31 @@ export default function Task() {
           </TouchableOpacity>
         )}
       </View>
+    );
+  };
+
+  // 渲染签到按钮
+  const renderCheckInButton = () => {
+    if (!canCheckIn) return null;
+    if (hasCheckedIn) {
+      return (
+        <View className="bg-green-100 p-4 rounded-lg mb-4">
+          <Text className="text-green-700">Checked in successfully</Text>
+          {distanceToTask && (
+            <Text className="text-green-700">
+              Distance to task: {distanceToTask.toFixed(2)} km
+            </Text>
+          )}
+        </View>
+      );
+    }
+    return (
+      <TouchableOpacity
+        className="bg-[#4A90E2] p-4 rounded-lg mb-4"
+        onPress={handleCheckIn}
+      >
+        <Text className="text-white text-center font-semibold">Check In</Text>
+      </TouchableOpacity>
     );
   };
 
@@ -323,6 +509,9 @@ export default function Task() {
 
         {/* Bottom Buttons */}
         <View className="p-4 mt-auto">{renderButtons()}</View>
+
+        {/* Check-in Button */}
+        {renderCheckInButton()}
       </ScrollView>
 
       {/* Modals */}

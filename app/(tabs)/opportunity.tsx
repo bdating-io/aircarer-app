@@ -44,9 +44,6 @@ export default function Opportunity() {
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .eq("is_confirmed", false)
-        .eq("status", "Pending")
-        .is("cleaner_id", null)
         .order("scheduled_start_time", { ascending: true });
 
       if (error) {
