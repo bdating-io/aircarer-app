@@ -1,7 +1,8 @@
 import { icons } from "@/constants/icons";
 import { Tabs } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Image } from "react-native";
+import { supabase } from "../../lib/supabase";
 
 const TabIcon = ({ focused, source }: { focused: boolean; source: any }) => {
   return (
@@ -17,6 +18,32 @@ const TabIcon = ({ focused, source }: { focused: boolean; source: any }) => {
 };
 
 export default function Layout() {
+  const [userRole, setUserRole] = useState<"cleaner" | "owner" | null>(null);
+
+  useEffect(() => {
+    checkUserRole();
+  }, []);
+
+  const checkUserRole = async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      setUserRole(data.role);
+    } catch (error) {
+      console.error("Error checking user role:", error);
+    }
+  };
+
   return (
     <Tabs
       initialRouteName="home"
@@ -48,16 +75,31 @@ export default function Layout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="launch"
-        options={{
-          title: "Tasks",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.chat} />
-          ),
-        }}
-      />
+
+      {userRole === "cleaner" ? (
+        <Tabs.Screen
+          name="opportunity"
+          options={{
+            title: "Opportunities",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} source={icons.chat} />
+            ),
+          }}
+        />
+      ) : (
+        <Tabs.Screen
+          name="launch"
+          options={{
+            title: "Post Task",
+            headerShown: false,
+            tabBarIcon: ({ focused }) => (
+              <TabIcon focused={focused} source={icons.chat} />
+            ),
+          }}
+        />
+      )}
+
       <Tabs.Screen
         name="account"
         options={{
@@ -68,6 +110,7 @@ export default function Layout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="profile"
         options={{

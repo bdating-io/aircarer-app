@@ -37,6 +37,7 @@ export default function TaskList() {
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
+        .eq("is_confirmed", true)
         .neq("status", "Cancelled")
         .order("scheduled_start_time", { ascending: true });
 
@@ -166,13 +167,6 @@ export default function TaskList() {
           </View>
         }
       />
-
-      <TouchableOpacity
-        className="absolute bottom-6 right-6 bg-blue-500 w-14 h-14 rounded-full items-center justify-center shadow-lg"
-        onPress={() => router.push("/(pages)/(tasks)/task")}
-      >
-        <AntDesign name="plus" size={24} color="white" />
-      </TouchableOpacity>
     </View>
   );
 }

@@ -30,6 +30,7 @@ type Task = {
   address: string;
   latitude: number;
   longitude: number;
+  is_confirmed: boolean;
 };
 
 const getOrdinalSuffix = (day: number) => {
@@ -103,21 +104,27 @@ export default function Task() {
   }, [id]);
 
   // 处理确认按钮
-  const handleConfirm = async () => {
+  const handleAccept = async () => {
     if (!task) return;
 
     try {
       const { error } = await supabase
         .from("tasks")
-        .update({ status: "In Progress" })
+        .update({
+          is_confirmed: true,
+          status: "Pending",
+          date_updated: new Date().toISOString(),
+        })
         .eq("task_id", task.task_id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error accepting task:", error);
+        return;
+      }
 
-      setTask((prev) => (prev ? { ...prev, status: "In Progress" } : null));
-      setShowConfirmModal(false);
+      router.back();
     } catch (error) {
-      console.error("Error confirming task:", error);
+      console.error("Error accepting task:", error);
     }
   };
 
@@ -187,6 +194,54 @@ export default function Task() {
   const day = date.getDate();
   const month = date.toLocaleDateString("en-US", { month: "short" });
 
+  const renderButtons = () => {
+    if (!task.is_confirmed) {
+      return (
+        <View className="flex-row space-x-4">
+          <TouchableOpacity
+            className="flex-1 bg-gray-500 py-3 rounded items-center"
+            onPress={() => router.back()}
+          >
+            <Text className="text-white font-medium">Decline</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
+            onPress={handleAccept}
+          >
+            <Text className="text-white font-medium">Accept</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View className="flex-row space-x-4">
+        <TouchableOpacity
+          className="flex-1 bg-red-500 py-3 rounded items-center"
+          onPress={() => setShowCancelModal(true)}
+        >
+          <Text className="text-white font-medium">Cancel</Text>
+        </TouchableOpacity>
+        {task.status === "Pending" && (
+          <TouchableOpacity
+            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
+            onPress={() => setShowConfirmModal(true)}
+          >
+            <Text className="text-white font-medium">Start</Text>
+          </TouchableOpacity>
+        )}
+        {task.status === "In Progress" && (
+          <TouchableOpacity
+            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
+            onPress={handleStart}
+          >
+            <Text className="text-white font-medium">Navigate</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
@@ -254,32 +309,7 @@ export default function Task() {
         </View>
 
         {/* Bottom Buttons */}
-        <View className="p-4 mt-auto">
-          <View className="flex-row space-x-4">
-            <TouchableOpacity
-              className="flex-1 bg-red-500 py-3 rounded items-center"
-              onPress={() => setShowCancelModal(true)}
-            >
-              <Text className="text-white font-medium">Cancel</Text>
-            </TouchableOpacity>
-            {task.status === "Pending" && (
-              <TouchableOpacity
-                className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
-                onPress={() => setShowConfirmModal(true)}
-              >
-                <Text className="text-white font-medium">Confirm</Text>
-              </TouchableOpacity>
-            )}
-            {task.status === "In Progress" && (
-              <TouchableOpacity
-                className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
-                onPress={handleStart}
-              >
-                <Text className="text-white font-medium">Start</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        <View className="p-4 mt-auto">{renderButtons()}</View>
       </ScrollView>
 
       {/* Modals */}
@@ -299,7 +329,7 @@ export default function Task() {
               <TouchableOpacity onPress={() => setShowConfirmModal(false)}>
                 <Text className="text-red-500">No</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleConfirm}>
+              <TouchableOpacity onPress={handleAccept}>
                 <Text className="text-[#4A90E2]">Yes</Text>
               </TouchableOpacity>
             </View>
