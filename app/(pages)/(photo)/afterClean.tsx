@@ -8,9 +8,10 @@ import {
   Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../../../lib/supabase"; // 确保路径正确
+import { supabase } from "../../../lib/supabase";
 import { useRouter } from "expo-router";
 import * as FileSystem from "expo-file-system";
+import { v4 as uuidv4 } from "uuid"; // 需要安装: npm install uuid
 
 export default function BeforeClean() {
   const router = useRouter();
@@ -21,30 +22,19 @@ export default function BeforeClean() {
     bathroom: null,
   });
 
-  // 📌 获取当前用户 ID，并在手机端显示
+  // 📌 获取当前用户 ID
   const getUser = async () => {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) {
       Alert.alert("Authentication Error", "User not authenticated");
       throw new Error("User not authenticated");
     }
-    console.log("User ID:", user.id);
     return user.id;
   };
 
   // 📌 处理图片上传
   const handleUpload = async (room) => {
     try {
-      const permissionResult =
-        Platform.OS === "web"
-          ? true
-          : await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (permissionResult?.granted === false) {
-        Alert.alert("Permission Required", "Permission to access media is required.");
-        return;
-      }
-
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -56,16 +46,17 @@ export default function BeforeClean() {
       const imageUri = pickerResult.assets[0].uri;
       const fileName = `${room}-${Date.now()}.jpg`;
 
-      console.log(`Uploading ${fileName} from ${imageUri}`);
-
-      // **转换 `file://` 为 Base64**
+      // **读取文件数据**
       const file = await FileSystem.readAsStringAsync(imageUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
+      // **转换 Base64 为 Blob**
+      const fileBuffer = Buffer.from(file, "base64");
+
       const { data, error } = await supabase.storage
         .from("cleaning-photos")
-        .upload(fileName, file, { contentType: "image/jpeg" });
+        .upload(fileName, fileBuffer, { contentType: "image/jpeg" });
 
       if (error) {
         Alert.alert("Upload Failed", "There was an issue uploading the image.");
@@ -73,15 +64,14 @@ export default function BeforeClean() {
         return;
       }
 
-      const { data: publicUrl } = supabase.storage
-        .from("cleaning-photos")
-        .getPublicUrl(fileName);
+      // **获取图片 URL**
+      const publicUrl = supabase.storage.from("cleaning-photos").getPublicUrl(fileName).data.publicUrl;
 
-      console.log("Uploaded Image URL:", publicUrl.publicUrl);
+      console.log("Uploaded Image URL:", publicUrl);
 
       setUploadedImages((prev) => ({
         ...prev,
-        [room]: publicUrl.publicUrl,
+        [room]: publicUrl,
       }));
 
       Alert.alert("Upload Success", "Image uploaded successfully!");
@@ -95,17 +85,21 @@ export default function BeforeClean() {
   // 📌 处理确认提交
   const handleConfirm = async () => {
     try {
-      const userId = await getUser(); // 🔹 先获取用户 ID
+      const userId = await getUser();
+      const taskId = uuidv4(); // ✅ 生成 UUID 作为 task_id
 
-      // 🔹 获取 `task_id`（确保不为空）
-      let taskId = Date.now();
-
-      console.log("Final Task ID:", taskId);
-      console.log("User ID:", userId);
+      // **确保所有图片都已上传**
+      const requiredFields = ["livingRoom", "bedroom", "kitchen", "bathroom"];
+      for (let field of requiredFields) {
+        if (!uploadedImages[field]) {
+          Alert.alert("Error", `Please upload a photo for ${field}.`);
+          return;
+        }
+      }
 
       const { error } = await supabase.from("cleaning_tasks").insert([
         {
-          task_id: taskId, // 🔹 确保 task_id 不是 null
+          task_id: taskId,
           user_id: userId, 
           living_room_photo: uploadedImages.livingRoom,
           bedroom_photo: uploadedImages.bedroom,

@@ -556,7 +556,7 @@ export default function Task() {
                 <Text className="text-[#4A90E2]">No</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleCancel}>
+              <TouchableOpacity onPress={() => router.push("/(pages)/(photo)/beforeClean")}>
                 <Text className="text-red-500">Yes</Text>
               </TouchableOpacity>
 
