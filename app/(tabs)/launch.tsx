@@ -29,10 +29,10 @@ export default function LaunchTaskPage() {
 
       <View style={{ flex: 1, backgroundColor: '#4E89CE', padding: 24 }}>
         <Text style={{ fontSize: 24, color: '#fff', fontWeight: 'bold' }}>
-          Good day, username!
+          Good day, adam
         </Text>
         <Text style={{ fontSize: 18, color: '#fff', marginBottom: 16 }}>
-          Need a hand? We’ve got you covered.
+      
         </Text>
 
         <View style={{ backgroundColor: '#fff', borderRadius: 8, marginBottom: 12 }}>
@@ -53,6 +53,9 @@ export default function LaunchTaskPage() {
             Get it done!
           </Text>
         </TouchableOpacity>
+
+
+        
       </View>
     </>
   );

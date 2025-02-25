@@ -531,7 +531,7 @@ export default function Task() {
               <TouchableOpacity onPress={() => setShowConfirmModal(false)}>
                 <Text className="text-red-500">No</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleAccept}>
+              <TouchableOpacity onPress={() => router.push("/(pages)/(photo)/task")}>
                 <Text className="text-[#4A90E2]">Yes</Text>
               </TouchableOpacity>
             </View>
@@ -555,9 +555,13 @@ export default function Task() {
               <TouchableOpacity onPress={() => setShowCancelModal(false)}>
                 <Text className="text-[#4A90E2]">No</Text>
               </TouchableOpacity>
+
               <TouchableOpacity onPress={handleCancel}>
                 <Text className="text-red-500">Yes</Text>
               </TouchableOpacity>
+
+              
+              
             </View>
           </View>
         </View>
