@@ -1,17 +1,10 @@
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-} from "react-native";
-import { Link, useRouter } from "expo-router";
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from "react-native";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { format } from "date-fns";
 import { AntDesign } from "@expo/vector-icons";
 
-// 定义任务类型
 type Task = {
   task_id: number;
   task_type: "Quick Cleaning" | "Regular Cleaning" | "Deep Cleaning";
@@ -35,19 +28,18 @@ export default function TaskList() {
   const fetchTasks = async () => {
     try {
       // 获取当前用户ID
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Alert.alert("Error", "No user logged in.");
+        setLoading(false);
+        return;
+      }
 
-      if (!user) return;
-
-      // 获取该清洁工的已确认任务
+      // 获取属于当前顾客(customer_id = user.id)的全部任务
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .eq("is_confirmed", true)
-        .eq("cleaner_id", user.id) // 只获取属于当前清洁工的任务
-        .neq("status", "Cancelled")
+        .eq("customer_id", user.id)
         .order("scheduled_start_time", { ascending: true });
 
       if (error) throw error;
@@ -64,7 +56,48 @@ export default function TaskList() {
     fetchTasks();
   }, []);
 
-  // 获取任务状态的颜色
+  // 用于刷新
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchTasks();
+  };
+
+  // 删除任务
+  const handleDeleteTask = async (taskId: number) => {
+    Alert.alert(
+      "Delete Task",
+      "Are you sure you want to delete this task?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from("tasks")
+                .delete()
+                .eq("task_id", taskId);
+
+              if (error) throw error;
+              Alert.alert("Success", "Task deleted!");
+              fetchTasks();
+            } catch (err: any) {
+              Alert.alert("Error", err.message);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // 编辑任务
+  const handleEditTask = (taskId: number) => {
+    // 跳转到编辑页面
+    router.push(`/editTask?taskId=${taskId}`);
+  };
+
+  // 获取任务状态的颜色 (Tailwind classes or inline)
   const getStatusColor = (status: Task["status"]) => {
     switch (status) {
       case "Pending":
@@ -96,52 +129,73 @@ export default function TaskList() {
 
   // 渲染单个任务项
   const renderTask = ({ item }: { item: Task }) => (
-    <TouchableOpacity
-      className="bg-white p-4 mb-2 rounded-lg shadow-sm"
-      onPress={() =>
-        router.push({
-          pathname: "/(pages)/(tasks)/task",
-          params: { id: item.task_id },
-        })
-      }
-    >
-      <View className="flex-row justify-between items-center">
-        <View className="flex-1">
-          <View className="flex-row items-center">
-            <AntDesign
-              name={getTaskTypeIcon(item.task_type)}
-              size={20}
-              color="#4A90E2"
-              style={{ marginRight: 8 }}
-            />
-            <Text className="text-lg font-semibold">{item.task_type}</Text>
-          </View>
-          <Text className="text-gray-600 mt-1">
-            {format(new Date(item.scheduled_start_time), "MMM dd, yyyy HH:mm")}
-          </Text>
-          {item.approval_status !== "Approved" && (
-            <Text className="text-orange-500 text-sm mt-1">
-              Pending Approval
+    <View className="bg-white p-4 mb-2 rounded-lg shadow-sm">
+      {/* 整个区域可点击跳转详情 
+        如果你不想这个功能，可以去掉 onPress & Wrap */}
+      <TouchableOpacity
+        onPress={() =>
+          router.push({
+            pathname: "/(pages)/(tasks)/task",
+            params: { id: item.task_id },
+          })
+        }
+      >
+        <View className="flex-row justify-between items-center">
+          <View className="flex-1">
+            <View className="flex-row items-center">
+              <AntDesign
+                name={getTaskTypeIcon(item.task_type)}
+                size={20}
+                color="#4A90E2"
+                style={{ marginRight: 8 }}
+              />
+              <Text className="text-lg font-semibold">{item.task_type}</Text>
+            </View>
+            <Text className="text-gray-600 mt-1">
+              {format(new Date(item.scheduled_start_time), "MMM dd, yyyy HH:mm")}
             </Text>
-          )}
-        </View>
-        <View className="items-end">
-          <Text className="text-lg font-semibold">
-            ${item.confirmed_price || item.estimated_price}
-          </Text>
-          <View
-            className={`px-2 py-1 rounded-full mt-1 ${getStatusColor(
-              item.status
-            )}`}
-          >
-            <Text className="text-white text-sm">{item.status}</Text>
+            {item.approval_status !== "Approved" && (
+              <Text className="text-orange-500 text-sm mt-1">
+                Pending Approval
+              </Text>
+            )}
           </View>
-          {item.payment_status === "Paid" && (
-            <Text className="text-green-500 text-sm mt-1">Paid</Text>
-          )}
+
+          <View className="items-end">
+            <Text className="text-lg font-semibold">
+              ${item.confirmed_price || item.estimated_price}
+            </Text>
+            <View
+              className={`px-2 py-1 rounded-full mt-1 ${getStatusColor(
+                item.status
+              )}`}
+            >
+              <Text className="text-white text-sm">{item.status}</Text>
+            </View>
+            {item.payment_status === "Paid" && (
+              <Text className="text-green-500 text-sm mt-1">Paid</Text>
+            )}
+          </View>
         </View>
+      </TouchableOpacity>
+
+      {/* Edit / Delete row */}
+      <View className="flex-row justify-end mt-2">
+        <TouchableOpacity
+          className="mr-3 px-3 py-2 bg-yellow-400 rounded-md"
+          onPress={() => handleEditTask(item.task_id)}
+        >
+          <Text className="text-black font-semibold">Edit</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="px-3 py-2 bg-red-500 rounded-md"
+          onPress={() => handleDeleteTask(item.task_id)}
+        >
+          <Text className="text-white font-semibold">Delete</Text>
+        </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   if (loading) {
@@ -167,7 +221,7 @@ export default function TaskList() {
         renderItem={renderTask}
         keyExtractor={(item) => item.task_id.toString()}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={fetchTasks} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center py-8">
@@ -178,3 +232,4 @@ export default function TaskList() {
     </View>
   );
 }
+
