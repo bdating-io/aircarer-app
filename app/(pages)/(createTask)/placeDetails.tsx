@@ -74,7 +74,7 @@ export default function PlaceDetails() {
       const { data, error } = await supabase
         .from("properties")
         .select("*")
-        .eq("user_id", userId); // 如果你的表里是别的字段，比如 'owner_id'，请改成相应字段
+        .eq("user_id", userId); 
 
       if (error) {
         console.error("Error fetching properties:", error);

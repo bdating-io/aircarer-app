@@ -1,107 +1,150 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, Modal, StyleSheet, ScrollView, KeyboardAvoidingView,  Platform } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { supabase } from "@/lib/supabase";
+import PhotoGrid from "@/components/PhotoGrid"; // 你的九宫格上传组件
 
-// 如果分文件写PhotoGrid, 这里import
-import PhotoGrid from '../../../components/PhotoGrid';
+type RoomData = {
+  images: string[];
+  instruction: string;
+};
 
-// 引入 mockData
-import { mockProperties, IProperty } from '../../../mockData/mockData';
+// JSON 对象结构: { "Bedroom 1": { images:[], instruction:"" }, "Kitchen": {...} }
+type RoomsJson = Record<string, RoomData>;
 
-export default function TakePhotoWizard() {
+export default function TakePhotoPage() {
   const router = useRouter();
-  const { propertyId } = useLocalSearchParams<{ propertyId?: string }>();
+  // 只需要拿到 taskId
+  const { taskId } = useLocalSearchParams() as {
+    taskId?: string;
+  };
 
-  // 找到用户选择的那套 property
-  const property = useMemo<IProperty | undefined>(
-    () => mockProperties.find((p) => p.id === propertyId),
-    [propertyId]
-  );
+  // 这两个是从 properties 表里获取到的
+  const [bedrooms, setBedrooms] = useState<number>(0);
+  const [bathrooms, setBathrooms] = useState<number>(0);
 
-  // 如果找不到property，就给个错误提示
-  if (!property) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>No property found with ID {propertyId}</Text>
-      </View>
-    );
-  }
+  // 加载状态
+  const [loading, setLoading] = useState(true);
 
-  // 1. 整理房间列表
+  // 说明弹窗
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // Wizard 状态
+  const [currentRoomIndex, setCurrentRoomIndex] = useState(0);
+  const [roomsData, setRoomsData] = useState<RoomsJson>({});
+
+  // 1) 获取 tasks 表 => 找到 property_id => 再查 properties
+  useEffect(() => {
+    if (!taskId) {
+      Alert.alert("Error", "No taskId provided");
+      return;
+    }
+    fetchTaskAndProperty(taskId);
+  }, [taskId]);
+
+  const fetchTaskAndProperty = async (taskIdVal: string) => {
+    try {
+      // 先查 tasks 表，拿到 property_id
+      const { data: taskData, error: taskError } = await supabase
+        .from("tasks")
+        .select("property_id")
+        .eq("task_id", taskIdVal)
+        .single();
+
+      if (taskError) throw taskError;
+      if (!taskData?.property_id) {
+        Alert.alert("Error", "No property_id found in tasks table");
+        setLoading(false);
+        return;
+      }
+
+      const propId = taskData.property_id;
+
+      // 再用 property_id 查 properties 表
+      const { data: propData, error: propError } = await supabase
+        .from("properties")
+        .select("bedrooms,bathrooms")
+        .eq("property_id", propId)
+        .single();
+
+      if (propError) throw propError;
+
+      // 如果查到
+      setBedrooms(propData?.bedrooms || 0);
+      setBathrooms(propData?.bathrooms || 0);
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2) 根据 bedrooms/bathrooms + 默认房间 构建房间列表
   const roomList = useMemo(() => {
     const rooms: string[] = [];
-    for (let i = 1; i <= property.bedrooms; i++) {
+    for (let i = 1; i <= bedrooms; i++) {
       rooms.push(`Bedroom ${i}`);
     }
-    for (let i = 1; i <= property.bathrooms; i++) {
+    for (let i = 1; i <= bathrooms; i++) {
       rooms.push(`Bathroom ${i}`);
     }
-    for (let i = 1; i <= property.kitchens; i++) {
-      rooms.push(`Kitchen ${i}`);
-    }
-    for (let i = 1; i <= property.livingRooms; i++) {
-      rooms.push(`Living Room ${i}`);
-    }
-    for (let i = 1; i <= property.courtYards; i++) {
-      rooms.push(`Courtyard ${i}`);
-    }
-    // 加上 others 里的自定义房间
-    if (property.others && property.others.length) {
-      rooms.push(...property.others);
-    }
+    // 默认各1个
+    rooms.push("Living Room");
+    rooms.push("Kitchen");
+    rooms.push("Courtyard");
+    rooms.push("Balcony");
+
     return rooms;
-  }, [property]);
+  }, [bedrooms, bathrooms]);
 
-  // 2. 多步骤Wizard相关状态
-  const [currentRoomIndex, setCurrentRoomIndex] = useState(0);
+  // 当前房间名称
+  const currentRoomName = roomList[currentRoomIndex] || "";
 
-  // roomData 里存每个房间的数据： { images: string[], instruction: string }
-  // 索引可以直接用房间名称做key，或者用数组；这里用对象方便查询
-  const [roomData, setRoomData] = useState<Record<string, { images: string[]; instruction: string }>>({});
+  // 当前房间数据
+  const currentRoomData: RoomData = roomsData[currentRoomName] || {
+    images: [],
+    instruction: "",
+  };
 
-  const currentRoomName = roomList[currentRoomIndex];
-
-  // 获取当前房间的数据，若还没初始化则给个默认
-  const currentRoomData = roomData[currentRoomName] || { images: [], instruction: '' };
-
-  // 更新图片
+  // 修改当前房间 images
   const handleImagesChange = (newImages: string[]) => {
-    setRoomData({
-      ...roomData,
+    setRoomsData((prev) => ({
+      ...prev,
       [currentRoomName]: {
         ...currentRoomData,
         images: newImages,
       },
-    });
+    }));
   };
 
-  // 更新指令
+  // 修改当前房间 instruction
   const handleInstructionChange = (text: string) => {
-    setRoomData({
-      ...roomData,
+    setRoomsData((prev) => ({
+      ...prev,
       [currentRoomName]: {
         ...currentRoomData,
         instruction: text,
       },
-    });
+    }));
   };
-
-  // 是否显示“拍照说明”的弹窗
-  const [modalVisible, setModalVisible] = useState(false);
 
   // 下一步
   const handleNext = () => {
-    // 简单的必填校验
-    // if (!currentRoomData.instruction.trim()) {
-    //   Alert.alert('Error', 'Task instruction is compulsory for this room.');
-    //   return;
-    // }
-    // 如果还没到最后一个房间，则切换到下一个
     if (currentRoomIndex < roomList.length - 1) {
-      setCurrentRoomIndex(currentRoomIndex + 1);
+      setCurrentRoomIndex((prev) => prev + 1);
     } else {
-      // 如果已经是最后一个房间，就提交
+      // 已经是最后一个 => 提交
       handleSubmitAllRooms();
     }
   };
@@ -109,41 +152,72 @@ export default function TakePhotoWizard() {
   // 上一步
   const handlePrev = () => {
     if (currentRoomIndex > 0) {
-      setCurrentRoomIndex(currentRoomIndex - 1);
+      setCurrentRoomIndex((prev) => prev - 1);
     }
   };
 
-  // 最终提交
-  const handleSubmitAllRooms = () => {
-    const finalTaskData = {
-      propertyId: property.id,
-      propertyName: property.name,
-      rooms: roomData,
-    };
-    console.log('Final Task Data:', finalTaskData);
-
-    // 提交后跳转
-    router.push('/specialRequestPage'); 
+  // 用户跳过该房间 => 清空
+  const handleSkip = () => {
+    // 不存任何指令 / 图片
+    setRoomsData((prev) => ({
+      ...prev,
+      [currentRoomName]: {
+        images: [],
+        instruction: "",
+      },
+    }));
+    handleNext();
   };
 
+  // 提交
+  const handleSubmitAllRooms = async () => {
+    if (!taskId) {
+      Alert.alert("Error", "No taskId provided");
+      return;
+    }
+
+    try {
+      // 将 roomsData 存到 tasks 表的 JSONB 列 (例如 rooms)
+      const { error } = await supabase
+        .from("tasks")
+        .update({ rooms: roomsData })
+        .eq("task_id", taskId);
+
+      if (error) throw error;
+
+      Alert.alert("Success", "Rooms data saved!");
+      router.push("/(pages)/(createTask)/specialRequestPage"); // 跳转下一个页面
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading property info...</Text>
+      </View>
+    );
+  }
+
+  if (!roomList || roomList.length === 0) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>No rooms found for this property.</Text>
+      </View>
+    );
+  }
+
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <ScrollView style={{ flex: 1, backgroundColor: '#F8F9FA', padding: 16 }} keyboardShouldPersistTaps="handled">
-        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>
-          Task Details: {property.name}
-        </Text>
-
-        {/* 蓝色提示框 */}
-        <View style={{ backgroundColor: '#E0F7FA', padding: 16, borderRadius: 8, marginBottom: 16 }}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 4 }}>
-            Take a photo for your task.
-          </Text>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={{ color: '#4E89CE' }}>Photo taking instructions</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 弹窗显示拍照说明 */}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        style={{ flex: 1, backgroundColor: "#F8F9FA", padding: 16 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Modal: 拍照指令示例 */}
         <Modal
           visible={modalVisible}
           animationType="slide"
@@ -152,70 +226,97 @@ export default function TakePhotoWizard() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
+              <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 8 }}>
                 Photo Taking Instructions
               </Text>
               <Text style={{ fontSize: 14, marginBottom: 16 }}>
-                1. Take clear and well-lit photos.
-                {'\n'}2. Ensure the task area is fully visible.
-                {'\n'}3. Avoid blurry images.
+                1. Take clear, well-lit photos.
+                {"\n"}2. Ensure the area is fully visible.
+                {"\n"}3. Avoid blurry images.
               </Text>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
                 style={styles.modalCloseBtn}
               >
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close</Text>
+                <Text style={{ color: "#fff", fontWeight: "bold" }}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Modal>
 
-        {/* 房间标题 */}
-        <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 16 }}>
+        {/* Header */}
+        <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 16 }}>
           Room: {currentRoomName}
         </Text>
 
-        {/* 九宫格图片上传 */}
+        {/* 提示框 + 弹窗查看详情 */}
+        <View
+          style={{
+            backgroundColor: "#E0F7FA",
+            padding: 16,
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "bold", marginBottom: 4 }}>
+            Take a photo for {currentRoomName}.
+          </Text>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text style={{ color: "#4E89CE" }}>Photo taking instructions</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 图片九宫格 */}
         <PhotoGrid
           images={currentRoomData.images}
           onImagesChange={handleImagesChange}
-          maxImages={9}
+          maxImages={5}
         />
 
-        {/* 任务说明 */}
-        <Text style={{ fontWeight: '600', marginBottom: 8, marginTop: 16 }}>Task Instruction (compulsory)</Text>
+        {/* 指令输入 */}
+        <Text style={{ fontWeight: "600", marginBottom: 8, marginTop: 16 }}>
+          Task Instruction
+        </Text>
         <TextInput
-          placeholder={`E.g. Clean ${currentRoomName} thoroughly`}
+          placeholder={`E.g. Clean the ${currentRoomName} thoroughly`}
           value={currentRoomData.instruction}
           onChangeText={handleInstructionChange}
           multiline
           numberOfLines={4}
           style={{
             borderWidth: 1,
-            borderColor: '#ccc',
+            borderColor: "#ccc",
             padding: 12,
             borderRadius: 8,
-            backgroundColor: '#fff',
+            backgroundColor: "#fff",
             marginBottom: 16,
           }}
         />
 
-        {/* 上一步、下一步按钮 */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        {/* 导航按钮 */}
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <TouchableOpacity
+            onPress={handleSkip}
+            style={[styles.navButton, { backgroundColor: "#bbb" }]}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>Skip</Text>
+          </TouchableOpacity>
+
           {currentRoomIndex > 0 && (
             <TouchableOpacity
               onPress={handlePrev}
-              style={[styles.navButton, { backgroundColor: '#aaa' }]}
+              style={[styles.navButton, { backgroundColor: "#aaa" }]}
             >
-              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Previous</Text>
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>Previous</Text>
             </TouchableOpacity>
           )}
+
           <TouchableOpacity
             onPress={handleNext}
-            style={[styles.navButton, { backgroundColor: '#4E89CE' }]}
+            style={[styles.navButton, { backgroundColor: "#4E89CE" }]}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-              {currentRoomIndex < roomList.length - 1 ? 'Next' : 'Submit'}
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>
+              {currentRoomIndex < roomList.length - 1 ? "Next" : "Submit"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -224,23 +325,22 @@ export default function TakePhotoWizard() {
   );
 }
 
-// 一些样式
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
-    width: '80%',
-    backgroundColor: '#fff',
+    width: "80%",
+    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalCloseBtn: {
-    backgroundColor: '#4E89CE',
+    backgroundColor: "#4E89CE",
     padding: 12,
     borderRadius: 8,
     marginTop: 8,
@@ -248,7 +348,7 @@ const styles = StyleSheet.create({
   navButton: {
     padding: 16,
     borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
+    minWidth: 90,
+    alignItems: "center",
   },
 });
