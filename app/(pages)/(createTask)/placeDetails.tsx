@@ -1,57 +1,179 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Button } from 'react-native-paper';
-import { mockProperties, IProperty } from '../../../mockData/mockData'; 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useLocalSearchParams } from "expo-router"; // ① 引入 useSearchParams
+import { Button, ActivityIndicator } from "react-native-paper";
+import { supabase } from "@/lib/supabase";
+import { Session } from "@supabase/supabase-js";
 
 export default function PlaceDetails() {
   const router = useRouter();
+  // 从路由参数获取 taskId（首页创建时传递过来）
+  const { taskId } = useLocalSearchParams() as { taskId?: string }; // ② 获取路由参数
 
-  const cleaningTypes = ['Regular Cleaning', 'End of Lease Cleaning'];
-  const cleaningLevels = ['Quick Cleaning', 'Regular Cleaning', 'Deep Cleaning'];
+  // Example cleaning types
+  const cleaningTypes = ["Regular Cleaning", "End of Lease Cleaning"];
+  const cleaningLevels = ["Quick Cleaning", "Regular Cleaning", "Deep Cleaning"];
 
-  const [selectedProperty, setSelectedProperty] = useState<IProperty | null>(null);
-  const [cleaningType, setCleaningType] = useState('');
-  const [cleaningLevel, setCleaningLevel] = useState('');
-  const [equipmentProvided, setEquipmentProvided] = useState<'tasker' | 'owner'>('tasker');
-
-  // Control the open/close state for each dropdown
+  // UI State
+  const [session, setSession] = useState<Session | null>(null);
   const [propertyOpen, setPropertyOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
   const [levelOpen, setLevelOpen] = useState(false);
 
-  // Save data to AsyncStorage and navigate
-  const handleSubmit = async () => {
-    const payload = {
-      selectedPropertyId: selectedProperty?.id || null,
-      cleaningType,
-      cleaningLevel,
-      equipmentProvided,
-    };
-    console.log('Form data:', payload);
+  // Data from Supabase
+  const [properties, setProperties] = useState<any[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState(true);
+  const [noProperties, setNoProperties] = useState(false);
 
+  // User Selections
+  const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
+  const [cleaningType, setCleaningType] = useState("");
+  const [cleaningLevel, setCleaningLevel] = useState("");
+  const [equipmentProvided, setEquipmentProvided] =
+    useState<"tasker" | "owner">("tasker");
+
+  // ------------------ useEffect: Load session & fetch properties ------------------
+  useEffect(() => {
+    // Get current auth session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        fetchUserProperties(session.user.id);
+      } else {
+        setLoadingProperties(false);
+      }
+    });
+
+    // Listen for auth state changes
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        if (session?.user) {
+          fetchUserProperties(session.user.id);
+        }
+      }
+    );
+
+    return () => {
+      subscription.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Fetch properties from Supabase
+  const fetchUserProperties = async (userId: string) => {
+    setLoadingProperties(true);
     try {
-      // Save the payload in AsyncStorage under the key PLACE_DETAILS
-      await AsyncStorage.setItem('PLACE_DETAILS', JSON.stringify(payload));
-      console.log('PLACE_DETAILS saved to AsyncStorage!');
-    } catch (error) {
-      console.error('Error saving PLACE_DETAILS:', error);
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("user_id", userId); // 如果你的表里是别的字段，比如 'owner_id'，请改成相应字段
+
+      if (error) {
+        console.error("Error fetching properties:", error);
+        setLoadingProperties(false);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        setNoProperties(true);
+        setLoadingProperties(false);
+        return;
+      }
+
+      setProperties(data);
+      setNoProperties(false);
+    } catch (err) {
+      console.error("Could not fetch properties:", err);
+    } finally {
+      setLoadingProperties(false);
+    }
+  };
+
+  // ------------------ Submit form => Update existing task & go next ------------------
+  const handleSubmit = async () => {
+    if (!session?.user) {
+      Alert.alert("Not logged in", "Please log in first.");
+      return;
     }
 
-    // Navigate to dateSelection
-    router.push({
-      pathname: '/dateSelection',
-      params: { propertyId: selectedProperty?.id },
-    });
+    // 如果路由里没带 taskId，这里也无法更新
+    if (!taskId) {
+      Alert.alert("No Task ID", "No taskId provided in route params.");
+      return;
+    }
+
+    // If no property selected:
+    if (!selectedProperty) {
+      Alert.alert("Property required", "Please select a property first.");
+      return;
+    }
+
+    // If user didn't pick cleaningType or cleaningLevel
+    if (!cleaningType) {
+      Alert.alert("Select Cleaning Type", "Please select a cleaning type.");
+      return;
+    }
+    if (!cleaningLevel) {
+      Alert.alert("Select Cleaning Level", "Please select a cleaning level.");
+      return;
+    }
+
+    // Update the existing task
+    try {
+      // 注意：这里用 .update() 而不是 .insert()
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({
+          // 只更新这些字段
+          property_id: selectedProperty.property_id, // references the property's uuid
+          address: selectedProperty.address,         // store address as snapshot
+          cleaning_type: cleaningType,
+          task_type: cleaningLevel,
+          bring_equipment: equipmentProvided === "tasker" ? "Yes" : "No",
+        })
+        .eq("task_id", taskId) // 条件：更新特定taskId
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      Alert.alert("Success", "Task updated successfully!");
+
+      // 跳转到下一步 dateSelection，仍然带上同一个 taskId
+      router.push(`/(pages)/(createTask)/dateSelection?taskId=${taskId}`);
+    } catch (err) {
+      console.error("Error updating task:", err);
+      Alert.alert("Error", "Failed to update task. Please try again.");
+    }
   };
+
+  // ------------------ Render Logic ------------------
+  if (loadingProperties) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" />
+        <Text>Loading properties...</Text>
+      </View>
+    );
+  }
+
+  if (noProperties) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <Text style={{ fontSize: 16, marginBottom: 12 }}>
+          Please create a property first in your account profile.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -65,27 +187,31 @@ export default function PlaceDetails() {
           onPress={() => setPropertyOpen(!propertyOpen)}
         >
           <Text style={styles.dropdownText}>
-            {selectedProperty ? selectedProperty.name : 'Select your property here'}
+            {selectedProperty
+              ? selectedProperty.address
+              : "Select your property here"}
           </Text>
           <Ionicons
-            name={propertyOpen ? 'chevron-up' : 'chevron-down'}
+            name={propertyOpen ? "chevron-up" : "chevron-down"}
             size={20}
             color="#000"
           />
         </TouchableOpacity>
-        
+
         {propertyOpen && (
           <View style={styles.dropdownMenu}>
-            {mockProperties.map((propertyItem) => (
+            {properties.map((prop) => (
               <TouchableOpacity
-                key={propertyItem.id}
+                key={prop.property_id} // or key={prop.id} if your column is named 'id'
                 style={styles.dropdownItem}
                 onPress={() => {
-                  setSelectedProperty(propertyItem);
+                  setSelectedProperty(prop);
                   setPropertyOpen(false);
                 }}
               >
-                <Text style={styles.dropdownItemText}>{propertyItem.name}</Text>
+                <Text style={styles.dropdownItemText}>
+                  {prop.address || "No address"}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -100,10 +226,10 @@ export default function PlaceDetails() {
           onPress={() => setTypeOpen(!typeOpen)}
         >
           <Text style={styles.dropdownText}>
-            {cleaningType || 'Select cleaning type here'}
+            {cleaningType || "Select cleaning type here"}
           </Text>
           <Ionicons
-            name={typeOpen ? 'chevron-up' : 'chevron-down'}
+            name={typeOpen ? "chevron-up" : "chevron-down"}
             size={20}
             color="#000"
           />
@@ -134,10 +260,10 @@ export default function PlaceDetails() {
           onPress={() => setLevelOpen(!levelOpen)}
         >
           <Text style={styles.dropdownText}>
-            {cleaningLevel || 'Select cleaning level here'}
+            {cleaningLevel || "Select cleaning level here"}
           </Text>
           <Ionicons
-            name={levelOpen ? 'chevron-up' : 'chevron-down'}
+            name={levelOpen ? "chevron-up" : "chevron-down"}
             size={20}
             color="#000"
           />
@@ -161,18 +287,20 @@ export default function PlaceDetails() {
       </View>
 
       {/* Equipment Provided */}
-      <Text style={styles.label}>Does the cleaner need to bring equipment and supplies?</Text>
+      <Text style={styles.label}>
+        Does the cleaner need to bring equipment and supplies?
+      </Text>
       <View style={styles.equipmentContainer}>
         <Button
-          mode={equipmentProvided === 'tasker' ? 'contained' : 'outlined'}
-          onPress={() => setEquipmentProvided('tasker')}
+          mode={equipmentProvided === "tasker" ? "contained" : "outlined"}
+          onPress={() => setEquipmentProvided("tasker")}
           style={
-            equipmentProvided === 'tasker'
+            equipmentProvided === "tasker"
               ? [styles.buttonBase, styles.selectedButton]
               : [styles.buttonBase, styles.unselectedButton]
           }
           labelStyle={
-            equipmentProvided === 'tasker'
+            equipmentProvided === "tasker"
               ? styles.selectedLabel
               : styles.unselectedLabel
           }
@@ -181,15 +309,15 @@ export default function PlaceDetails() {
         </Button>
 
         <Button
-          mode={equipmentProvided === 'owner' ? 'contained' : 'outlined'}
-          onPress={() => setEquipmentProvided('owner')}
+          mode={equipmentProvided === "owner" ? "contained" : "outlined"}
+          onPress={() => setEquipmentProvided("owner")}
           style={
-            equipmentProvided === 'owner'
+            equipmentProvided === "owner"
               ? [styles.buttonBase, styles.selectedButton]
               : [styles.buttonBase, styles.unselectedButton]
           }
           labelStyle={
-            equipmentProvided === 'owner'
+            equipmentProvided === "owner"
               ? styles.selectedLabel
               : styles.unselectedLabel
           }
@@ -202,14 +330,14 @@ export default function PlaceDetails() {
       <TouchableOpacity
         onPress={handleSubmit}
         style={{
-          backgroundColor: '#4E89CE',
+          backgroundColor: "#4E89CE",
           padding: 16,
           borderRadius: 8,
-          alignItems: 'center',
+          alignItems: "center",
           marginTop: 16,
         }}
       >
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Next</Text>
+        <Text style={{ color: "#fff", fontWeight: "bold" }}>Next</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -219,38 +347,27 @@ export default function PlaceDetails() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     padding: 16,
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
   },
   label: {
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
-  equipmentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  nextButton: {
-    backgroundColor: '#4E89CE',
-    padding: 10,
-  },
-
-  // ====== Dropdown Styles ======
   dropdownWrapper: {
     marginBottom: 16,
   },
   dropdown: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderColor: '#4E89CE',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderColor: "#4E89CE",
     borderWidth: 1,
     borderRadius: 4,
     paddingHorizontal: 12,
@@ -258,11 +375,11 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   dropdownMenu: {
-    backgroundColor: '#fff',
-    borderColor: '#ccc',
+    backgroundColor: "#fff",
+    borderColor: "#ccc",
     borderWidth: 1,
     borderTopWidth: 0,
     borderRadius: 4,
@@ -271,32 +388,35 @@ const styles = StyleSheet.create({
   dropdownItem: {
     paddingHorizontal: 12,
     paddingVertical: 14,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
     borderBottomWidth: 1,
   },
   dropdownItemText: {
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
-
-  // ====== Buttons ======
+  equipmentContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24,
+  },
   buttonBase: {
     minWidth: 150,
     marginHorizontal: 4,
   },
   selectedButton: {
-    backgroundColor: '#4E89CE',
+    backgroundColor: "#4E89CE",
   },
   unselectedButton: {
-    borderColor: '#4E89CE',
+    borderColor: "#4E89CE",
     borderWidth: 1,
   },
   selectedLabel: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
   },
   unselectedLabel: {
-    color: '#000',
+    color: "#000",
     fontSize: 14,
   },
 });
