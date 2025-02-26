@@ -100,7 +100,7 @@ export default function Payment() {
         className="border border-gray-300 rounded-lg p-4 mb-4"
         placeholder="BSB"
         value={cardInfo.bsb}
-        onChangeText={(text) => setCardInfo({ ...cardInfo, bsb: text })}
+        onChangeText={(text: string) => setCardInfo({ ...cardInfo, bsb: text })}
       />
 
       <Text className="text-lg mb-4">Account Number</Text>

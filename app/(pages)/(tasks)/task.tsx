@@ -212,7 +212,7 @@ export default function Task() {
       setDistanceToTask(distance);
 
       // 检查距离是否在10公里以内
-      if (distance > 10) {
+      if (distance > 40) {
         Alert.alert(
           "Location Check Failed",
           `You are too far from the task location (${distance.toFixed(

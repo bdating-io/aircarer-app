@@ -1,26 +1,25 @@
-import { icons } from "@/constants/icons";
 import { Tabs } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { View, Image } from "react-native";
+import { View, Text, TouchableOpacity, useColorScheme } from "react-native";
 import { supabase } from "../../lib/supabase";
-
-const TabIcon = ({ focused, source }: { focused: boolean; source: any }) => {
-  return (
-    <View className="items-center justify-center">
-      <Image
-        source={source}
-        tintColor={focused ? "#ffffff" : "#9ca3af"}
-        resizeMode="contain"
-        className="w-6 h-6"
-      />
-    </View>
-  );
-};
+import { AntDesign } from "@expo/vector-icons";
 
 export default function Layout() {
   const [userRole, setUserRole] = useState<"Cleaner" | "House Owner" | null>(
     null
   );
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  // 颜色主题
+  const theme = {
+    primary: "#1890ff", // 蓝色
+    background: isDark ? "#121212" : "#FFFFFF",
+    card: isDark ? "#1E1E1E" : "#FFFFFF",
+    text: isDark ? "#F3F4F6" : "#1F2937",
+    border: isDark ? "#2D2D2D" : "#F0F0F0",
+    inactive: isDark ? "#6B7280" : "#8C8C8C",
+  };
 
   useEffect(() => {
     checkUserRole();
@@ -40,34 +39,45 @@ export default function Layout() {
         .single();
 
       if (error) throw error;
-      console.log("User role from database:", data.role);
       setUserRole(data.role);
     } catch (error) {
       console.error("Error checking user role:", error);
     }
   };
 
-  console.log("Current userRole state:", userRole);
-
   return (
     <Tabs
       initialRouteName="home"
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: "#1f2937",
-          borderTopWidth: 0,
-          elevation: 0,
+          backgroundColor: theme.background,
+          borderTopWidth: 1,
+          borderTopColor: theme.border,
           height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-          marginBottom: 16,
+          paddingBottom: 6,
+          paddingTop: 6,
+          elevation: 0,
+          shadowOpacity: 0,
         },
-        tabBarActiveTintColor: "#ffffff",
-        tabBarInactiveTintColor: "#9ca3af",
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.inactive,
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: "500",
         },
+        headerStyle: {
+          backgroundColor: theme.background,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.border,
+        },
+        headerTitleStyle: {
+          fontWeight: "600",
+          fontSize: 16,
+          color: theme.text,
+        },
+        headerTintColor: theme.primary,
       }}
     >
       <Tabs.Screen
@@ -75,8 +85,8 @@ export default function Layout() {
         options={{
           title: "Home",
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.home} />
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="home" size={22} color={color} />
           ),
         }}
       />
@@ -87,10 +97,22 @@ export default function Layout() {
         options={{
           title: "Opportunities",
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.chat} />
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="search1" size={22} color={color} />
           ),
-          tabBarStyle: userRole === "Cleaner" ? undefined : { display: "none" },
+          tabBarStyle:
+            userRole === "Cleaner"
+              ? {
+                  backgroundColor: theme.background,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.border,
+                  height: 60,
+                  paddingBottom: 6,
+                  paddingTop: 6,
+                  elevation: 0,
+                  shadowOpacity: 0,
+                }
+              : { display: "none" },
           href: userRole === "Cleaner" ? undefined : null,
         }}
       />
@@ -98,12 +120,24 @@ export default function Layout() {
       <Tabs.Screen
         name="tasklist"
         options={{
-          title: "Task List",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.list} />
+          title: "My Tasks",
+          headerShown: true,
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="profile" size={22} color={color} />
           ),
-          tabBarStyle: userRole === "Cleaner" ? undefined : { display: "none" },
+          tabBarStyle:
+            userRole === "Cleaner"
+              ? {
+                  backgroundColor: theme.background,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.border,
+                  height: 60,
+                  paddingBottom: 6,
+                  paddingTop: 6,
+                  elevation: 0,
+                  shadowOpacity: 0,
+                }
+              : { display: "none" },
           href: userRole === "Cleaner" ? undefined : null,
         }}
       />
@@ -114,11 +148,22 @@ export default function Layout() {
         options={{
           title: "Post Task",
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.chat} />
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="pluscircleo" size={22} color={color} />
           ),
           tabBarStyle:
-            userRole === "House Owner" ? undefined : { display: "none" },
+            userRole === "House Owner"
+              ? {
+                  backgroundColor: theme.background,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.border,
+                  height: 60,
+                  paddingBottom: 6,
+                  paddingTop: 6,
+                  elevation: 0,
+                  shadowOpacity: 0,
+                }
+              : { display: "none" },
           href: userRole === "House Owner" ? undefined : null,
         }}
       />
@@ -128,11 +173,22 @@ export default function Layout() {
         options={{
           title: "Edit Task",
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.list} />
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="edit" size={22} color={color} />
           ),
           tabBarStyle:
-            userRole === "House Owner" ? undefined : { display: "none" },
+            userRole === "House Owner"
+              ? {
+                  backgroundColor: theme.background,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.border,
+                  height: 60,
+                  paddingBottom: 6,
+                  paddingTop: 6,
+                  elevation: 0,
+                  shadowOpacity: 0,
+                }
+              : { display: "none" },
           href: userRole === "House Owner" ? undefined : null,
         }}
       />
@@ -142,8 +198,8 @@ export default function Layout() {
         options={{
           title: "Account",
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} source={icons.profile} />
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="user" size={22} color={color} />
           ),
         }}
       />
