@@ -14,10 +14,11 @@ import useStore from "../utils/store";
 
 export default function Home() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
-  const { myProfile, setMyProfile } = useStore();
+  const { myProfile, setMyProfile,
+    mySession, setMySession }
+    = useStore();
   const [userEmail, setUserEmail] = useState<string>("");
 
   // 存放 Task Title 的本地状态
@@ -25,15 +26,16 @@ export default function Home() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+      setMySession(session);
       if (session?.user) {
         checkProfile(session.user.id);
         checkAddress(session.user.id);
       }
+
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      setMySession(session);
       if (session?.user) {
         checkProfile(session.user.id);
         checkAddress(session.user.id);
@@ -48,12 +50,14 @@ export default function Home() {
       .select("first_name, last_name, abn, role")
       .eq("user_id", userId)
       .single();
+
     setMyProfile(profile);
     setHasProfile(!!profile?.first_name);
   };
 
   // 检查地址
   const checkAddress = async (userId: string) => {
+
     const { data: address, error } = await supabase
       .from("addresses")
       .select("*")
@@ -74,7 +78,7 @@ export default function Home() {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setMyProfile(null); // 清除用户档案
-      setSession(null); // 清除session
+      setMySession(null); // 清除session
       setHasProfile(false); // 重置档案状态
     } catch (error) {
       Alert.alert("Error signing out", (error as Error).message);
@@ -114,7 +118,7 @@ export default function Home() {
   };
 
   // 如果没有登录，显示登录界面
-  if (!session) {
+  if (!mySession) {
     return (
       <SafeAreaView className="flex-1 bg-[#4A90E2]">
         <View className="flex-1 px-6">
@@ -199,8 +203,8 @@ export default function Home() {
                 {myProfile.role === "Cleaner"
                   ? "I'm a Cleaner"
                   : myProfile.role === "House Owner"
-                  ? "I'm a House Owner"
-                  : `I'm a ${myProfile.role}`}
+                    ? "I'm a House Owner"
+                    : `I'm a ${myProfile.role}`}
               </Text>
             </View>
           )}
