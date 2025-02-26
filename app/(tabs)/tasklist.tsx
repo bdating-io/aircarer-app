@@ -1,8 +1,15 @@
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+  Alert,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { format } from "date-fns";
+import { format, differenceInHours } from "date-fns";
 import { AntDesign } from "@expo/vector-icons";
 
 type Task = {
@@ -24,26 +31,51 @@ export default function TaskList() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // 获取任务列表
+  // 获取任务列表 - 只显示当前用户接受的任务
   const fetchTasks = async () => {
     try {
       // 获取当前用户ID
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         Alert.alert("Error", "No user logged in.");
         setLoading(false);
         return;
       }
 
-      // 获取属于当前顾客(customer_id = user.id)的全部任务
+      console.log("Current user ID:", user.id);
+
+      // 获取当前用户接受的任务 (cleaner_id = user.id)
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .eq("customer_id", user.id)
+        .eq("cleaner_id", user.id) // 关键条件：只显示当前用户接受的任务
         .order("scheduled_start_time", { ascending: true });
 
-      if (error) throw error;
-      setTasks(data || []);
+      if (error) {
+        console.error("Query error:", error);
+        throw error;
+      }
+
+      console.log(`Found ${data?.length || 0} tasks accepted by current user`);
+
+      // 过滤掉状态为 Pending 且超过 4 小时的任务
+      const now = new Date();
+      const filteredTasks =
+        data?.filter((task) => {
+          // 如果任务状态不是 Pending，保留该任务
+          if (task.status !== "Pending") return true;
+
+          // 计算时间差（小时）
+          const taskTime = new Date(task.scheduled_start_time);
+          const hoursDifference = differenceInHours(now, taskTime);
+
+          // 如果时间差小于等于 4 小时，保留该任务
+          return hoursDifference <= 4;
+        }) || [];
+
+      setTasks(filteredTasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
     } finally {
@@ -62,28 +94,65 @@ export default function TaskList() {
     fetchTasks();
   };
 
-  // 删除任务
-  const handleDeleteTask = async (taskId: number) => {
+  // 取消任务 - 先读取任务数据，然后清除 cleaner_id 并将状态改为 Pending
+  const handleCancelTask = async (taskId: number) => {
     Alert.alert(
-      "Delete Task",
-      "Are you sure you want to delete this task?",
+      "Cancel Task",
+      "Are you sure you want to cancel this task? The task will be removed from your list and become available for others.",
       [
-        { text: "Cancel", style: "cancel" },
+        { text: "No", style: "cancel" },
         {
-          text: "Delete",
+          text: "Yes",
           style: "destructive",
           onPress: async () => {
             try {
-              const { error } = await supabase
+              console.log("Processing task cancellation for ID:", taskId);
+
+              // 步骤1: 先读取任务数据，确认任务存在
+              const { data: taskData, error: readError } = await supabase
                 .from("tasks")
-                .delete()
+                .select("*")
+                .eq("task_id", taskId)
+                .single();
+
+              if (readError) {
+                console.error("Error reading task data:", readError);
+                throw readError;
+              }
+
+              if (!taskData) {
+                Alert.alert("Error", "Task not found");
+                return;
+              }
+
+              console.log("Found task data:", taskData);
+
+              // 步骤2: 更新任务，清除 cleaner_id 并将状态改为 Pending
+              const { error: updateError } = await supabase
+                .from("tasks")
+                .update({
+                  cleaner_id: null, // 清除清洁工ID
+                  status: "Pending", // 更新状态为待处理（而不是已取消）
+                  is_confirmed: false, // 重置确认状态
+                  check_in_time: null, // 清除签到时间
+                })
                 .eq("task_id", taskId);
 
-              if (error) throw error;
-              Alert.alert("Success", "Task deleted!");
+              if (updateError) {
+                console.error("Error updating task:", updateError);
+                throw updateError;
+              }
+
+              console.log("Successfully released task:", taskId);
+              Alert.alert(
+                "Success",
+                "Task has been released and is now available for others."
+              );
+
+              // 刷新任务列表
               fetchTasks();
             } catch (err: any) {
-              Alert.alert("Error", err.message);
+              Alert.alert("Error", "Failed to release task: " + err.message);
             }
           },
         },
@@ -152,7 +221,10 @@ export default function TaskList() {
               <Text className="text-lg font-semibold">{item.task_type}</Text>
             </View>
             <Text className="text-gray-600 mt-1">
-              {format(new Date(item.scheduled_start_time), "MMM dd, yyyy HH:mm")}
+              {format(
+                new Date(item.scheduled_start_time),
+                "MMM dd, yyyy HH:mm"
+              )}
             </Text>
             {item.approval_status !== "Approved" && (
               <Text className="text-orange-500 text-sm mt-1">
@@ -182,17 +254,10 @@ export default function TaskList() {
       {/* Edit / Delete row */}
       <View className="flex-row justify-end mt-2">
         <TouchableOpacity
-          className="mr-3 px-3 py-2 bg-yellow-400 rounded-md"
-          onPress={() => handleEditTask(item.task_id)}
+          className="px-3 py-2 bg-blue-500 rounded-md"
+          onPress={() => handleCancelTask(item.task_id)}
         >
-          <Text className="text-black font-semibold">Edit</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="px-3 py-2 bg-red-500 rounded-md"
-          onPress={() => handleDeleteTask(item.task_id)}
-        >
-          <Text className="text-white font-semibold">Delete</Text>
+          <Text className="text-white font-semibold">Cancel</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -208,10 +273,10 @@ export default function TaskList() {
 
   return (
     <View className="flex-1 bg-gray-100">
-      <View className="bg-white p-4 shadow-sm">
-        <Text className="text-xl font-bold">My Tasks</Text>
+      <View className="bg-white p-4 border-b border-gray-200">
+        <Text className="text-xl font-bold">My Accepted Tasks</Text>
         <Text className="text-gray-500 mt-1">
-          {tasks.length} {tasks.length === 1 ? "task" : "tasks"} found
+          Tasks you have accepted to complete
         </Text>
       </View>
 
@@ -224,12 +289,14 @@ export default function TaskList() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View className="flex-1 justify-center items-center py-8">
-            <Text className="text-gray-500">No tasks found</Text>
+          <View className="flex-1 justify-center items-center p-4">
+            <Text className="text-gray-500 text-center">
+              You haven't accepted any tasks yet. Check the Opportunities tab to
+              find available tasks.
+            </Text>
           </View>
         }
       />
     </View>
   );
 }
-

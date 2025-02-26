@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { supabase } from "../../../lib/supabase";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as FileSystem from "expo-file-system";
+
+type Room = "livingRoom" | "bedroom" | "kitchen" | "bathroom";
 
 export default function BeforeClean() {
   const router = useRouter();
@@ -25,7 +21,10 @@ export default function BeforeClean() {
 
   // ✅ 获取当前用户 ID
   const getUser = async () => {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error || !user) {
       Alert.alert("Authentication Error", "User not authenticated");
       throw new Error("User not authenticated");
@@ -58,14 +57,18 @@ export default function BeforeClean() {
   };
 
   // ✅ 处理图片上传
-  const handleUpload = async (room) => {
+  const handleUpload = async (room: Room) => {
     try {
       const currentTaskId = await getOrCreateTask();
 
       // **获取权限**
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
-        Alert.alert("Permission Required", "Permission to access media is required.");
+        Alert.alert(
+          "Permission Required",
+          "Permission to access media is required."
+        );
         return;
       }
 
@@ -73,7 +76,7 @@ export default function BeforeClean() {
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        quality: 0.5, 
+        quality: 0.5,
       });
 
       if (pickerResult.canceled) return;
@@ -133,7 +136,6 @@ export default function BeforeClean() {
       }));
 
       Alert.alert("Upload Success", "Image uploaded and saved successfully!");
-
     } catch (error) {
       console.error("Upload Error:", error);
       Alert.alert("Upload Error", "Something went wrong.");
@@ -150,19 +152,17 @@ export default function BeforeClean() {
       console.log("User ID:", userId);
 
       // ✅ 插入或更新数据库
-      const { error } = await supabase
-        .from("cleaning_tasks")
-        .upsert([
-          {
-            task_id: currentTaskId,
-            user_id: userId, 
-            living_room_photo: uploadedImages.livingRoom,
-            bedroom_photo: uploadedImages.bedroom,
-            kitchen_photo: uploadedImages.kitchen,
-            bathroom_photo: uploadedImages.bathroom,
-            timestamp: new Date().toISOString(),
-          },
-        ]);
+      const { error } = await supabase.from("cleaning_tasks").upsert([
+        {
+          task_id: currentTaskId,
+          user_id: userId,
+          living_room_photo: uploadedImages.livingRoom,
+          bedroom_photo: uploadedImages.bedroom,
+          kitchen_photo: uploadedImages.kitchen,
+          bathroom_photo: uploadedImages.bathroom,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
 
       if (error) {
         console.error("Update Error:", error);
@@ -208,11 +208,11 @@ export default function BeforeClean() {
               padding: 12,
               borderRadius: 8,
             }}
-            onPress={() => handleUpload(room)}
+            onPress={() => handleUpload(room as Room)}
           >
-            {uploadedImages[room] ? (
+            {uploadedImages[room as Room] ? (
               <Image
-                source={{ uri: uploadedImages[room] }}
+                source={{ uri: uploadedImages[room as Room] }}
                 style={{ width: 40, height: 40, borderRadius: 4 }}
               />
             ) : (

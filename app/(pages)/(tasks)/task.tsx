@@ -32,6 +32,9 @@ type Task = {
   latitude: number;
   longitude: number;
   is_confirmed: boolean;
+  cleaner_id: string | null;
+  customer_id: string;
+  check_in_time: string | null;
 };
 
 const getOrdinalSuffix = (day: number) => {
@@ -84,6 +87,8 @@ export default function Task() {
   const [canCheckIn, setCanCheckIn] = useState(false);
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [distanceToTask, setDistanceToTask] = useState<number | null>(null);
+  const [canConfirm, setCanConfirm] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // 获取任务数据
   useEffect(() => {
@@ -97,8 +102,17 @@ export default function Task() {
 
         if (error) throw error;
         setTask(data);
+
+        // 检查是否已签到
+        if (data.check_in_time) {
+          setHasCheckedIn(true);
+        }
+
+        // 检查任务状态
+        updateTaskStatus(data);
       } catch (error) {
         console.error("Error fetching task:", error);
+        Alert.alert("Error", "Failed to load task details");
       } finally {
         setLoading(false);
       }
@@ -107,111 +121,134 @@ export default function Task() {
     fetchTask();
   }, [id]);
 
-  // 处理确认按钮
-  const handleAccept = async () => {
+  // 获取当前用户ID
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) setCurrentUserId(user.id);
+    };
+    getCurrentUser();
+  }, []);
+
+  // 更新任务状态
+  const updateTaskStatus = (taskData: Task) => {
+    if (!taskData) return;
+
+    const taskTime = new Date(taskData.scheduled_start_time);
+    const now = new Date();
+    const hoursUntilTask = differenceInHours(taskTime, now);
+
+    // 设置是否可以确认任务
+    setCanConfirm(
+      !taskData.is_confirmed && hoursUntilTask <= 24 && hoursUntilTask >= 4
+    );
+
+    // 设置是否可以签到
+    setCanCheckIn(
+      taskData.is_confirmed && hoursUntilTask < 4 && hoursUntilTask >= 0
+    );
+  };
+
+  // 确认任务
+  const handleConfirmTask = async () => {
     if (!task) return;
 
     try {
-      // 获取当前用户ID
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from("tasks")
+        .update({ is_confirmed: true })
+        .eq("task_id", task.task_id);
 
-      if (userError || !user) {
-        console.error("Error getting user:", userError);
+      if (error) throw error;
+
+      Alert.alert("Success", "Task confirmed successfully!");
+
+      // 刷新任务数据
+      const { data, error: fetchError } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("task_id", id)
+        .single();
+
+      if (fetchError) throw fetchError;
+      setTask(data);
+      updateTaskStatus(data);
+    } catch (error) {
+      console.error("Error confirming task:", error);
+      Alert.alert("Error", "Failed to confirm task");
+    }
+  };
+
+  // 签到
+  const handleCheckIn = async () => {
+    if (!task) return;
+
+    try {
+      // 请求位置权限
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission denied",
+          "Location permission is required for check-in"
+        );
+        return;
+      }
+
+      // 获取当前位置
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      // 计算与任务地点的距离
+      const distance = calculateDistance(
+        latitude,
+        longitude,
+        task.latitude,
+        task.longitude
+      );
+
+      setDistanceToTask(distance);
+
+      // 检查距离是否在40公里以内
+      if (distance > 40) {
+        Alert.alert(
+          "Location Check Failed",
+          `You are too far from the task location (${distance.toFixed(
+            2
+          )} km). Please check in when you are closer.`
+        );
         return;
       }
 
       // 更新任务状态
+      const now = new Date();
       const { error } = await supabase
         .from("tasks")
         .update({
-          is_confirmed: true,
-          status: "In Progress", // 更改状态为进行中
-          cleaner_id: user.id,
-          date_updated: new Date().toISOString(),
+          check_in_time: now.toISOString(),
+          status: "In Progress",
         })
         .eq("task_id", task.task_id);
 
-      if (error) {
-        console.error("Error accepting task:", error);
-        Alert.alert("Error", "Failed to accept task. Please try again.");
-        return;
-      }
+      if (error) throw error;
 
-      // 成功接受任务后显示提示
-      Alert.alert(
-        "Success",
-        "Task accepted successfully! You will receive reminders before the task.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.back(),
-          },
-        ]
-      );
-    } catch (error) {
-      console.error("Error accepting task:", error);
-      Alert.alert("Error", "Failed to accept task. Please try again.");
-    }
-  };
+      setHasCheckedIn(true);
+      Alert.alert("Success", "Check-in successful!");
 
-  // 处理取消按钮
-  const handleCancel = async () => {
-    if (!task) return;
-
-    try {
-      // 更新任务状态为 Cancelled
-      const { error } = await supabase
+      // 刷新任务数据
+      const { data, error: fetchError } = await supabase
         .from("tasks")
-        .update({
-          status: "Cancelled",
-          date_updated: new Date().toISOString(),
-        })
-        .eq("task_id", task.task_id);
+        .select("*")
+        .eq("task_id", id)
+        .single();
 
-      if (error) {
-        console.error("Error cancelling task:", error);
-        return;
-      }
-
-      // 关闭取消确认弹窗
-      setShowCancelModal(false);
-
-      // 返回到任务列表页面
-      router.back();
+      if (fetchError) throw fetchError;
+      setTask(data);
     } catch (error) {
-      console.error("Error cancelling task:", error);
+      console.error("Error during check-in:", error);
+      Alert.alert("Error", "Failed to check in");
     }
-  };
-
-  // 处理开始按钮
-  const handleStart = () => {
-    if (!task) return;
-
-    const address = encodeURIComponent(task.address);
-    const latLng = `${task.latitude},${task.longitude}`;
-
-    // 根据平台选择不同的导航 URL
-    const url = Platform.select({
-      ios: `maps://app?daddr=${address}&ll=${latLng}`,
-      android: `google.navigation:q=${latLng}&mode=d`, // mode=d 表示驾驶模式
-    });
-
-    // 尝试打开导航
-    Linking.canOpenURL(url as string).then((supported) => {
-      if (supported) {
-        Linking.openURL(url as string);
-      } else {
-        // 如果无法打开默认导航，尝试打开 Google Maps
-        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latLng}&travelmode=driving`;
-        Linking.openURL(googleMapsUrl).catch((err) => {
-          console.error("Error opening navigation:", err);
-          Alert.alert("Navigation Error", "Could not open navigation app");
-        });
-      }
-    });
   };
 
   // 计算两点之间的距离（公里）
@@ -234,119 +271,158 @@ export default function Task() {
     return R * c;
   };
 
-  // 检查是否可以签到
-  const checkIfCanCheckIn = async () => {
+  // 打开导航
+  const handleNavigate = () => {
     if (!task) return;
 
-    const taskTime = new Date(task.scheduled_start_time);
-    const now = new Date();
-    const hoursUntilTask = differenceInHours(taskTime, now);
+    const latLng = `${task.latitude},${task.longitude}`;
+    const url = Platform.select({
+      ios: `maps://app?daddr=${latLng}`,
+      android: `google.navigation:q=${latLng}`,
+    });
 
-    // 只有在任务开始前4小时内才能签到
-    if (hoursUntilTask <= 4 && hoursUntilTask > 0) {
-      setCanCheckIn(true);
-    }
+    Linking.canOpenURL(url as string).then((supported) => {
+      if (supported) {
+        Linking.openURL(url as string);
+      } else {
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latLng}`;
+        Linking.openURL(googleMapsUrl);
+      }
+    });
   };
 
-  // 处理签到
-  const handleCheckIn = async () => {
-    try {
-      // 请求位置权限
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission denied",
-          "Location permission is required for check-in"
-        );
-        return;
-      }
-
-      // 获取当前位置
-      const location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-
-      if (!task) return;
-
-      // 计算与任务地点的距离
-      const distance = calculateDistance(
-        latitude,
-        longitude,
-        task.latitude,
-        task.longitude
-      );
-
-      setDistanceToTask(distance);
-
-      // 检查距离是否在10公里以内
-      if (distance > 10) {
-        Alert.alert(
-          "Location Check Failed",
-          "You are too far from the task location. Please check in when you are closer."
-        );
-        return;
-      }
-
-      // 更新任务状态
-      const { error } = await supabase
-        .from("tasks")
-        .update({
-          check_in_time: new Date().toISOString(),
-          check_in_latitude: latitude,
-          check_in_longitude: longitude,
-        })
-        .eq("task_id", task.task_id);
-
-      if (error) throw error;
-
-      setHasCheckedIn(true);
-      Alert.alert("Success", "Check-in successful!");
-
-      // 发送通知给客户
-      // TODO: 实现通知功能
-    } catch (error) {
-      console.error("Error during check-in:", error);
-      Alert.alert("Error", "Failed to check in. Please try again.");
-    }
-  };
-
-  // 设置提醒
-  useEffect(() => {
+  // 取消任务
+  const handleCancelTask = async () => {
     if (!task) return;
 
-    const taskTime = new Date(task.scheduled_start_time);
-    const now = new Date();
+    Alert.alert("Cancel Task", "Are you sure you want to cancel this task?", [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const { error } = await supabase
+              .from("tasks")
+              .update({
+                cleaner_id: null,
+                status: "Pending",
+                is_confirmed: false,
+                check_in_time: null,
+              })
+              .eq("task_id", task.task_id);
 
-    // 24小时提醒
-    const reminder24h = setTimeout(() => {
-      Alert.alert(
-        "Task Reminder",
-        "Please check your cleaning tools and supplies for tomorrow's task."
+            if (error) throw error;
+
+            Alert.alert("Success", "Task cancelled successfully");
+            router.back();
+          } catch (error) {
+            console.error("Error cancelling task:", error);
+            Alert.alert("Error", "Failed to cancel task");
+          }
+        },
+      },
+    ]);
+  };
+
+  // 添加 handleAcceptTask 函数
+  const handleAcceptTask = async (taskId: number) => {
+    if (!currentUserId) return;
+    // ... 接受任务的逻辑
+  };
+
+  // 渲染按钮部分
+  const renderButtons = () => {
+    if (!task) return null;
+
+    // 如果任务没有被接受（没有 cleaner_id），只显示 Accept 和 Decline 按钮
+    if (!task.cleaner_id) {
+      return (
+        <View className="flex-row space-x-4">
+          <TouchableOpacity
+            className="flex-1 bg-gray-500 py-3 rounded items-center"
+            onPress={() => router.back()}
+          >
+            <Text className="text-white font-medium">Decline</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
+            onPress={() => handleAcceptTask(task.task_id)}
+          >
+            <Text className="text-white font-medium">Accept</Text>
+          </TouchableOpacity>
+        </View>
       );
-    }, Math.max(0, taskTime.getTime() - now.getTime() - 24 * 60 * 60 * 1000));
+    }
 
-    // 4小时提醒（签到开启）
-    const reminder4h = setTimeout(() => {
-      setCanCheckIn(true);
-      Alert.alert(
-        "Check-in Available",
-        "You can now check in for your upcoming task."
+    // 如果任务已被当前用户接受，显示其他按钮
+    if (task.cleaner_id === currentUserId) {
+      return (
+        <>
+          {/* Confirm Button - 只在任务已接受且未确认时显示 */}
+          {!task.is_confirmed && (
+            <TouchableOpacity
+              className="bg-blue-500 p-3 rounded mb-4"
+              onPress={handleConfirmTask}
+            >
+              <Text className="text-white text-center font-bold">
+                Confirm Task
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Check-in Button */}
+          {canCheckIn && !hasCheckedIn && (
+            <TouchableOpacity
+              className="bg-green-500 p-3 rounded mb-4"
+              onPress={handleCheckIn}
+            >
+              <Text className="text-white text-center font-bold">Check In</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Check-in Status */}
+          {hasCheckedIn && (
+            <View className="bg-green-100 p-3 rounded mb-4">
+              <Text className="text-green-800 font-semibold">
+                You have checked in for this task
+              </Text>
+              {distanceToTask !== null && (
+                <Text className="text-green-700 mt-1">
+                  Distance to location: {distanceToTask.toFixed(1)} km
+                </Text>
+              )}
+            </View>
+          )}
+
+          {/* Bottom Buttons */}
+          <View className="flex-row space-x-4 mt-4">
+            <TouchableOpacity
+              className="flex-1 bg-red-500 p-3 rounded"
+              onPress={handleCancelTask}
+            >
+              <Text className="text-white text-center font-bold">Cancel</Text>
+            </TouchableOpacity>
+
+            {/* Navigate Button - Only show after check-in */}
+            {hasCheckedIn && (
+              <TouchableOpacity
+                className="flex-1 bg-blue-500 p-3 rounded"
+                onPress={handleNavigate}
+              >
+                <Text className="text-white text-center font-bold">
+                  Navigate
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </>
       );
-    }, Math.max(0, taskTime.getTime() - now.getTime() - 4 * 60 * 60 * 1000));
+    }
 
-    // 2小时提醒
-    const reminder2h = setTimeout(() => {
-      Alert.alert(
-        "Task Approaching",
-        "Your task will start in 2 hours. Please ensure you're prepared."
-      );
-    }, Math.max(0, taskTime.getTime() - now.getTime() - 2 * 60 * 60 * 1000));
-
-    return () => {
-      clearTimeout(reminder24h);
-      clearTimeout(reminder4h);
-      clearTimeout(reminder2h);
-    };
-  }, [task]);
+    // 如果任务被其他清洁工接受，不显示任何操作按钮
+    return null;
+  };
 
   if (loading) {
     return (
@@ -360,6 +436,12 @@ export default function Task() {
     return (
       <View className="flex-1 justify-center items-center">
         <Text>Task not found</Text>
+        <TouchableOpacity
+          className="mt-4 bg-blue-500 px-4 py-2 rounded"
+          onPress={() => router.back()}
+        >
+          <Text className="text-white">Go Back</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -368,101 +450,30 @@ export default function Task() {
   const day = date.getDate();
   const month = date.toLocaleDateString("en-US", { month: "short" });
 
-  const renderButtons = () => {
-    if (!task.is_confirmed) {
-      return (
-        <View className="flex-row space-x-4">
-          <TouchableOpacity
-            className="flex-1 bg-gray-500 py-3 rounded items-center"
-            onPress={() => router.back()}
-          >
-            <Text className="text-white font-medium">Decline</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
-            onPress={handleAccept}
-          >
-            <Text className="text-white font-medium">Accept</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View className="flex-row space-x-4">
-        <TouchableOpacity
-          className="flex-1 bg-red-500 py-3 rounded items-center"
-          onPress={() => setShowCancelModal(true)}
-        >
-          <Text className="text-white font-medium">Cancel</Text>
-        </TouchableOpacity>
-        {task.status === "Pending" && (
-          <TouchableOpacity
-            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
-            onPress={() => setShowConfirmModal(true)}
-          >
-            <Text className="text-white font-medium">Start</Text>
-          </TouchableOpacity>
-        )}
-        {task.status === "In Progress" && (
-          <TouchableOpacity
-            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
-            onPress={handleStart}
-          >
-            <Text className="text-white font-medium">Navigate</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
-
-  // 渲染签到按钮
-  const renderCheckInButton = () => {
-    if (!canCheckIn) return null;
-    if (hasCheckedIn) {
-      return (
-        <View className="bg-green-100 p-4 rounded-lg mb-4">
-          <Text className="text-green-700">Checked in successfully</Text>
-          {distanceToTask && (
-            <Text className="text-green-700">
-              Distance to task: {distanceToTask.toFixed(2)} km
-            </Text>
-          )}
-        </View>
-      );
-    }
-    return (
-      <TouchableOpacity
-        className="bg-[#4A90E2] p-4 rounded-lg mb-4"
-        onPress={handleCheckIn}
-      >
-        <Text className="text-white text-center font-semibold">Check In</Text>
-      </TouchableOpacity>
-    );
-  };
-
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="bg-[#4A90E2] p-4">
+      <View className="bg-blue-500 p-4">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()}>
-            <AntDesign name="left" size={24} color="white" />
+            <AntDesign name="arrowleft" size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-white text-lg ml-4">Task Detail</Text>
+          <Text className="text-white text-lg font-bold ml-4">
+            Task Details
+          </Text>
         </View>
       </View>
 
       <ScrollView className="flex-1">
         {/* Map */}
-        <View className="h-[200px]">
+        <View className="h-48">
           <MapView
             style={{ flex: 1 }}
             initialRegion={{
               latitude: task.latitude,
               longitude: task.longitude,
-              latitudeDelta: 0.02,
-              longitudeDelta: 0.02,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
             }}
           >
             <Marker
@@ -477,95 +488,26 @@ export default function Task() {
 
         {/* Task Info */}
         <View className="p-4">
-          <Text className="text-lg font-bold">{task.task_type}</Text>
-          <View className="flex-row items-center mt-2">
-            <AntDesign name="calendar" size={16} color="gray" />
-            <Text className="text-gray-600 ml-2">
-              {format(
-                new Date(task.scheduled_start_time),
-                "MMM dd, yyyy HH:mm"
-              )}
-            </Text>
-          </View>
-          <View className="flex-row items-center mt-2">
-            <AntDesign name="enviromento" size={16} color="gray" />
-            <Text className="text-gray-600 ml-2">{task.address}</Text>
-          </View>
-        </View>
-
-        {/* Status and Price */}
-        <View className="p-4 flex-row justify-between items-center bg-gray-50">
-          <View>
-            <Text className="text-gray-500">Status</Text>
-            <Text className="text-lg font-semibold mt-1">{task.status}</Text>
-          </View>
-          <View>
-            <Text className="text-gray-500">Price</Text>
-            <Text className="text-lg font-semibold mt-1">
-              ${task.confirmed_price || task.estimated_price}
-            </Text>
+          <Text className="text-xl font-bold">{task.task_type}</Text>
+          <Text className="text-gray-600 mt-2">{task.address}</Text>
+          <Text className="text-gray-600 mt-1">
+            {format(new Date(task.scheduled_start_time), "PPP p")}
+          </Text>
+          <View className="flex-row justify-between mt-4">
+            <View>
+              <Text className="text-gray-500">Status</Text>
+              <Text className="font-semibold">{task.status}</Text>
+            </View>
+            <View>
+              <Text className="text-gray-500">Price</Text>
+              <Text className="font-semibold">${task.estimated_price}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Bottom Buttons */}
-        <View className="p-4 mt-auto">{renderButtons()}</View>
-
-        {/* Check-in Button */}
-        {renderCheckInButton()}
+        {/* Action Buttons */}
+        <View className="p-4">{renderButtons()}</View>
       </ScrollView>
-
-      {/* Modals */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showConfirmModal}
-        onRequestClose={() => setShowConfirmModal(false)}
-      >
-        <View className="flex-1 bg-black/50 justify-center items-center">
-          <View className="bg-white p-4 rounded-lg w-[90%]">
-            <Text className="text-lg">Confirm Task</Text>
-            <Text className="text-gray-600 my-4">
-              Are you sure you want to confirm this task?
-            </Text>
-            <View className="flex-row justify-end space-x-6">
-              <TouchableOpacity onPress={() => setShowConfirmModal(false)}>
-                <Text className="text-red-500">No</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push("/(pages)/(photo)/task")}>
-                <Text className="text-[#4A90E2]">Yes</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showCancelModal}
-        onRequestClose={() => setShowCancelModal(false)}
-      >
-        <View className="flex-1 bg-black/50 justify-center items-center">
-          <View className="bg-white p-4 rounded-lg w-[90%]">
-            <Text className="text-lg">Cancel Task</Text>
-            <Text className="text-gray-600 my-4">
-              Are you sure you want to cancel this task?
-            </Text>
-            <View className="flex-row justify-end space-x-6">
-              <TouchableOpacity onPress={() => setShowCancelModal(false)}>
-                <Text className="text-[#4A90E2]">No</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => router.push("/(pages)/(photo)/beforeClean")}>
-                <Text className="text-red-500">Yes</Text>
-              </TouchableOpacity>
-
-              
-              
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
