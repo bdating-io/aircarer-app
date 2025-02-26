@@ -5,178 +5,328 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  Platform,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import * as FileSystem from "expo-file-system";
-import { v4 as uuidv4 } from "uuid"; // 需要安装: npm install uuid
+import { Ionicons } from "@expo/vector-icons";
 
-export default function BeforeClean() {
-  const router = useRouter();
-  const [uploadedImages, setUploadedImages] = useState({
-    livingRoom: null,
-    bedroom: null,
-    kitchen: null,
-    bathroom: null,
+type RoomType = "living_room" | "bedroom" | "kitchen" | "bathroom" | "other";
+
+interface RoomPhotos {
+  [key: string]: string[];
+}
+
+export default function AfterCleaning() {
+  const [uploadedImages, setUploadedImages] = useState<RoomPhotos>({
+    living_room: [],
+    bedroom: [],
+    kitchen: [],
+    bathroom: [],
+    other: [],
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const router = useRouter();
 
-  // 📌 获取当前用户 ID
-  const getUser = async () => {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) {
-      Alert.alert("Authentication Error", "User not authenticated");
-      throw new Error("User not authenticated");
-    }
-    return user.id;
-  };
+  const rooms = [
+    {
+      id: "living_room" as RoomType,
+      label: "Living Room",
+      description: "Living room area",
+    },
+    {
+      id: "bedroom" as RoomType,
+      label: "Bedroom",
+      description: "Bedroom area",
+    },
+    {
+      id: "kitchen" as RoomType,
+      label: "Kitchen",
+      description: "Kitchen area",
+    },
+    {
+      id: "bathroom" as RoomType,
+      label: "Bathroom",
+      description: "Bathroom area",
+    },
+    { id: "other" as RoomType, label: "Other", description: "Other areas" },
+  ];
 
-  // 📌 处理图片上传
-  const handleUpload = async (room) => {
+  const handleSelectImage = async (roomId: RoomType) => {
     try {
-      const pickerResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 0.5, 
-      });
-
-      if (pickerResult.canceled) return;
-
-      const imageUri = pickerResult.assets[0].uri;
-      const fileName = `${room}-${Date.now()}.jpg`;
-
-      // **读取文件数据**
-      const file = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // **转换 Base64 为 Blob**
-      const fileBuffer = Buffer.from(file, "base64");
-
-      const { data, error } = await supabase.storage
-        .from("cleaning-photos")
-        .upload(fileName, fileBuffer, { contentType: "image/jpeg" });
-
-      if (error) {
-        Alert.alert("Upload Failed", "There was an issue uploading the image.");
-        console.error("Upload error:", error);
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission needed",
+          "Please grant camera roll permissions"
+        );
         return;
       }
 
-      // **获取图片 URL**
-      const publicUrl = supabase.storage.from("cleaning-photos").getPublicUrl(fileName).data.publicUrl;
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+        aspect: [4, 3],
+      });
 
-      console.log("Uploaded Image URL:", publicUrl);
-
-      setUploadedImages((prev) => ({
-        ...prev,
-        [room]: publicUrl,
-      }));
-
-      Alert.alert("Upload Success", "Image uploaded successfully!");
-
+      if (!result.canceled) {
+        setUploadedImages((prev) => ({
+          ...prev,
+          [roomId]: [...prev[roomId], result.assets[0].uri],
+        }));
+      }
     } catch (error) {
-      Alert.alert("Upload Error", "Something went wrong.");
-      console.error("Upload Error:", error);
+      console.error("Error selecting image:", error);
+      Alert.alert("Error", "Failed to select image");
     }
   };
 
-  // 📌 处理确认提交
-  const handleConfirm = async () => {
+  const handleTakePhoto = async (roomId: RoomType) => {
     try {
-      const userId = await getUser();
-      const taskId = uuidv4(); // ✅ 生成 UUID 作为 task_id
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission needed", "Please grant camera permissions");
+        return;
+      }
 
-      // **确保所有图片都已上传**
-      const requiredFields = ["livingRoom", "bedroom", "kitchen", "bathroom"];
-      for (let field of requiredFields) {
-        if (!uploadedImages[field]) {
-          Alert.alert("Error", `Please upload a photo for ${field}.`);
-          return;
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+        aspect: [4, 3],
+      });
+
+      if (!result.canceled) {
+        setUploadedImages((prev) => ({
+          ...prev,
+          [roomId]: [...prev[roomId], result.assets[0].uri],
+        }));
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      Alert.alert("Error", "Failed to take photo");
+    }
+  };
+
+  const handleRemoveImage = (roomId: RoomType, index: number) => {
+    setUploadedImages((prev) => ({
+      ...prev,
+      [roomId]: prev[roomId].filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSave = async () => {
+    const hasAnyImage = Object.values(uploadedImages).some(
+      (urls) => urls.length > 0
+    );
+    if (!hasAnyImage) {
+      Alert.alert("Required", "Please select at least one photo");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // 获取当前进行中的任务
+      const { data: tasks, error: taskError } = await supabase
+        .from("tasks")
+        .select("task_id")
+        .eq("status", "In Progress")
+        .order("scheduled_start_time", { ascending: false })
+        .limit(1);
+
+      if (taskError) throw taskError;
+      if (!tasks || tasks.length === 0) {
+        Alert.alert("Error", "No active task found");
+        return;
+      }
+
+      const taskId = tasks[0].task_id;
+
+      // 上传所有照片
+      for (const [roomId, uris] of Object.entries(uploadedImages)) {
+        if (uris.length === 0) continue;
+
+        for (const uri of uris) {
+          try {
+            // 读取文件内容为 base64
+            const base64 = await FileSystem.readAsStringAsync(uri, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+
+            // 创建唯一文件名
+            const fileName = `${taskId}/${roomId}/after_${Date.now()}_${Math.random()
+              .toString(36)
+              .substring(7)}.jpg`;
+
+            // 上传到 Supabase Storage
+            const { error: uploadError } = await supabase.storage
+              .from("cleaning-photos")
+              .upload(fileName, decode(base64), {
+                contentType: "image/jpeg",
+                cacheControl: "3600",
+              });
+
+            if (uploadError) throw uploadError;
+
+            // 获取公共 URL
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from("cleaning-photos").getPublicUrl(fileName);
+
+            // 保存照片记录
+            await supabase.from("room_photos").insert([
+              {
+                task_id: taskId,
+                room_type: roomId,
+                photo_type: "after",
+                photo_url: publicUrl,
+              },
+            ]);
+          } catch (uploadError) {
+            console.error("Upload error:", uploadError);
+            continue; // 继续处理其他照片
+          }
         }
       }
 
-      const { error } = await supabase.from("cleaning_tasks").insert([
+      Alert.alert("Success", "After cleaning photos uploaded successfully", [
         {
-          task_id: taskId,
-          user_id: userId, 
-          living_room_photo: uploadedImages.livingRoom,
-          bedroom_photo: uploadedImages.bedroom,
-          kitchen_photo: uploadedImages.kitchen,
-          bathroom_photo: uploadedImages.bathroom,
-          timestamp: new Date().toISOString(),
+          text: "OK",
+          onPress: () => {
+            // 导航回任务详情页面
+            router.push("/");
+          },
         },
       ]);
-
-      if (error) throw error;
-
-      Alert.alert("Success", "Images submitted successfully!");
-      router.push("/(pages)/(photo)/task"); // 🔹 提交后跳转
     } catch (error) {
-      Alert.alert("Error", error.message || "Failed to submit images.");
-      console.error("Insert Error:", error);
+      console.error("Error:", error);
+      Alert.alert("Error", "Failed to save photos");
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  return (
-    <View style={{ flex: 1, padding: 16, backgroundColor: "#f9f9f9" }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 16 }}>
-        Photo Before Cleaning
-      </Text>
+  // 辅助函数：将 base64 字符串解码为 Uint8Array
+  function decode(base64: string): Uint8Array {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  }
 
-      {["livingRoom", "bedroom", "kitchen", "bathroom"].map((room) => (
-        <View
-          key={room}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            backgroundColor: "#f5f5f5",
-            padding: 16,
-            borderRadius: 8,
-            marginBottom: 12,
-          }}
-        >
-          <View>
-            <Text style={{ fontSize: 18, fontWeight: "bold", color: "#333" }}>
-              {room.charAt(0).toUpperCase() + room.slice(1)}
-            </Text>
-            <Text style={{ color: "#888" }}>Brief description</Text>
+  return (
+    <ScrollView className="flex-1 bg-gray-50">
+      <View className="p-4">
+        <View className="mb-6">
+          <Text className="text-xl font-bold text-gray-800">
+            After Cleaning Photos
+          </Text>
+          <Text className="text-gray-600 mt-1">
+            Upload photos of each area after cleaning
+          </Text>
+        </View>
+
+        {rooms.map((room) => (
+          <View key={room.id} className="mb-6">
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-lg font-semibold text-gray-800">
+                {room.label}
+              </Text>
+              <View className="flex-row">
+                <TouchableOpacity
+                  onPress={() => handleTakePhoto(room.id)}
+                  className="bg-blue-500 p-2 rounded-full mr-2"
+                >
+                  <Ionicons name="camera" size={18} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleSelectImage(room.id)}
+                  className="bg-green-500 p-2 rounded-full"
+                >
+                  <Ionicons name="images" size={18} color="white" />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <ScrollView
+              horizontal
+              className="mb-2"
+              showsHorizontalScrollIndicator={false}
+            >
+              {uploadedImages[room.id].map((uri, index) => (
+                <View key={index} className="mr-2">
+                  <Image
+                    source={{ uri }}
+                    style={{ width: 120, height: 120, borderRadius: 8 }}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    className="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
+                    onPress={() => handleRemoveImage(room.id, index)}
+                  >
+                    <Text className="text-white text-sm">×</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {uploadedImages[room.id].length === 0 && (
+                <View
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 8,
+                    backgroundColor: "#f3f4f6",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text className="text-gray-400">No photos</Text>
+                </View>
+              )}
+            </ScrollView>
+            <Text className="text-gray-500 text-sm">{room.description}</Text>
           </View>
+        ))}
+
+        <View className="mt-4 mb-8">
           <TouchableOpacity
-            style={{
-              backgroundColor: "#e0e0e0",
-              padding: 12,
-              borderRadius: 8,
-            }}
-            onPress={() => handleUpload(room)}
+            className={`py-4 rounded-lg items-center ${
+              isUploading
+                ? "bg-gray-400"
+                : Object.values(uploadedImages).some((urls) => urls.length > 0)
+                ? "bg-blue-500"
+                : "bg-gray-300"
+            }`}
+            onPress={handleSave}
+            disabled={isUploading}
           >
-            {uploadedImages[room] ? (
-              <Image
-                source={{ uri: uploadedImages[room] }}
-                style={{ width: 40, height: 40, borderRadius: 4 }}
-              />
+            {isUploading ? (
+              <View className="flex-row items-center">
+                <ActivityIndicator size="small" color="white" />
+                <Text className="text-white font-bold ml-2">Uploading...</Text>
+              </View>
             ) : (
-              <Text style={{ fontSize: 24, color: "#888" }}>+</Text>
+              <Text className="text-white font-bold">
+                Save Photos & Complete Task
+              </Text>
             )}
           </TouchableOpacity>
-        </View>
-      ))}
 
-      <View style={{ marginTop: 24 }}>
-        <TouchableOpacity
-          style={{
-            backgroundColor: "#4A90E2",
-            paddingVertical: 12,
-            borderRadius: 8,
-            alignItems: "center",
-          }}
-          onPress={handleConfirm}
-        >
-          <Text style={{ color: "#fff", fontSize: 16 }}>Confirm</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            className="py-4 rounded-lg items-center bg-gray-500 mt-4"
+            onPress={() => router.back()}
+            disabled={isUploading}
+          >
+            <Text className="text-white font-bold">Back to Cleaning Guide</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }

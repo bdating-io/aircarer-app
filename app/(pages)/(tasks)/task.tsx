@@ -15,7 +15,7 @@ import MapView, { Marker } from "react-native-maps";
 import * as Linking from "expo-linking";
 import * as Location from "expo-location";
 import { supabase } from "../../../lib/supabase";
-import { format, differenceInHours, addHours } from "date-fns";
+import { format, differenceInHours } from "date-fns";
 
 type Task = {
   task_id: number;
@@ -331,6 +331,66 @@ export default function Task() {
     // ... 接受任务的逻辑
   };
 
+  // 处理确认到达按钮点击
+  const handleConfirmArrived = async () => {
+    if (!task) return;
+
+    try {
+      // 获取当前位置
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission denied",
+          "Location permission is required to confirm arrival"
+        );
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      // 计算与任务地点的距离
+      const distance = calculateDistance(
+        latitude,
+        longitude,
+        task.latitude,
+        task.longitude
+      );
+
+      // 检查距离是否在合理范围内
+      if (distance > 40) {
+        Alert.alert(
+          "Location Check Failed",
+          `You are too far from the task location (${distance.toFixed(
+            2
+          )} km). Please confirm arrival when you are closer.`
+        );
+        return;
+      }
+
+      // 更新任务状态
+      const now = new Date();
+      const { error } = await supabase
+        .from("tasks")
+        .update({
+          actual_start_time: now.toISOString(),
+          status: "In Progress",
+        })
+        .eq("task_id", task.task_id);
+
+      if (error) throw error;
+
+      setHasArrived(true);
+      Alert.alert("Success", "Arrival confirmed successfully!");
+
+      // 导航到 beforeClean 页面
+      router.push("/beforeClean");
+    } catch (error) {
+      console.error("Error confirming arrival:", error);
+      Alert.alert("Error", "Failed to confirm arrival");
+    }
+  };
+
   // 渲染按钮部分
   const renderButtons = () => {
     if (!task) return null;
@@ -340,16 +400,16 @@ export default function Task() {
       return (
         <View className="flex-row space-x-4">
           <TouchableOpacity
-            className="flex-1 bg-gray-500 py-3 rounded items-center"
+            className="flex-1 bg-gray-500 py-3 rounded-lg items-center"
             onPress={() => router.back()}
           >
-            <Text className="text-white font-medium">Decline</Text>
+            <Text className="text-white font-bold">Decline</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 bg-[#4A90E2] py-3 rounded items-center"
+            className="flex-1 bg-blue-500 py-3 rounded-lg items-center"
             onPress={() => handleAcceptTask(task.task_id)}
           >
-            <Text className="text-white font-medium">Accept</Text>
+            <Text className="text-white font-bold">Accept</Text>
           </TouchableOpacity>
         </View>
       );
@@ -358,65 +418,73 @@ export default function Task() {
     // 如果任务已被当前用户接受，显示其他按钮
     if (task.cleaner_id === currentUserId) {
       return (
-        <>
-          {/* Confirm Button - 只在任务已接受且未确认时显示 */}
+        <View>
+          {/* Confirm Task Button - 只在任务已接受且未确认时显示 */}
           {!task.is_confirmed && (
             <TouchableOpacity
-              className="bg-blue-500 p-3 rounded mb-4"
+              className="bg-blue-500 py-3 px-4 rounded-lg items-center mb-4"
               onPress={handleConfirmTask}
             >
-              <Text className="text-white text-center font-bold">
-                Confirm Task
-              </Text>
+              <Text className="text-white font-bold">Confirm Task</Text>
             </TouchableOpacity>
           )}
 
           {/* Check-in Button */}
           {canCheckIn && !hasCheckedIn && (
             <TouchableOpacity
-              className="bg-green-500 p-3 rounded mb-4"
+              className="bg-green-500 py-3 px-4 rounded-lg items-center mb-4"
               onPress={handleCheckIn}
             >
-              <Text className="text-white text-center font-bold">Check In</Text>
+              <Text className="text-white font-bold">Check In</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Confirm Arrived Button */}
+          {task.is_confirmed && !hasArrived && (
+            <TouchableOpacity
+              className="bg-green-500 py-3 px-4 rounded-lg items-center mb-4"
+              onPress={handleConfirmArrived}
+            >
+              <Text className="text-white font-bold">
+                Confirm Arrived & Take Photos
+              </Text>
             </TouchableOpacity>
           )}
 
           {/* Check-in Status */}
           {hasCheckedIn && (
-            <View className="bg-green-100 p-3 rounded mb-4">
-              <Text className="text-green-800 font-semibold">
+            <View className="bg-green-100 py-3 px-4 rounded-lg mb-4">
+              <Text className="text-green-800 font-semibold text-center">
                 You have checked in for this task
               </Text>
               {distanceToTask !== null && (
-                <Text className="text-green-700 mt-1">
+                <Text className="text-green-700 text-center mt-1">
                   Distance to location: {distanceToTask.toFixed(1)} km
                 </Text>
               )}
             </View>
           )}
 
-          {/* Bottom Buttons */}
-          <View className="flex-row space-x-4 mt-4">
+          {/* Go to Task Button - 当已确认到达时显示 */}
+          {hasArrived && (
             <TouchableOpacity
-              className="flex-1 bg-red-500 p-3 rounded"
-              onPress={handleCancelTask}
+              className="bg-purple-500 py-3 px-4 rounded-lg items-center mb-4"
+              onPress={() => router.push("/taskDetail")}
             >
-              <Text className="text-white text-center font-bold">Cancel</Text>
+              <Text className="text-white font-bold">
+                View Cleaning Guide
+              </Text>
             </TouchableOpacity>
+          )}
 
-            {/* Navigate Button - Only show after check-in */}
-            {hasCheckedIn && (
-              <TouchableOpacity
-                className="flex-1 bg-blue-500 p-3 rounded"
-                onPress={handleNavigate}
-              >
-                <Text className="text-white text-center font-bold">
-                  Navigate
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </>
+          {/* Bottom Buttons */}
+          <TouchableOpacity
+            className="bg-red-500 py-3 px-4 rounded-lg items-center mt-4"
+            onPress={handleCancelTask}
+          >
+            <Text className="text-white font-bold">Cancel Task</Text>
+          </TouchableOpacity>
+        </View>
       );
     }
 
@@ -507,6 +575,58 @@ export default function Task() {
 
         {/* Action Buttons */}
         <View className="p-4">{renderButtons()}</View>
+
+        {/* 签到按钮 */}
+        {task && canCheckIn && !hasCheckedIn && (
+          <View className="mt-4">
+            <TouchableOpacity
+              className="bg-blue-500 py-3 px-4 rounded-lg items-center"
+              onPress={handleCheckIn}
+            >
+              <Text className="text-white font-bold text-lg">Check In</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* 导航按钮 */}
+        {task && (
+          <View className="mt-4">
+            <TouchableOpacity
+              className="bg-indigo-500 py-3 px-4 rounded-lg items-center"
+              onPress={handleNavigate}
+            >
+              <Text className="text-white font-bold text-lg">
+                Navigate to Location
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* 确认任务按钮 */}
+        {task && canConfirm && (
+          <View className="mt-4">
+            <TouchableOpacity
+              className="bg-yellow-500 py-3 px-4 rounded-lg items-center"
+              onPress={() => setShowConfirmModal(true)}
+            >
+              <Text className="text-white font-bold text-lg">Confirm Task</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* 取消任务按钮 */}
+        {task && !task.is_confirmed && (
+          <View className="mt-4">
+            <TouchableOpacity
+              className="bg-red-500 py-3 px-4 rounded-lg items-center"
+              onPress={() => setShowCancelModal(true)}
+            >
+              <Text className="text-white font-bold text-lg">Cancel Task</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* 任务详情按钮 - 当已签到时显示 */}
       </ScrollView>
     </View>
   );

@@ -1,240 +1,263 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Alert,
+  ScrollView,
+} from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../../../lib/supabase";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "expo-router";
 import * as FileSystem from "expo-file-system";
 
-type Room = "livingRoom" | "bedroom" | "kitchen" | "bathroom";
+type RoomType = "living_room" | "bedroom" | "kitchen" | "bathroom" | "other";
 
-export default function BeforeClean() {
-  const router = useRouter();
-  const { taskId: paramTaskId } = useLocalSearchParams<{ taskId?: string }>();
+interface RoomPhotos {
+  [key: string]: string[];
+}
 
-  const [taskId, setTaskId] = useState<string | null>(paramTaskId || null);
-  const [uploadedImages, setUploadedImages] = useState({
-    livingRoom: null,
-    bedroom: null,
-    kitchen: null,
-    bathroom: null,
+export default function BeforeCleaning() {
+  const [uploadedImages, setUploadedImages] = useState<RoomPhotos>({
+    living_room: [],
+    bedroom: [],
+    kitchen: [],
+    bathroom: [],
+    other: [],
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const router = useRouter();
 
-  // ✅ 获取当前用户 ID
-  const getUser = async () => {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-    if (error || !user) {
-      Alert.alert("Authentication Error", "User not authenticated");
-      throw new Error("User not authenticated");
-    }
-    console.log("User ID:", user.id);
-    return user.id;
-  };
+  const rooms = [
+    {
+      id: "living_room" as RoomType,
+      label: "Living Room",
+      description: "Living room area",
+    },
+    {
+      id: "bedroom" as RoomType,
+      label: "Bedroom",
+      description: "Bedroom area",
+    },
+    {
+      id: "kitchen" as RoomType,
+      label: "Kitchen",
+      description: "Kitchen area",
+    },
+    {
+      id: "bathroom" as RoomType,
+      label: "Bathroom",
+      description: "Bathroom area",
+    },
+    { id: "other" as RoomType, label: "Other", description: "Other areas" },
+  ];
 
-  // ✅ 获取 / 创建 `task_id`
-  const getOrCreateTask = async () => {
-    if (taskId) return taskId; // 如果已有 taskId，直接返回
-
-    const userId = await getUser();
-
-    // **创建任务，让数据库自动生成 `task_id`**
-    const { data, error } = await supabase
-      .from("cleaning_tasks")
-      .insert([{ user_id: userId }])
-      .select("task_id")
-      .single();
-
-    if (error) {
-      console.error("Task creation failed:", error);
-      Alert.alert("Error", "Failed to create task.");
-      throw error;
-    }
-
-    setTaskId(data.task_id);
-    return data.task_id;
-  };
-
-  // ✅ 处理图片上传
-  const handleUpload = async (room: Room) => {
+  const handleSelectImage = async (roomId: RoomType) => {
     try {
-      const currentTaskId = await getOrCreateTask();
-
-      // **获取权限**
-      const permissionResult =
+      const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
+      if (status !== "granted") {
         Alert.alert(
-          "Permission Required",
-          "Permission to access media is required."
+          "Permission needed",
+          "Please grant camera roll permissions"
         );
         return;
       }
 
-      // **选择图片**
-      const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        quality: 0.5,
+        quality: 0.8,
+        aspect: [4, 3],
       });
 
-      if (pickerResult.canceled) return;
-
-      const imageUri = pickerResult.assets[0].uri;
-      const fileName = `${currentTaskId}-${room}-${Date.now()}.jpg`;
-
-      console.log(`Uploading ${fileName} from ${imageUri}`);
-
-      // ✅ 读取文件为 Base64
-      const base64File = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // ✅ 转换为 `FormData`
-      const formData = new FormData();
-      formData.append("file", {
-        uri: imageUri,
-        name: fileName,
-        type: "image/jpeg",
-      });
-
-      // ✅ 直接使用 `fetch` 进行上传
-      const { error: uploadError } = await supabase.storage
-        .from("cleaning-photos")
-        .upload(fileName, formData, { contentType: "image/jpeg" });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        Alert.alert("Upload Failed", "There was an issue uploading the image.");
-        return;
+      if (!result.canceled) {
+        setUploadedImages((prev) => ({
+          ...prev,
+          [roomId]: [...prev[roomId], result.assets[0].uri],
+        }));
       }
-
-      // ✅ 获取 `publicUrl`
-      const { data: urlData } = supabase.storage
-        .from("cleaning-photos")
-        .getPublicUrl(fileName);
-      const publicUrl = urlData.publicUrl;
-      console.log("Uploaded Image URL:", publicUrl);
-
-      // ✅ 更新数据库，存入 JSONB 字段
-      const { error: dbError } = await supabase
-        .from("cleaning_tasks")
-        .update({ [`${room}_photo`]: publicUrl })
-        .eq("task_id", currentTaskId);
-
-      if (dbError) {
-        console.error("Database Update Error:", dbError);
-        Alert.alert("Database Update Failed", "Could not save image URL.");
-        return;
-      }
-
-      // ✅ 更新状态
-      setUploadedImages((prev) => ({
-        ...prev,
-        [room]: publicUrl,
-      }));
-
-      Alert.alert("Upload Success", "Image uploaded and saved successfully!");
     } catch (error) {
-      console.error("Upload Error:", error);
-      Alert.alert("Upload Error", "Something went wrong.");
+      console.error("Error selecting image:", error);
+      Alert.alert("Error", "Failed to select image");
     }
   };
 
-  // ✅ 处理确认提交
-  const handleConfirm = async () => {
+  const handleRemoveImage = (roomId: RoomType, index: number) => {
+    setUploadedImages((prev) => ({
+      ...prev,
+      [roomId]: prev[roomId].filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSave = async () => {
+    const hasAnyImage = Object.values(uploadedImages).some(
+      (urls) => urls.length > 0
+    );
+    if (!hasAnyImage) {
+      Alert.alert("Required", "Please select at least one photo");
+      return;
+    }
+
+    setIsUploading(true);
+
     try {
-      const userId = await getUser();
-      const currentTaskId = await getOrCreateTask();
+      // 获取或创建任务
+      let currentTask;
+      const { data: tasks, error: taskError } = await supabase
+        .from("cleaning_tasks")
+        .select()
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-      console.log("Updating Task ID:", currentTaskId);
-      console.log("User ID:", userId);
+      if (taskError) throw taskError;
 
-      // ✅ 插入或更新数据库
-      const { error } = await supabase.from("cleaning_tasks").upsert([
-        {
-          task_id: currentTaskId,
-          user_id: userId,
-          living_room_photo: uploadedImages.livingRoom,
-          bedroom_photo: uploadedImages.bedroom,
-          kitchen_photo: uploadedImages.kitchen,
-          bathroom_photo: uploadedImages.bathroom,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      if (!tasks || tasks.length === 0) {
+        // 创建新任务
+        const { data: newTask, error: createError } = await supabase
+          .from("cleaning_tasks")
+          .insert([{ status: "in_progress" }])
+          .select()
+          .single();
 
-      if (error) {
-        console.error("Update Error:", error);
-        throw error;
+        if (createError) throw createError;
+        currentTask = newTask;
+      } else {
+        currentTask = tasks[0];
       }
 
-      Alert.alert("Success", "Images updated successfully!");
-      router.push("/(pages)/(photo)/task");
+      const taskId = currentTask.id;
+
+      // 上传所有照片
+      for (const [roomId, uris] of Object.entries(uploadedImages)) {
+        if (uris.length === 0) continue;
+
+        for (const uri of uris) {
+          try {
+            // 读取文件内容
+            const base64 = await FileSystem.readAsStringAsync(uri, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+
+            // 生成文件名
+            const fileName = `${taskId}/${roomId}_before_${Date.now()}.jpg`;
+
+            // 上传到 Storage
+            const { error: uploadError } = await supabase.storage
+              .from("cleaning-photos")
+              .upload(fileName, base64, {
+                contentType: "image/jpeg",
+                cacheControl: "3600",
+              });
+
+            if (uploadError) throw uploadError;
+
+            // 获取公共 URL
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from("cleaning-photos").getPublicUrl(fileName);
+
+            // 保存照片记录
+            await supabase.from("room_photos").insert([
+              {
+                task_id: taskId,
+                room_type: roomId,
+                photo_type: "before",
+                photo_url: publicUrl,
+              },
+            ]);
+          } catch (uploadError) {
+            console.error("Upload error:", uploadError);
+            continue; // 继续处理其他照片
+          }
+        }
+      }
+
+      Alert.alert("Success", "Photos uploaded successfully", [
+        { text: "OK", onPress: () => router.push("/taskDetail") },
+      ]);
     } catch (error) {
-      console.error("Update Error:", error);
-      Alert.alert("Error", error.message || "Failed to update images.");
+      console.error("Error:", error);
+      Alert.alert("Error", "Failed to upload photos");
+    } finally {
+      setIsUploading(false);
     }
   };
 
   return (
-    <View style={{ flex: 1, padding: 16, backgroundColor: "#f9f9f9" }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 16 }}>
-        Photo Before Cleaning
-      </Text>
+    <ScrollView className="flex-1 bg-gray-50 p-4">
+      <View className="mb-6">
+        <Text className="text-xl font-bold text-gray-800">Before Cleaning</Text>
+        <Text className="text-gray-600 mt-1">Take photos before cleaning</Text>
+      </View>
 
-      {["livingRoom", "bedroom", "kitchen", "bathroom"].map((room) => (
-        <View
-          key={room}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            backgroundColor: "#f5f5f5",
-            padding: 16,
-            borderRadius: 8,
-            marginBottom: 12,
-          }}
-        >
-          <View>
-            <Text style={{ fontSize: 18, fontWeight: "bold", color: "#333" }}>
-              {room.charAt(0).toUpperCase() + room.slice(1)}
+      {rooms.map((room) => (
+        <View key={room.id} className="mb-6">
+          <View className="flex-row justify-between items-center mb-2">
+            <View>
+              <Text className="text-lg font-semibold">{room.label}</Text>
+              <Text className="text-gray-500 text-sm">{room.description}</Text>
+            </View>
+            <Text className="text-gray-500">
+              {uploadedImages[room.id].length} photos
             </Text>
-            <Text style={{ color: "#888" }}>Brief description</Text>
           </View>
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#e0e0e0",
-              padding: 12,
-              borderRadius: 8,
-            }}
-            onPress={() => handleUpload(room as Room)}
+
+          <ScrollView
+            horizontal
+            className="mb-2"
+            showsHorizontalScrollIndicator={false}
           >
-            {uploadedImages[room as Room] ? (
-              <Image
-                source={{ uri: uploadedImages[room as Room] }}
-                style={{ width: 40, height: 40, borderRadius: 4 }}
-              />
-            ) : (
-              <Text style={{ fontSize: 24, color: "#888" }}>+</Text>
-            )}
-          </TouchableOpacity>
+            {uploadedImages[room.id].map((uri, index) => (
+              <View key={index} className="mr-2">
+                <Image
+                  source={{ uri }}
+                  style={{ width: 120, height: 120, borderRadius: 8 }}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  className="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 items-center justify-center"
+                  onPress={() => handleRemoveImage(room.id, index)}
+                >
+                  <Text className="text-white text-sm">×</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            <TouchableOpacity
+              onPress={() => handleSelectImage(room.id)}
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: 8,
+                backgroundColor: "#f3f4f6",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text className="text-4xl text-gray-400">+</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       ))}
 
-      <View style={{ marginTop: 24 }}>
+      <View className="mt-4 mb-8">
         <TouchableOpacity
-          style={{
-            backgroundColor: "#4A90E2",
-            paddingVertical: 12,
-            borderRadius: 8,
-            alignItems: "center",
-          }}
-          onPress={handleConfirm}
+          className={`py-4 rounded-lg items-center ${
+            isUploading
+              ? "bg-gray-400"
+              : Object.values(uploadedImages).some((urls) => urls.length > 0)
+              ? "bg-blue-500"
+              : "bg-gray-300"
+          }`}
+          onPress={handleSave}
+          disabled={isUploading}
         >
-          <Text style={{ color: "#fff", fontSize: 16 }}>Confirm</Text>
+          <Text className="text-white font-medium">
+            {isUploading ? "Uploading..." : "Save Photos"}
+          </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
