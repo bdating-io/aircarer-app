@@ -191,12 +191,26 @@ export default function Home() {
       {/* Header with Sign Out */}
       <View className="px-6 pt-4 flex-row justify-between items-center">
         <Text className="text-2xl font-bold text-white">AirCarer</Text>
-        <TouchableOpacity
-          onPress={handleSignOut}
-          className="bg-white/20 px-4 py-2 rounded-lg"
-        >
-          <Text className="text-white">Sign Out</Text>
-        </TouchableOpacity>
+        <View className="flex-row items-center">
+          {/* 显示用户角色 - 更加亲切的表达 */}
+          {myProfile?.role && (
+            <View className="bg-white/20 px-3 py-1 rounded-lg mr-3">
+              <Text className="text-white font-medium">
+                {myProfile.role === "Cleaner"
+                  ? "I'm a Cleaner"
+                  : myProfile.role === "House Owner"
+                  ? "I'm a House Owner"
+                  : `I'm a ${myProfile.role}`}
+              </Text>
+            </View>
+          )}
+          <TouchableOpacity
+            onPress={handleSignOut}
+            className="bg-white/20 px-4 py-2 rounded-lg"
+          >
+            <Text className="text-white">Sign Out</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Welcome Message */}
@@ -215,7 +229,9 @@ export default function Home() {
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-lg p-4"
               onPress={() =>
-                router.push("/(pages)/(profile)/(cleanerProfile)/cleanerProfile")
+                router.push(
+                  "/(pages)/(profile)/(cleanerProfile)/cleanerProfile"
+                )
               }
             >
               <Text className="text-white text-center text-lg font-semibold">
@@ -231,10 +247,10 @@ export default function Home() {
             </Text>
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-lg p-4"
-              // onPress={() => router.push("/(pages)/tasks/taskList")}
+              onPress={() => router.push("/opportunity")}
             >
               <Text className="text-white text-center text-lg font-semibold">
-                Browse Tasks
+                Browse Opportunities
               </Text>
             </TouchableOpacity>
           </View>

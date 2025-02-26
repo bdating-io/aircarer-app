@@ -89,6 +89,7 @@ export default function Task() {
   const [distanceToTask, setDistanceToTask] = useState<number | null>(null);
   const [canConfirm, setCanConfirm] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [hasBeforePhotos, setHasBeforePhotos] = useState(false);
 
   // 获取任务数据
   useEffect(() => {
@@ -210,13 +211,13 @@ export default function Task() {
 
       setDistanceToTask(distance);
 
-      // 检查距离是否在40公里以内
-      if (distance > 40) {
+      // 检查距离是否在10公里以内
+      if (distance > 10) {
         Alert.alert(
           "Location Check Failed",
           `You are too far from the task location (${distance.toFixed(
             2
-          )} km). Please check in when you are closer.`
+          )} km). Please check in when you are within 10km of the location.`
         );
         return;
       }
@@ -357,13 +358,13 @@ export default function Task() {
         task.longitude
       );
 
-      // 检查距离是否在合理范围内
-      if (distance > 40) {
+      // 检查距离是否在10公里以内
+      if (distance > 10) {
         Alert.alert(
           "Location Check Failed",
           `You are too far from the task location (${distance.toFixed(
             2
-          )} km). Please confirm arrival when you are closer.`
+          )} km). Please confirm arrival when you are within 10km of the location.`
         );
         return;
       }
@@ -400,13 +401,13 @@ export default function Task() {
       return (
         <View className="flex-row space-x-4">
           <TouchableOpacity
-            className="flex-1 bg-gray-500 py-3 rounded-lg items-center"
+            className="flex-1 bg-gray-500 py-4 rounded-lg items-center"
             onPress={() => router.back()}
           >
             <Text className="text-white font-bold">Decline</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="flex-1 bg-blue-500 py-3 rounded-lg items-center"
+            className="flex-1 bg-blue-500 py-4 rounded-lg items-center"
             onPress={() => handleAcceptTask(task.task_id)}
           >
             <Text className="text-white font-bold">Accept</Text>
@@ -422,17 +423,25 @@ export default function Task() {
           {/* Confirm Task Button - 只在任务已接受且未确认时显示 */}
           {!task.is_confirmed && (
             <TouchableOpacity
-              className="bg-blue-500 py-3 px-4 rounded-lg items-center mb-4"
+              className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
               onPress={handleConfirmTask}
             >
               <Text className="text-white font-bold">Confirm Task</Text>
             </TouchableOpacity>
           )}
 
+          {/* Navigate to Location Button - 始终显示 */}
+          <TouchableOpacity
+            className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
+            onPress={handleNavigate}
+          >
+            <Text className="text-white font-bold">Navigate to Location</Text>
+          </TouchableOpacity>
+
           {/* Check-in Button */}
           {canCheckIn && !hasCheckedIn && (
             <TouchableOpacity
-              className="bg-green-500 py-3 px-4 rounded-lg items-center mb-4"
+              className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
               onPress={handleCheckIn}
             >
               <Text className="text-white font-bold">Check In</Text>
@@ -442,7 +451,7 @@ export default function Task() {
           {/* Confirm Arrived Button */}
           {task.is_confirmed && !hasArrived && (
             <TouchableOpacity
-              className="bg-green-500 py-3 px-4 rounded-lg items-center mb-4"
+              className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
               onPress={handleConfirmArrived}
             >
               <Text className="text-white font-bold">
@@ -453,7 +462,7 @@ export default function Task() {
 
           {/* Check-in Status */}
           {hasCheckedIn && (
-            <View className="bg-green-100 py-3 px-4 rounded-lg mb-4">
+            <View className="bg-green-100 py-4 px-4 rounded-lg mb-4">
               <Text className="text-green-800 font-semibold text-center">
                 You have checked in for this task
               </Text>
@@ -465,21 +474,29 @@ export default function Task() {
             </View>
           )}
 
-          {/* Go to Task Button - 当已确认到达时显示 */}
-          {hasArrived && (
+          {/* Take Before Photos Button - 当已确认到达但尚未上传照片时显示 */}
+          {hasArrived && !hasBeforePhotos && (
             <TouchableOpacity
-              className="bg-purple-500 py-3 px-4 rounded-lg items-center mb-4"
+              className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
+              onPress={() => router.push("/beforeClean")}
+            >
+              <Text className="text-white font-bold">Take Before Photos</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Go to Cleaning Guide Button - 只有在上传了"清洁前"照片后才显示 */}
+          {hasArrived && hasBeforePhotos && (
+            <TouchableOpacity
+              className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
               onPress={() => router.push("/taskDetail")}
             >
-              <Text className="text-white font-bold">
-                View Cleaning Guide
-              </Text>
+              <Text className="text-white font-bold">View Cleaning Guide</Text>
             </TouchableOpacity>
           )}
 
           {/* Bottom Buttons */}
           <TouchableOpacity
-            className="bg-red-500 py-3 px-4 rounded-lg items-center mt-4"
+            className="bg-red-500 py-4 px-4 rounded-lg items-center mt-4"
             onPress={handleCancelTask}
           >
             <Text className="text-white font-bold">Cancel Task</Text>
@@ -575,58 +592,6 @@ export default function Task() {
 
         {/* Action Buttons */}
         <View className="p-4">{renderButtons()}</View>
-
-        {/* 签到按钮 */}
-        {task && canCheckIn && !hasCheckedIn && (
-          <View className="mt-4">
-            <TouchableOpacity
-              className="bg-blue-500 py-3 px-4 rounded-lg items-center"
-              onPress={handleCheckIn}
-            >
-              <Text className="text-white font-bold text-lg">Check In</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* 导航按钮 */}
-        {task && (
-          <View className="mt-4">
-            <TouchableOpacity
-              className="bg-indigo-500 py-3 px-4 rounded-lg items-center"
-              onPress={handleNavigate}
-            >
-              <Text className="text-white font-bold text-lg">
-                Navigate to Location
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* 确认任务按钮 */}
-        {task && canConfirm && (
-          <View className="mt-4">
-            <TouchableOpacity
-              className="bg-yellow-500 py-3 px-4 rounded-lg items-center"
-              onPress={() => setShowConfirmModal(true)}
-            >
-              <Text className="text-white font-bold text-lg">Confirm Task</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* 取消任务按钮 */}
-        {task && !task.is_confirmed && (
-          <View className="mt-4">
-            <TouchableOpacity
-              className="bg-red-500 py-3 px-4 rounded-lg items-center"
-              onPress={() => setShowCancelModal(true)}
-            >
-              <Text className="text-white font-bold text-lg">Cancel Task</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* 任务详情按钮 - 当已签到时显示 */}
       </ScrollView>
     </View>
   );
