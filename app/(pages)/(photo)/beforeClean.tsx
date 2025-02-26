@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
   Alert,
-  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../../../lib/supabase"; // 确保路径正确
-import { useRouter } from "expo-router";
+import { supabase } from "../../../lib/supabase";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import * as FileSystem from "expo-file-system";
 
 export default function BeforeClean() {
   const router = useRouter();
+  const { taskId: paramTaskId } = useLocalSearchParams<{ taskId?: string }>();
+
+  const [taskId, setTaskId] = useState<string | null>(paramTaskId || null);
   const [uploadedImages, setUploadedImages] = useState({
     livingRoom: null,
     bedroom: null,
@@ -21,7 +23,7 @@ export default function BeforeClean() {
     bathroom: null,
   });
 
-  // 📌 获取当前用户 ID，并在手机端显示
+  // ✅ 获取当前用户 ID
   const getUser = async () => {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) {
@@ -32,19 +34,42 @@ export default function BeforeClean() {
     return user.id;
   };
 
-  // 📌 处理图片上传
+  // ✅ 获取 / 创建 `task_id`
+  const getOrCreateTask = async () => {
+    if (taskId) return taskId; // 如果已有 taskId，直接返回
+
+    const userId = await getUser();
+
+    // **创建任务，让数据库自动生成 `task_id`**
+    const { data, error } = await supabase
+      .from("cleaning_tasks")
+      .insert([{ user_id: userId }])
+      .select("task_id")
+      .single();
+
+    if (error) {
+      console.error("Task creation failed:", error);
+      Alert.alert("Error", "Failed to create task.");
+      throw error;
+    }
+
+    setTaskId(data.task_id);
+    return data.task_id;
+  };
+
+  // ✅ 处理图片上传
   const handleUpload = async (room) => {
     try {
-      const permissionResult =
-        Platform.OS === "web"
-          ? true
-          : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const currentTaskId = await getOrCreateTask();
 
-      if (permissionResult?.granted === false) {
+      // **获取权限**
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
         Alert.alert("Permission Required", "Permission to access media is required.");
         return;
       }
 
+      // **选择图片**
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -54,74 +79,101 @@ export default function BeforeClean() {
       if (pickerResult.canceled) return;
 
       const imageUri = pickerResult.assets[0].uri;
-      const fileName = `${room}-${Date.now()}.jpg`;
+      const fileName = `${currentTaskId}-${room}-${Date.now()}.jpg`;
 
       console.log(`Uploading ${fileName} from ${imageUri}`);
 
-      // **转换 `file://` 为 Base64**
-      const file = await FileSystem.readAsStringAsync(imageUri, {
+      // ✅ 读取文件为 Base64
+      const base64File = await FileSystem.readAsStringAsync(imageUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const { data, error } = await supabase.storage
-        .from("cleaning-photos")
-        .upload(fileName, file, { contentType: "image/jpeg" });
+      // ✅ 转换为 `FormData`
+      const formData = new FormData();
+      formData.append("file", {
+        uri: imageUri,
+        name: fileName,
+        type: "image/jpeg",
+      });
 
-      if (error) {
+      // ✅ 直接使用 `fetch` 进行上传
+      const { error: uploadError } = await supabase.storage
+        .from("cleaning-photos")
+        .upload(fileName, formData, { contentType: "image/jpeg" });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
         Alert.alert("Upload Failed", "There was an issue uploading the image.");
-        console.error("Upload error:", error);
         return;
       }
 
-      const { data: publicUrl } = supabase.storage
+      // ✅ 获取 `publicUrl`
+      const { data: urlData } = supabase.storage
         .from("cleaning-photos")
         .getPublicUrl(fileName);
+      const publicUrl = urlData.publicUrl;
+      console.log("Uploaded Image URL:", publicUrl);
 
-      console.log("Uploaded Image URL:", publicUrl.publicUrl);
+      // ✅ 更新数据库，存入 JSONB 字段
+      const { error: dbError } = await supabase
+        .from("cleaning_tasks")
+        .update({ [`${room}_photo`]: publicUrl })
+        .eq("task_id", currentTaskId);
 
+      if (dbError) {
+        console.error("Database Update Error:", dbError);
+        Alert.alert("Database Update Failed", "Could not save image URL.");
+        return;
+      }
+
+      // ✅ 更新状态
       setUploadedImages((prev) => ({
         ...prev,
-        [room]: publicUrl.publicUrl,
+        [room]: publicUrl,
       }));
 
-      Alert.alert("Upload Success", "Image uploaded successfully!");
+      Alert.alert("Upload Success", "Image uploaded and saved successfully!");
 
     } catch (error) {
-      Alert.alert("Upload Error", "Something went wrong.");
       console.error("Upload Error:", error);
+      Alert.alert("Upload Error", "Something went wrong.");
     }
   };
 
-  // 📌 处理确认提交
+  // ✅ 处理确认提交
   const handleConfirm = async () => {
     try {
-      const userId = await getUser(); // 🔹 先获取用户 ID
+      const userId = await getUser();
+      const currentTaskId = await getOrCreateTask();
 
-      // 🔹 获取 `task_id`（确保不为空）
-      let taskId = Date.now();
-
-      console.log("Final Task ID:", taskId);
+      console.log("Updating Task ID:", currentTaskId);
       console.log("User ID:", userId);
 
-      const { error } = await supabase.from("cleaning_tasks").insert([
-        {
-          task_id: taskId, // 🔹 确保 task_id 不是 null
-          user_id: userId, 
-          living_room_photo: uploadedImages.livingRoom,
-          bedroom_photo: uploadedImages.bedroom,
-          kitchen_photo: uploadedImages.kitchen,
-          bathroom_photo: uploadedImages.bathroom,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      // ✅ 插入或更新数据库
+      const { error } = await supabase
+        .from("cleaning_tasks")
+        .upsert([
+          {
+            task_id: currentTaskId,
+            user_id: userId, 
+            living_room_photo: uploadedImages.livingRoom,
+            bedroom_photo: uploadedImages.bedroom,
+            kitchen_photo: uploadedImages.kitchen,
+            bathroom_photo: uploadedImages.bathroom,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Update Error:", error);
+        throw error;
+      }
 
-      Alert.alert("Success", "Images submitted successfully!");
-      router.push("/photo/task"); // 🔹 提交后跳转
+      Alert.alert("Success", "Images updated successfully!");
+      router.push("/(pages)/(photo)/task");
     } catch (error) {
-      Alert.alert("Error", error.message || "Failed to submit images.");
-      console.error("Insert Error:", error);
+      console.error("Update Error:", error);
+      Alert.alert("Error", error.message || "Failed to update images.");
     }
   };
 
