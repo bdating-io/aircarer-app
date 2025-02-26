@@ -16,8 +16,8 @@ export default function Home() {
   const router = useRouter();
   const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
-  const { myProfile, setMyProfile, 
-    mySession, setMySession } 
+  const { myProfile, setMyProfile,
+    mySession, setMySession }
     = useStore();
   const [userEmail, setUserEmail] = useState<string>("");
 
@@ -30,8 +30,8 @@ export default function Home() {
       if (session?.user) {
         checkProfile(session.user.id);
         checkAddress(session.user.id);
-      } 
-    
+      }
+
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
@@ -203,8 +203,8 @@ export default function Home() {
                 {myProfile.role === "Cleaner"
                   ? "I'm a Cleaner"
                   : myProfile.role === "House Owner"
-                  ? "I'm a House Owner"
-                  : `I'm a ${myProfile.role}`}
+                    ? "I'm a House Owner"
+                    : `I'm a ${myProfile.role}`}
               </Text>
             </View>
           )}

@@ -18,7 +18,7 @@ import { supabase, SUPABASE_URL } from "@/lib/supabase";
 export default function WorkingArea() {
 
   const router = useRouter();
-  const { myAddress, mySession, myProfile, myWorkPreference, setMyWorkPreference  } = useStore();
+  const { myAddress, mySession, myProfile, myWorkPreference, setMyWorkPreference } = useStore();
   const params = useLocalSearchParams();
   const [workDistance, setWorkDistance] = useState(10);
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -27,12 +27,12 @@ export default function WorkingArea() {
 
   const geocodeAddress = async (address: string): Promise<{ latitude: number; longitude: number }> => {
     const response = await fetch(`${SUPABASE_URL}/functions/v1/geodecode`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${mySession.access_token}`,
-    },
-    body: JSON.stringify({address: address}),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${mySession.access_token}`,
+      },
+      body: JSON.stringify({ address: address }),
     });
     const data = await response.json();
     return data;
@@ -56,40 +56,40 @@ export default function WorkingArea() {
     try {
       const coords = await geocodeAddress(`${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.post_code}, ${myAddress.country}`);
       setCoordinates(coords);
-    
+
     } catch (error) {
-      setCoordinates({longitude:0, latitude:0});
+      setCoordinates({ longitude: 0, latitude: 0 });
       console.error('Error geocoding address:', error);
     }
   };
 
   const getDBWorkPref = async (userId: string) => {
     const { data: workPref, error } = await supabase
-    .from("work_preferences")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
+      .from("work_preferences")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
     setMyWorkPreference(workPref);
     setWorkDistance(workPref.areas.distance);
-    setZoomDelta(workPref.areas.distance/50);
+    setZoomDelta(workPref.areas.distance / 50);
   };
 
 
   useEffect(() => {
     // For getting users current location
-   /* (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied');
-      }
-      let location = await Location.getCurrentPositionAsync({});
-      // setCurrentLocation(location); TODO: give option to use current or arbitrary location on map as center
-    })();
-  // */
+    /* (async () => {
+       let { status } = await Location.requestForegroundPermissionsAsync();
+       if (status !== 'granted') {
+         console.error('Permission to access location was denied');
+       }
+       let location = await Location.getCurrentPositionAsync({});
+       // setCurrentLocation(location); TODO: give option to use current or arbitrary location on map as center
+     })();
+   // */
 
-  
-   //   console.error("----myProfile="+ JSON.stringify(myProfile));
-   getDBWorkPref(mySession.user.id);
+
+    //   console.error("----myProfile="+ JSON.stringify(myProfile));
+    getDBWorkPref(mySession.user.id);
     fetchCoordinatesFromMyAddress();
 
   }, []);
@@ -150,10 +150,10 @@ export default function WorkingArea() {
             <Circle center={{
               latitude: coordinates.latitude,
               longitude: coordinates.longitude,
-            }} 
-            radius={workDistance*1000} 
-            strokeColor="rgba(0,0,255,0.5)" // Red border
-            fillColor="rgba(0,0,255,0.2)" // Semi-transparent red fill
+            }}
+              radius={workDistance * 1000}
+              strokeColor="rgba(0,0,255,0.5)" // Red border
+              fillColor="rgba(0,0,255,0.2)" // Semi-transparent red fill
             />
           </MapView>}
 
@@ -162,8 +162,8 @@ export default function WorkingArea() {
               min={3}
               max={100}
               values={[workDistance]}
-              onValuesChangeFinish={(v) => { setWorkDistance(v[0]) ; setZoomDelta(v[0]/50) }}
-              onValuesChange={(v) => { setWorkDistance(v[0]); setZoomDelta(v[0]/50)}}
+              onValuesChangeFinish={(v) => { setWorkDistance(v[0]); setZoomDelta(v[0] / 50) }}
+              onValuesChange={(v) => { setWorkDistance(v[0]); setZoomDelta(v[0] / 50) }}
             />
             <Text>{workDistance} KMs</Text>
           </View>
