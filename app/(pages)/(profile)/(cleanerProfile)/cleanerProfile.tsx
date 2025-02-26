@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "@/lib/supabase";
 import { AddressFormData, AustralianState } from "@/types/address";
+import useStore from "../../../utils/store";
 
 export default function AddressForm() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function AddressForm() {
     longitude: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const { setMyAddress } = useStore();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -94,6 +96,8 @@ export default function AddressForm() {
       if (error) throw error;
 
       Alert.alert("Success", "Address saved successfully!");
+
+      setMyAddress(formData);
       router.push("/(pages)/(profile)/(cleanerProfile)/workingArea");
     } catch (error: any) {
       console.error("Error saving address:", error.message);
