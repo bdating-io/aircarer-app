@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,14 +9,13 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { supabase } from "../../../lib/supabase";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { v4 as uuidv4 } from "uuid";
+import * as FileSystem from "expo-file-system";
 
 export default function BeforeClean() {
   const router = useRouter();
   const { taskId: paramTaskId } = useLocalSearchParams<{ taskId?: string }>();
 
-  // ✅ 如果没有 `taskId`，自动生成一个 UUID
-  const [taskId, setTaskId] = useState(paramTaskId || uuidv4());
+  const [taskId, setTaskId] = useState<string | null>(paramTaskId || null);
   const [uploadedImages, setUploadedImages] = useState({
     livingRoom: null,
     bedroom: null,
@@ -35,22 +34,42 @@ export default function BeforeClean() {
     return user.id;
   };
 
+  // ✅ 获取 / 创建 `task_id`
+  const getOrCreateTask = async () => {
+    if (taskId) return taskId; // 如果已有 taskId，直接返回
+
+    const userId = await getUser();
+
+    // **创建任务，让数据库自动生成 `task_id`**
+    const { data, error } = await supabase
+      .from("cleaning_tasks")
+      .insert([{ user_id: userId }])
+      .select("task_id")
+      .single();
+
+    if (error) {
+      console.error("Task creation failed:", error);
+      Alert.alert("Error", "Failed to create task.");
+      throw error;
+    }
+
+    setTaskId(data.task_id);
+    return data.task_id;
+  };
+
   // ✅ 处理图片上传
   const handleUpload = async (room) => {
     try {
-      if (!taskId) {
-        Alert.alert("Error", "No task ID provided. Cannot upload images.");
-        return;
-      }
+      const currentTaskId = await getOrCreateTask();
 
-      // 获取权限
+      // **获取权限**
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
         Alert.alert("Permission Required", "Permission to access media is required.");
         return;
       }
 
-      // 选择图片
+      // **选择图片**
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -60,18 +79,27 @@ export default function BeforeClean() {
       if (pickerResult.canceled) return;
 
       const imageUri = pickerResult.assets[0].uri;
-      const fileName = `${taskId}-${room}-${Date.now()}.jpg`;
+      const fileName = `${currentTaskId}-${room}-${Date.now()}.jpg`;
 
       console.log(`Uploading ${fileName} from ${imageUri}`);
 
-      // ✅ 直接上传文件（移除 Base64）
-      const { data, error: uploadError } = await supabase.storage
+      // ✅ 读取文件为 Base64
+      const base64File = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // ✅ 转换为 `FormData`
+      const formData = new FormData();
+      formData.append("file", {
+        uri: imageUri,
+        name: fileName,
+        type: "image/jpeg",
+      });
+
+      // ✅ 直接使用 `fetch` 进行上传
+      const { error: uploadError } = await supabase.storage
         .from("cleaning-photos")
-        .upload(fileName, {
-          uri: imageUri,
-          type: "image/jpeg",
-          name: fileName,
-        });
+        .upload(fileName, formData, { contentType: "image/jpeg" });
 
       if (uploadError) {
         console.error("Upload error:", uploadError);
@@ -80,17 +108,17 @@ export default function BeforeClean() {
       }
 
       // ✅ 获取 `publicUrl`
-      const { data: publicUrl } = supabase.storage
+      const { data: urlData } = supabase.storage
         .from("cleaning-photos")
         .getPublicUrl(fileName);
+      const publicUrl = urlData.publicUrl;
+      console.log("Uploaded Image URL:", publicUrl);
 
-      console.log("Uploaded Image URL:", publicUrl.publicUrl);
-
-      // ✅ 更新数据库，存入图片 URL
+      // ✅ 更新数据库，存入 JSONB 字段
       const { error: dbError } = await supabase
         .from("cleaning_tasks")
-        .update({ [`${room}_photo`]: publicUrl.publicUrl })
-        .eq("task_id", taskId);
+        .update({ [`${room}_photo`]: publicUrl })
+        .eq("task_id", currentTaskId);
 
       if (dbError) {
         console.error("Database Update Error:", dbError);
@@ -101,7 +129,7 @@ export default function BeforeClean() {
       // ✅ 更新状态
       setUploadedImages((prev) => ({
         ...prev,
-        [room]: publicUrl.publicUrl,
+        [room]: publicUrl,
       }));
 
       Alert.alert("Upload Success", "Image uploaded and saved successfully!");
@@ -116,8 +144,9 @@ export default function BeforeClean() {
   const handleConfirm = async () => {
     try {
       const userId = await getUser();
+      const currentTaskId = await getOrCreateTask();
 
-      console.log("Updating Task ID:", taskId);
+      console.log("Updating Task ID:", currentTaskId);
       console.log("User ID:", userId);
 
       // ✅ 插入或更新数据库
@@ -125,7 +154,7 @@ export default function BeforeClean() {
         .from("cleaning_tasks")
         .upsert([
           {
-            task_id: taskId,
+            task_id: currentTaskId,
             user_id: userId, 
             living_room_photo: uploadedImages.livingRoom,
             bedroom_photo: uploadedImages.bedroom,
