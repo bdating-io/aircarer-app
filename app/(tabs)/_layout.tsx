@@ -144,9 +144,9 @@ export default function Layout() {
 
       {/* 房主可见的选项卡 */}
       <Tabs.Screen
-        name="launch"
+        name="propertyList"
         options={{
-          title: "Post Task",
+          title: "Property List",
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <AntDesign name="pluscircleo" size={22} color={color} />
@@ -171,7 +171,7 @@ export default function Layout() {
       <Tabs.Screen
         name="editTask"
         options={{
-          title: "Edit Task",
+          title: "Tasks",
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <AntDesign name="edit" size={22} color={color} />

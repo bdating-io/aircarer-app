@@ -15,17 +15,11 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase"; // 根据你实际路径
 import { AntDesign } from "@expo/vector-icons";
 
-// 定义 TaskType / Status 枚举，用作下拉选或单选
+// 定义 TaskType 枚举，用作下拉选或单选
 const TASK_TYPES = [
   "Quick Cleaning",
   "Regular Cleaning",
   "Deep Cleaning",
-] as const;
-const TASK_STATUSES = [
-  "Pending",
-  "In Progress",
-  "Completed",
-  "Cancelled",
 ] as const;
 
 // 根据数据库表结构定义任务接口
@@ -35,13 +29,9 @@ interface Task {
   task_type: string;
   estimated_price: number;
   confirmed_price: number | null;
-  status: string;
   payment_status: string;
   date_updated: string;
   approval_status: string;
-  scheduled_start_time: string;
-  actual_start_time: string | null;
-  completion_time: string | null;
   address: string;
   latitude: number | null;
   longitude: number | null;
@@ -55,7 +45,6 @@ interface Task {
   property_id: number | null;
   estimated_hours: number;
   schedule_mode: string;
-  scheduled_start_date: string;
 }
 
 export default function EditTask() {
@@ -95,7 +84,7 @@ export default function EditTask() {
         .from("tasks")
         .select("*")
         .eq("customer_id", uid)
-        .order("scheduled_start_time", { ascending: true });
+        .order("date_updated", { ascending: false });
 
       if (error) {
         console.error("Error fetching tasks:", error);
@@ -145,13 +134,7 @@ export default function EditTask() {
       <View style={styles.taskInfo}>
         <AntDesign name="calendar" size={16} color="gray" />
         <Text style={styles.infoText}>
-          {new Date(item.scheduled_start_time).toLocaleDateString()}
-          {item.scheduled_start_time
-            ? ` ${new Date(item.scheduled_start_time).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}`
-            : ""}
+          {new Date(item.date_updated).toLocaleDateString()}
         </Text>
       </View>
 
@@ -163,36 +146,22 @@ export default function EditTask() {
       </View>
 
       <View style={styles.taskInfo}>
-        <AntDesign name="tag" size={16} color="gray" />
-        <Text
-          style={[styles.statusText, { color: getStatusColor(item.status) }]}
-        >
-          Status: {item.status}
-        </Text>
+        <AntDesign name="creditcard" size={16} color="gray" />
+        <Text style={styles.infoText}>Payment: {item.payment_status}</Text>
+      </View>
+
+      <View style={styles.taskInfo}>
+        <AntDesign name="checkcircleo" size={16} color="gray" />
+        <Text style={styles.infoText}>Approval: {item.approval_status}</Text>
       </View>
     </TouchableOpacity>
   );
 
-  // Get status color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Pending":
-        return "#FFC107";
-      case "In Progress":
-        return "#2196F3";
-      case "Completed":
-        return "#4CAF50";
-      case "Cancelled":
-        return "#F44336";
-      default:
-        return "#9E9E9E";
-    }
-  };
-
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#4A90E2" />
+        <Text style={styles.loadingText}>Loading tasks...</Text>
       </View>
     );
   }
@@ -213,7 +182,11 @@ export default function EditTask() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <AntDesign name="calendar" size={60} color="#CCCCCC" />
             <Text style={styles.emptyText}>No tasks available</Text>
+            <Text style={styles.emptySubText}>
+              Your cleaning tasks will appear here
+            </Text>
           </View>
         }
       />
@@ -275,21 +248,32 @@ const styles = StyleSheet.create({
     color: "#666",
     flex: 1,
   },
-  statusText: {
-    marginLeft: 8,
-    fontWeight: "500",
-  },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#666",
+    fontSize: 16,
   },
   emptyContainer: {
-    padding: 24,
+    padding: 40,
     alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     color: "#666",
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: "500",
+    marginTop: 16,
+  },
+  emptySubText: {
+    color: "#999",
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: "center",
   },
 });

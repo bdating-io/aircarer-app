@@ -16,9 +16,7 @@ export default function Home() {
   const router = useRouter();
   const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
-  const { myProfile, setMyProfile,
-    mySession, setMySession }
-    = useStore();
+  const { myProfile, setMyProfile, mySession, setMySession } = useStore();
   const [userEmail, setUserEmail] = useState<string>("");
 
   // 存放 Task Title 的本地状态
@@ -31,7 +29,6 @@ export default function Home() {
         checkProfile(session.user.id);
         checkAddress(session.user.id);
       }
-
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
@@ -57,7 +54,6 @@ export default function Home() {
 
   // 检查地址
   const checkAddress = async (userId: string) => {
-
     const { data: address, error } = await supabase
       .from("addresses")
       .select("*")
@@ -88,7 +84,7 @@ export default function Home() {
 
   // 创建 Task 并跳转
   const handleCreateTask = async () => {
-    if (!session?.user) {
+    if (!mySession?.user) {
       Alert.alert("Not logged in", "Please log in first.");
       return;
     }
@@ -97,7 +93,7 @@ export default function Home() {
       const { data, error } = await supabase
         .from("tasks")
         .insert({
-          customer_id: session.user.id,
+          customer_id: mySession.user.id,
           task_title: taskTitle, // 这里改成 task_title
         })
         .select("*")
@@ -203,8 +199,8 @@ export default function Home() {
                 {myProfile.role === "Cleaner"
                   ? "I'm a Cleaner"
                   : myProfile.role === "House Owner"
-                    ? "I'm a House Owner"
-                    : `I'm a ${myProfile.role}`}
+                  ? "I'm a House Owner"
+                  : `I'm a ${myProfile.role}`}
               </Text>
             </View>
           )}
