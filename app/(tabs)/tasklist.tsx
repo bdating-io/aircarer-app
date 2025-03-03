@@ -15,6 +15,7 @@ import { AntDesign } from "@expo/vector-icons";
 type Task = {
   task_id: number;
   task_type: "Quick Cleaning" | "Regular Cleaning" | "Deep Cleaning";
+  task_title: string;
   estimated_price: number;
   confirmed_price: number | null;
   status: "Pending" | "In Progress" | "Completed" | "Cancelled";
@@ -23,6 +24,7 @@ type Task = {
   actual_start_time: string | null;
   completion_time: string | null;
   approval_status: "Pending" | "Approved" | "Rejected";
+  budget: number;
 };
 
 export default function TaskList() {
@@ -218,7 +220,7 @@ export default function TaskList() {
                 color="#4A90E2"
                 style={{ marginRight: 8 }}
               />
-              <Text className="text-lg font-semibold">{item.task_type}</Text>
+              <Text className="text-lg font-semibold">{item.task_title}</Text>
             </View>
             <Text className="text-gray-600 mt-1">
               {format(
@@ -235,7 +237,7 @@ export default function TaskList() {
 
           <View className="items-end">
             <Text className="text-lg font-semibold">
-              ${item.confirmed_price || item.estimated_price}
+              ${item.confirmed_price || item.budget}
             </Text>
             <View
               className={`px-2 py-1 rounded-full mt-1 ${getStatusColor(

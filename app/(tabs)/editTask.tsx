@@ -45,6 +45,7 @@ interface Task {
   property_id: number | null;
   estimated_hours: number;
   schedule_mode: string;
+  budget: number;
 }
 
 export default function EditTask() {
@@ -128,7 +129,7 @@ export default function EditTask() {
     >
       <View style={styles.taskHeader}>
         <Text style={styles.taskType}>{item.task_type}</Text>
-        <Text style={styles.price}>${item.estimated_price}</Text>
+        <Text style={styles.price}>${item.budget}</Text>
       </View>
 
       <View style={styles.taskInfo}>
