@@ -149,11 +149,6 @@ export default function EditTask() {
         <AntDesign name="creditcard" size={16} color="gray" />
         <Text style={styles.infoText}>Payment: {item.payment_status}</Text>
       </View>
-
-      <View style={styles.taskInfo}>
-        <AntDesign name="checkcircleo" size={16} color="gray" />
-        <Text style={styles.infoText}>Approval: {item.approval_status}</Text>
-      </View>
     </TouchableOpacity>
   );
 
