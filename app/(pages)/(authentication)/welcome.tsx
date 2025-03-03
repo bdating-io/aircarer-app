@@ -55,12 +55,12 @@ export default function WelcomePage() {
 
       <View style={styles.featureContainer}>
         <FeatureItem
-          icon="check"
+          icon="checkcircleo"
           title="Easy Booking"
           description="Schedule cleaning services with just a few taps"
         />
         <FeatureItem
-          icon="Safety"
+          icon="safetycertificate"
           title="Trusted Cleaners"
           description="All cleaners are vetted and background-checked"
         />

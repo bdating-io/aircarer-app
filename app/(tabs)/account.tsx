@@ -57,7 +57,7 @@ export default function Account() {
     {
       title: "Property List",
       icon: "home-outline",
-      onPress: () => router.push("/(pages)/(profile)/propertyList"),
+      onPress: () => router.push("/(tabs)/propertyList"),
     },
   ];
 
