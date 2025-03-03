@@ -3,31 +3,25 @@ import {
   View,
   Text,
   TouchableOpacity,
-  TextInput,
-  Alert,
-  StyleSheet,
-  Platform,
-  FlatList,
   ActivityIndicator,
   RefreshControl,
+  FlatList,
+  StyleSheet,
+  Alert,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { supabase } from "@/lib/supabase"; // 根据你实际路径
+import { useRouter } from "expo-router";
+import { supabase } from "@/lib/supabase";
 import { AntDesign } from "@expo/vector-icons";
+import { format } from "date-fns";
 
-// 定义 TaskType 枚举，用作下拉选或单选
-const TASK_TYPES = [
-  "Quick Cleaning",
-  "Regular Cleaning",
-  "Deep Cleaning",
-] as const;
-
-// 根据数据库表结构定义任务接口
 interface Task {
   task_id: number;
   customer_id: string;
-  task_type: string;
+  task_title: string; // shown as the card's main title
+  task_type: string;  // new row with icon
+  scheduled_start_time: string | null; 
   estimated_price: number;
+  budget: number;
   confirmed_price: number | null;
   payment_status: string;
   date_updated: string;
@@ -45,7 +39,6 @@ interface Task {
   property_id: number | null;
   estimated_hours: number;
   schedule_mode: string;
-  budget: number;
 }
 
 export default function EditTask() {
@@ -55,7 +48,6 @@ export default function EditTask() {
   const [refreshing, setRefreshing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Get current user ID
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
@@ -64,14 +56,12 @@ export default function EditTask() {
         } = await supabase.auth.getUser();
         if (user) {
           setUserId(user.id);
-          // 直接使用用户ID作为customer_id来过滤任务
           fetchTasksByUserId(user.id);
         }
       } catch (error) {
         console.error("Error fetching user info:", error);
       }
     };
-
     fetchUserInfo();
   }, []);
 
@@ -80,7 +70,6 @@ export default function EditTask() {
       setLoading(true);
       console.log("Fetching tasks for user ID:", uid);
 
-      // 直接使用用户ID作为customer_id来查询任务
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
@@ -111,7 +100,7 @@ export default function EditTask() {
     }
   };
 
-  // Handle editing a task
+  // Open edit page
   const handleEditTask = (task: Task) => {
     router.push({
       pathname: "/(pages)/(tasks)/editTaskDetail",
@@ -122,36 +111,54 @@ export default function EditTask() {
     });
   };
 
-  const renderTask = ({ item }: { item: Task }) => (
-    <TouchableOpacity
-      style={styles.taskCard}
-      onPress={() => handleEditTask(item)}
-    >
-      <View style={styles.taskHeader}>
-        <Text style={styles.taskType}>{item.task_type}</Text>
-        <Text style={styles.price}>${item.budget}</Text>
-      </View>
+  // Each list item
+  const renderTask = ({ item }: { item: Task }) => {
+    // Format scheduled_start_time or show "No date"
+    let displayDate = "No date";
+    if (item.scheduled_start_time) {
+      try {
+        displayDate = format(new Date(item.scheduled_start_time), "MMM d, yyyy");
+      } catch (err) {
+        console.log("Error formatting date:", err);
+      }
+    }
 
-      <View style={styles.taskInfo}>
-        <AntDesign name="calendar" size={16} color="gray" />
-        <Text style={styles.infoText}>
-          {new Date(item.date_updated).toLocaleDateString()}
-        </Text>
-      </View>
+    return (
+      <TouchableOpacity style={styles.taskCard} onPress={() => handleEditTask(item)}>
+        {/* Title row */}
+        <View style={styles.taskHeader}>
+          <Text style={styles.taskTitle}>{item.task_title || "Unnamed Task"}</Text>
+          <Text style={styles.price}>${item.budget}</Text>
+        </View>
 
-      <View style={styles.taskInfo}>
-        <AntDesign name="enviromento" size={16} color="gray" />
-        <Text style={styles.infoText} numberOfLines={1}>
-          {item.address}
-        </Text>
-      </View>
+        {/* Task Type row */}
+        <View style={styles.taskInfo}>
+          <AntDesign name="tool" size={16} color="gray" />
+          <Text style={styles.infoText}>{item.task_type || "No type"}</Text>
+        </View>
 
-      <View style={styles.taskInfo}>
-        <AntDesign name="creditcard" size={16} color="gray" />
-        <Text style={styles.infoText}>Payment: {item.payment_status}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+        {/* Date row */}
+        <View style={styles.taskInfo}>
+          <AntDesign name="calendar" size={16} color="gray" />
+          <Text style={styles.infoText}>{displayDate}</Text>
+        </View>
+
+        {/* Address row */}
+        <View style={styles.taskInfo}>
+          <AntDesign name="enviromento" size={16} color="gray" />
+          <Text style={styles.infoText} numberOfLines={1}>
+            {item.address}
+          </Text>
+        </View>
+
+        {/* Payment row */}
+        <View style={styles.taskInfo}>
+          <AntDesign name="creditcard" size={16} color="gray" />
+          <Text style={styles.infoText}>Payment: {item.payment_status}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
@@ -164,6 +171,7 @@ export default function EditTask() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>My Tasks</Text>
       </View>
@@ -190,6 +198,7 @@ export default function EditTask() {
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -225,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-  taskType: {
+  taskTitle: {
     fontSize: 18,
     fontWeight: "600",
   },

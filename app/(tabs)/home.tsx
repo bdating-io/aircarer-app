@@ -8,7 +8,6 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import useStore from "../utils/store";
 
@@ -19,7 +18,7 @@ export default function Home() {
   const { myProfile, setMyProfile, mySession, setMySession } = useStore();
   const [userEmail, setUserEmail] = useState<string>("");
 
-  // 存放 Task Title 的本地状态
+  // Store the task title
   const [taskTitle, setTaskTitle] = useState<string>("");
 
   useEffect(() => {
@@ -28,9 +27,11 @@ export default function Home() {
       if (session?.user) {
         checkProfile(session.user.id);
         checkAddress(session.user.id);
+        setUserEmail(session.user.email || "");
       }
     });
 
+    // Listen for auth changes
     supabase.auth.onAuthStateChange((_event, session) => {
       setMySession(session);
       if (session?.user) {
@@ -52,7 +53,7 @@ export default function Home() {
     setHasProfile(!!profile?.first_name);
   };
 
-  // 检查地址
+  // Check address
   const checkAddress = async (userId: string) => {
     const { data: address, error } = await supabase
       .from("addresses")
@@ -73,39 +74,45 @@ export default function Home() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      setMyProfile(null); // 清除用户档案
-      setMySession(null); // 清除session
-      setHasProfile(false); // 重置档案状态
+      setMyProfile(null);
+      setMySession(null);
+      setHasProfile(false);
     } catch (error) {
       Alert.alert("Error signing out", (error as Error).message);
     }
     router.push("/(tabs)/home");
   };
 
-  // 创建 Task 并跳转
+  // Create Task => Insert row => if successful, navigate
   const handleCreateTask = async () => {
+    // 1) check if user typed a non-empty taskTitle
+    if (!taskTitle.trim()) {
+      Alert.alert("Missing title", "Please enter a task title first.");
+      return;
+    }
+
+    // 2) check if user is logged in
     if (!mySession?.user) {
       Alert.alert("Not logged in", "Please log in first.");
       return;
     }
+
     try {
-      // 向 tasks 表插入一条记录
+      // Insert row to tasks table
       const { data, error } = await supabase
         .from("tasks")
         .insert({
           customer_id: mySession.user.id,
-          task_title: taskTitle, // 这里改成 task_title
+          task_title: taskTitle.trim(), // store trimmed version
         })
         .select("*")
         .single();
 
       if (error) throw error;
 
-      // 拿到自动生成的 task_id
       const newTaskId = data.task_id;
-      Alert.alert("Task Created!", `Task ID = ${newTaskId}`); // 弹出提示可之后删除
-
-      // 跳转到 placeDetails 页面，传递 taskId 参数
+      Alert.alert("Task Created!", `Task ID = ${newTaskId}`);
+      // Navigate to next page
       router.push(`/(pages)/(createTask)/placeDetails?taskId=${newTaskId}`);
     } catch (err) {
       console.error(err);
@@ -113,7 +120,7 @@ export default function Home() {
     }
   };
 
-  // 如果没有登录，显示登录界面
+  // If not logged in => Show login
   if (!mySession) {
     return (
       <SafeAreaView className="flex-1 bg-[#4A90E2]">
@@ -122,15 +129,13 @@ export default function Home() {
           <View className="pt-4">
             <Text className="text-2xl font-bold text-white">AirCarer</Text>
           </View>
-
-          {/* Welcome Message */}
+          {/* Intro */}
           <View className="mt-4">
             <Text className="text-2xl text-white font-semibold">
               Welcome to AirCarer
             </Text>
           </View>
-
-          {/* Login/Signup Buttons */}
+          {/* Buttons */}
           <View className="absolute bottom-12 left-6 right-6">
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-xl p-4 mb-4"
@@ -155,7 +160,7 @@ export default function Home() {
     );
   }
 
-  // 如果没有创建档案，显示创建档案界面
+  // If no profile => show create profile
   if (!hasProfile) {
     return (
       <SafeAreaView className="flex-1 bg-[#4A90E2]">
@@ -185,14 +190,13 @@ export default function Home() {
     );
   }
 
-  // 主界面
+  // Main view
   return (
     <SafeAreaView className="flex-1 bg-[#4A90E2]">
-      {/* Header with Sign Out */}
+      {/* Header + Sign Out */}
       <View className="px-6 pt-4 flex-row justify-between items-center">
         <Text className="text-2xl font-bold text-white">AirCarer</Text>
         <View className="flex-row items-center">
-          {/* 显示用户角色 - 更加亲切的表达 */}
           {myProfile?.role && (
             <View className="bg-white/20 px-3 py-1 rounded-lg mr-3">
               <Text className="text-white font-medium">
@@ -213,7 +217,7 @@ export default function Home() {
         </View>
       </View>
 
-      {/* Welcome Message */}
+      {/* Body */}
       <View className="px-6 mt-4">
         <Text className="text-xl text-white">
           Good day, {myProfile?.first_name}!
@@ -221,7 +225,7 @@ export default function Home() {
         <Text className="text-white opacity-80">{userEmail}</Text>
 
         {myProfile?.role === "Cleaner" && !hasAddress ? (
-          // Cleaner without address
+          // Cleaner no address
           <View className="mt-8 space-y-4">
             <Text className="text-2xl text-white font-semibold">
               Complete your profile to start working
@@ -229,9 +233,7 @@ export default function Home() {
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-lg p-4"
               onPress={() =>
-                router.push(
-                  "/(pages)/(profile)/(cleanerProfile)/cleanerProfile"
-                )
+                router.push("/(pages)/(profile)/(cleanerProfile)/cleanerProfile")
               }
             >
               <Text className="text-white text-center text-lg font-semibold">
@@ -240,7 +242,7 @@ export default function Home() {
             </TouchableOpacity>
           </View>
         ) : myProfile?.role === "Cleaner" ? (
-          // Cleaner with address
+          // Cleaner has address
           <View className="mt-8 space-y-4">
             <Text className="text-2xl text-white font-semibold">
               Ready to work? Find tasks nearby.
@@ -255,14 +257,12 @@ export default function Home() {
             </TouchableOpacity>
           </View>
         ) : myProfile?.role === "House Owner" ? (
-          // House Owner View
+          // House Owner
           <View className="mt-8 space-y-4">
             <Text className="text-2xl text-white font-semibold">
               Need cleaning service? Post a task now.
             </Text>
-
-            {/* 输入框 + 创建按钮 */}
-            {/* 改成与背景相同的蓝色，去掉白色框 */}
+            {/* Input + Button */}
             <View className="bg-[#4A90E2] p-4 rounded-lg">
               <TextInput
                 className="bg-gray-100 px-3 py-2 rounded"
@@ -270,7 +270,6 @@ export default function Home() {
                 value={taskTitle}
                 onChangeText={setTaskTitle}
               />
-
               <TouchableOpacity
                 className="bg-[#FF6B6B] rounded-lg p-4 mt-4"
                 onPress={handleCreateTask}
@@ -282,7 +281,7 @@ export default function Home() {
             </View>
           </View>
         ) : (
-          // Default View or Loading State
+          // Default / Loading
           <View className="mt-8">
             <Text className="text-white text-lg">Loading...</Text>
           </View>
@@ -291,3 +290,4 @@ export default function Home() {
     </SafeAreaView>
   );
 }
+

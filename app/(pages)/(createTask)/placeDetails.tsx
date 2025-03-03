@@ -8,41 +8,34 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router"; // ① 引入 useSearchParams
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Button, ActivityIndicator } from "react-native-paper";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 
 export default function PlaceDetails() {
   const router = useRouter();
-  // 从路由参数获取 taskId（首页创建时传递过来）
-  const { taskId } = useLocalSearchParams() as { taskId?: string }; // ② 获取路由参数
+  const { taskId } = useLocalSearchParams() as { taskId?: string };
 
-  // Example cleaning types
   const cleaningTypes = ["Regular Cleaning", "End of Lease Cleaning"];
   const cleaningLevels = ["Quick Cleaning", "Regular Cleaning", "Deep Cleaning"];
 
-  // UI State
   const [session, setSession] = useState<Session | null>(null);
   const [propertyOpen, setPropertyOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
   const [levelOpen, setLevelOpen] = useState(false);
 
-  // Data from Supabase
   const [properties, setProperties] = useState<any[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
   const [noProperties, setNoProperties] = useState(false);
 
-  // User Selections
   const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
   const [cleaningType, setCleaningType] = useState("");
   const [cleaningLevel, setCleaningLevel] = useState("");
-  const [equipmentProvided, setEquipmentProvided] =
-    useState<"tasker" | "owner">("tasker");
+  const [equipmentProvided, setEquipmentProvided] = useState<"tasker" | "owner">("tasker");
 
-  // ------------------ useEffect: Load session & fetch properties ------------------
+  // ------------------ Load session & fetch properties ------------------
   useEffect(() => {
-    // Get current auth session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
@@ -52,7 +45,6 @@ export default function PlaceDetails() {
       }
     });
 
-    // Listen for auth state changes
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -61,7 +53,6 @@ export default function PlaceDetails() {
         }
       }
     );
-
     return () => {
       subscription.subscription.unsubscribe();
     };
@@ -74,7 +65,7 @@ export default function PlaceDetails() {
       const { data, error } = await supabase
         .from("properties")
         .select("*")
-        .eq("user_id", userId); 
+        .eq("user_id", userId);
 
       if (error) {
         console.error("Error fetching properties:", error);
@@ -97,57 +88,50 @@ export default function PlaceDetails() {
     }
   };
 
-  // ------------------ Submit form => Update existing task & go next ------------------
+  // ------------------ Submit => Update existing task & go next ------------------
   const handleSubmit = async () => {
     if (!session?.user) {
       Alert.alert("Not logged in", "Please log in first.");
       return;
     }
-
-    // 如果路由里没带 taskId，这里也无法更新
     if (!taskId) {
       Alert.alert("No Task ID", "No taskId provided in route params.");
       return;
     }
 
-    // If no property selected:
+    // Check property
     if (!selectedProperty) {
       Alert.alert("Property required", "Please select a property first.");
       return;
     }
-
-    // If user didn't pick cleaningType or cleaningLevel
+    // Check cleaningType
     if (!cleaningType) {
       Alert.alert("Select Cleaning Type", "Please select a cleaning type.");
       return;
     }
+    // Check cleaningLevel
     if (!cleaningLevel) {
       Alert.alert("Select Cleaning Level", "Please select a cleaning level.");
       return;
     }
 
-    // Update the existing task
     try {
-      // 注意：这里用 .update() 而不是 .insert()
       const { data, error } = await supabase
         .from("tasks")
         .update({
-          // 只更新这些字段
-          property_id: selectedProperty.property_id, // references the property's uuid
-          address: selectedProperty.address,         // store address as snapshot
+          property_id: selectedProperty.property_id,
+          address: selectedProperty.address,
           cleaning_type: cleaningType,
           task_type: cleaningLevel,
           bring_equipment: equipmentProvided === "tasker" ? "Yes" : "No",
         })
-        .eq("task_id", taskId) // 条件：更新特定taskId
+        .eq("task_id", taskId)
         .select("*")
         .single();
 
       if (error) throw error;
 
       Alert.alert("Success", "Task updated successfully!");
-
-      // 跳转到下一步 dateSelection，仍然带上同一个 taskId
       router.push(`/(pages)/(createTask)/dateSelection?taskId=${taskId}`);
     } catch (err) {
       console.error("Error updating task:", err);
@@ -202,7 +186,7 @@ export default function PlaceDetails() {
           <View style={styles.dropdownMenu}>
             {properties.map((prop) => (
               <TouchableOpacity
-                key={prop.property_id} // or key={prop.id} if your column is named 'id'
+                key={prop.property_id}
                 style={styles.dropdownItem}
                 onPress={() => {
                   setSelectedProperty(prop);
@@ -287,9 +271,7 @@ export default function PlaceDetails() {
       </View>
 
       {/* Equipment Provided */}
-      <Text style={styles.label}>
-        Does the cleaner need to bring equipment and supplies?
-      </Text>
+      <Text style={styles.label}>Does the cleaner need to bring equipment and supplies?</Text>
       <View style={styles.equipmentContainer}>
         <Button
           mode={equipmentProvided === "tasker" ? "contained" : "outlined"}
@@ -343,7 +325,6 @@ export default function PlaceDetails() {
   );
 }
 
-// ===================== STYLES =====================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
