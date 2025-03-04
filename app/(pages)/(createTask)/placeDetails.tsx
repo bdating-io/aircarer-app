@@ -124,6 +124,9 @@ export default function PlaceDetails() {
           cleaning_type: cleaningType,
           task_type: cleaningLevel,
           bring_equipment: equipmentProvided === "tasker" ? "Yes" : "No",
+          // 新增：更新 tasks 表里的经纬度（从 properties 表获取）
+          latitude: selectedProperty.latitude,
+          longitude: selectedProperty.longitude,
         })
         .eq("task_id", taskId)
         .select("*")
