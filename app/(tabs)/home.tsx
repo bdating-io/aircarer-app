@@ -98,28 +98,30 @@ export default function Home() {
     }
 
     try {
-      // Insert row to tasks table
-      const { data, error } = await supabase
-        .from("tasks")
-        .insert({
-          customer_id: mySession.user.id,
-          task_title: taskTitle.trim(), // store trimmed version
-        })
-        .select("*")
-        .single();
-
+      // 2) Instead of .insert(), call the Postgres function
+      const { data, error } = await supabase.rpc("create_task", {
+        p_customer_id: mySession.user.id,
+        p_task_title: taskTitle.trim(),
+      });
       if (error) throw error;
 
-      const newTaskId = data.task_id;
-      Alert.alert("Task Created!", `Task ID = ${newTaskId}`);
-      // Navigate to next page
-      router.push(`/(pages)/(createTask)/placeDetails?taskId=${newTaskId}`);
+      // data will be an array of inserted rows (should be length 1)
+      if (!data || data.length === 0) {
+        Alert.alert("Error", "No task returned from create_task RPC.");
+        return;
+      }
+
+      // The newly created task is data[0]
+      const newTask = data[0];
+      Alert.alert("Task Created!", `Task ID = ${newTask.task_id}`);
+
+      // Navigate
+      router.push(`/(pages)/(createTask)/placeDetails?taskId=${newTask.task_id}`);
     } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Failed to create task");
+      console.error("RPC error:", err);
+      Alert.alert("Error", "Failed to create task via RPC");
     }
   };
-
   // If not logged in => Show login
   if (!mySession) {
     return (
