@@ -114,18 +114,20 @@ export default function DateSelection() {
       const hoursNum = parseFloat(calculatedHours);
 
       try {
+        // EXACT 模式更新：同时更新 scheduled_start_time 和 scheduled_start_date
         const { data, error } = await supabase
           .from("tasks")
           .update({
             schedule_mode: "Exact",
             scheduled_start_time: dateObj.toISOString(),
-            scheduled_start_date: null,
+            scheduled_start_date: exactDate, // 改为保存 exactDate
             scheduled_period: null,
             estimated_hours: hoursNum,
           })
           .eq("task_id", taskId)
           .select("*")
           .single();
+
 
         if (error) throw error;
         Alert.alert("Success", "Updated with EXACT schedule!");
@@ -153,18 +155,25 @@ export default function DateSelection() {
       const hoursNum = parseFloat(estimatedHours);
 
       try {
+        // BEFORE 模式更新：同时更新 scheduled_start_time 和 scheduled_start_date
+        // scheduled_start_time 根据 dayPeriod 采用默认时间（morning 默认 "08:00:00"，afternoon 默认 "14:00:00"）
         const { data, error } = await supabase
           .from("tasks")
           .update({
             schedule_mode: "Before",
-            scheduled_start_time: null,
-            scheduled_start_date: beforeDate, // 只存日期即可
+            scheduled_start_time: new Date(
+              beforeDate +
+                "T" +
+                (dayPeriod === "morning" ? "08:00:00" : "14:00:00")
+            ).toISOString(),
+            scheduled_start_date: beforeDate,
             scheduled_period: dayPeriod === "morning" ? "Morning" : "Afternoon",
             estimated_hours: hoursNum,
           })
           .eq("task_id", taskId)
           .select("*")
           .single();
+
 
         if (error) throw error;
         Alert.alert("Success", "Updated with BEFORE schedule!");
