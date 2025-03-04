@@ -90,6 +90,7 @@ export default function Task() {
   const [canConfirm, setCanConfirm] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasBeforePhotos, setHasBeforePhotos] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // 获取任务数据
   useEffect(() => {
@@ -135,21 +136,59 @@ export default function Task() {
 
   // 更新任务状态
   const updateTaskStatus = (taskData: Task) => {
-    if (!taskData) return;
+    try {
+      if (!taskData) return;
 
-    const taskTime = new Date(taskData.scheduled_start_time);
-    const now = new Date();
-    const hoursUntilTask = differenceInHours(taskTime, now);
+      console.log("Updating task status for task:", taskData.task_id);
 
-    // 设置是否可以确认任务
-    setCanConfirm(
-      !taskData.is_confirmed && hoursUntilTask <= 24 && hoursUntilTask >= 4
-    );
+      // 检查 scheduled_start_time 是否存在
+      if (!taskData.scheduled_start_time) {
+        console.log("No scheduled_start_time found for task");
+        setCanConfirm(false);
+        setCanCheckIn(false);
+        return;
+      }
 
-    // 设置是否可以签到
-    setCanCheckIn(
-      taskData.is_confirmed && hoursUntilTask < 4 && hoursUntilTask >= 0
-    );
+      const taskTime = new Date(taskData.scheduled_start_time);
+      const now = new Date();
+
+      // 确保日期是有效的
+      if (isNaN(taskTime.getTime())) {
+        console.log(
+          "Invalid date format for scheduled_start_time:",
+          taskData.scheduled_start_time
+        );
+        setCanConfirm(false);
+        setCanCheckIn(false);
+        return;
+      }
+
+      const hoursUntilTask = differenceInHours(taskTime, now);
+      console.log("Hours until task:", hoursUntilTask);
+
+      // 安全地使用 is_confirmed，如果为 null 则视为 false
+      const isConfirmed = !!taskData.is_confirmed;
+
+      // 设置是否可以确认任务
+      setCanConfirm(
+        !isConfirmed && hoursUntilTask <= 24 && hoursUntilTask >= 4
+      );
+
+      // 设置是否可以签到
+      setCanCheckIn(isConfirmed && hoursUntilTask < 4 && hoursUntilTask >= 0);
+
+      console.log(
+        "Can confirm:",
+        !isConfirmed && hoursUntilTask <= 24 && hoursUntilTask >= 4
+      );
+      console.log(
+        "Can check in:",
+        isConfirmed && hoursUntilTask < 4 && hoursUntilTask >= 0
+      );
+    } catch (error: any) {
+      console.error("Error updating task status:", error);
+      setError(`Failed to update task status: ${error.message}`);
+    }
   };
 
   // 确认任务
@@ -509,6 +548,80 @@ export default function Task() {
     return null;
   };
 
+  // 在渲染之前，检查必要的字段是否存在
+  const renderTaskDetails = () => {
+    if (!task) return null;
+
+    // 格式化任务时间，安全地处理空值
+    const formatTaskDate = () => {
+      try {
+        if (!task.scheduled_start_time) return "No date scheduled";
+
+        const taskDate = new Date(task.scheduled_start_time);
+        if (isNaN(taskDate.getTime())) return "Invalid date";
+
+        return format(taskDate, "PPP 'at' p");
+      } catch (error) {
+        console.error("Error formatting date:", error);
+        return "Date format error";
+      }
+    };
+
+    return (
+      <View>
+        <Text>Status: {safeTaskValue(task.status, "Pending")}</Text>
+        <Text>Type: {safeTaskValue(task.task_type)}</Text>
+        <Text>Date: {formatTaskDate()}</Text>
+        <Text>Address: {safeTaskValue(task.address)}</Text>
+        {/* 其他字段也类似处理 */}
+      </View>
+    );
+  };
+
+  // 在地图组件中也需要添加检查
+  const renderMap = () => {
+    // 检查是否有有效的坐标
+    if (!task || task.latitude === null || task.longitude === null) {
+      return (
+        <View
+          style={{
+            height: 200,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#f0f0f0",
+          }}
+        >
+          <Text>No location data available</Text>
+        </View>
+      );
+    }
+
+    return (
+      <MapView
+        style={{ height: 200 }}
+        initialRegion={{
+          latitude: task.latitude,
+          longitude: task.longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        }}
+      >
+        <Marker
+          coordinate={{
+            latitude: task.latitude,
+            longitude: task.longitude,
+          }}
+          title={task.address}
+        />
+      </MapView>
+    );
+  };
+
+  // 添加这个辅助函数来安全地访问任务的属性
+  const safeTaskValue = (value: any, defaultValue: any = "N/A") => {
+    return value !== null && value !== undefined ? value : defaultValue;
+  };
+
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -538,7 +651,7 @@ export default function Task() {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="bg-blue-500 p-4">
+      <View className="bg-blue-500 px-4 pt-12 pb-4">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()}>
             <AntDesign name="arrowleft" size={24} color="white" />
@@ -550,49 +663,96 @@ export default function Task() {
       </View>
 
       <ScrollView className="flex-1">
-        {/* Map */}
-        <View className="h-48">
-          <MapView
-            style={{ flex: 1 }}
-            initialRegion={{
-              latitude: task.latitude,
-              longitude: task.longitude,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-          >
-            <Marker
-              coordinate={{
-                latitude: task.latitude,
-                longitude: task.longitude,
-              }}
-              title={task.address}
-            />
-          </MapView>
-        </View>
+        {/* Map Container with Fixed Height */}
+        <View className="h-48 w-full">{renderMap()}</View>
 
-        {/* Task Info */}
-        <View className="p-4">
-          <Text className="text-xl font-bold">{task.task_type}</Text>
-          <Text className="text-gray-600 mt-2">{task.address}</Text>
-          <Text className="text-gray-600 mt-1">
-            {format(new Date(task.scheduled_start_time), "PPP p")}
-          </Text>
-          <View className="flex-row justify-between mt-4">
+        {/* Task Info Container */}
+        <View className="p-4 bg-white">
+          {/* Price and Status Row */}
+          <View className="flex-row justify-between items-center mb-4">
             <View>
-              <Text className="text-gray-500">Status</Text>
-              <Text className="font-semibold">{task.status}</Text>
+              <Text className="text-gray-500">Estimated Price</Text>
+              <Text className="text-2xl font-bold text-blue-500">
+                ${task.estimated_price}
+              </Text>
             </View>
-            <View>
-              <Text className="text-gray-500">Price</Text>
-              <Text className="font-semibold">${task.estimated_price}</Text>
+            <View
+              className={`px-3 py-1 rounded-full ${getStatusBgColor(
+                task.status
+              )}`}
+            >
+              <Text className="text-white font-medium">{task.status}</Text>
             </View>
           </View>
-        </View>
 
-        {/* Action Buttons */}
-        <View className="p-4">{renderButtons()}</View>
+          {/* Task Type and Time */}
+          <View className="mb-4">
+            <View className="flex-row items-center mb-2">
+              <AntDesign name="profile" size={20} color="#666" />
+              <Text className="text-lg font-semibold ml-2">
+                {task.task_type}
+              </Text>
+            </View>
+            <View className="flex-row items-center">
+              <AntDesign name="calendar" size={20} color="#666" />
+              <Text className="text-gray-600 ml-2">
+                {format(new Date(task.scheduled_start_time), "PPP 'at' p")}
+              </Text>
+            </View>
+          </View>
+
+          {/* Address */}
+          <View className="mb-4">
+            <Text className="text-gray-500 mb-1">Location</Text>
+            <View className="flex-row items-start">
+              <AntDesign
+                name="enviromento"
+                size={20}
+                color="#666"
+                className="mt-1"
+              />
+              <Text className="text-gray-800 ml-2 flex-1">{task.address}</Text>
+            </View>
+          </View>
+
+          {/* Status Information */}
+          <View className="mb-4 bg-gray-50 p-3 rounded-lg">
+            <Text className="text-gray-500 mb-2">Status Information</Text>
+            <View className="space-y-2">
+              <Text className="text-gray-700">
+                Payment Status: {task.payment_status}
+              </Text>
+              <Text className="text-gray-700">
+                Approval Status: {task.approval_status}
+              </Text>
+              {task.check_in_time && (
+                <Text className="text-gray-700">
+                  Checked In: {format(new Date(task.check_in_time), "p")}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View className="space-y-3 mt-4">{renderButtons()}</View>
+        </View>
       </ScrollView>
     </View>
   );
 }
+
+// 获取状态背景色的辅助函数
+const getStatusBgColor = (status: Task["status"]) => {
+  switch (status) {
+    case "Pending":
+      return "bg-yellow-500";
+    case "In Progress":
+      return "bg-blue-500";
+    case "Completed":
+      return "bg-green-500";
+    case "Cancelled":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
+  }
+};
