@@ -14,6 +14,7 @@ import {
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { supabase } from "@/lib/supabase";
+import * as Location from 'expo-location';
 
 interface Property {
   property_id?: number;
@@ -33,6 +34,8 @@ interface Property {
   state: string;
   postal_code: string;
   created_at?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 const initialProperty: Property = {
@@ -50,6 +53,8 @@ const initialProperty: Property = {
   suburb: "",
   state: "",
   postal_code: "",
+  latitude: undefined,
+  longitude: undefined,
 };
 
 interface ToggleButtonProps {
@@ -84,8 +89,112 @@ export default function HouseOwner() {
   const [properties, setProperties] = useState<Property[]>([initialProperty]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [locationPermission, setLocationPermission] = useState<boolean>(false);
+  const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
+  const [isGeocodingAddress, setIsGeocodingAddress] = useState<boolean>(false);
 
   const currentProperty = properties[currentIndex];
+
+  // 请求位置权限
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(status === 'granted');
+    })();
+  }, []);
+
+  // 获取当前位置并转换为地址
+  const getCurrentLocation = async () => {
+    try {
+      setIsGettingLocation(true);
+      
+      if (!locationPermission) {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission Denied', 'Location permission is required to use this feature');
+          setIsGettingLocation(false);
+          return;
+        }
+        setLocationPermission(true);
+      }
+
+      // 获取当前位置
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High
+      });
+      
+      // 通过逆地理编码获取地址信息
+      const reverseGeocode = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
+
+      if (reverseGeocode && reverseGeocode.length > 0) {
+        const address = reverseGeocode[0];
+        
+        // 更新属性信息
+        updateCurrentProperty({
+          unit_number: address.name || "",
+          street_number: address.streetNumber || "",
+          street_name: address.street || "",
+          suburb: address.city || address.district || "",
+          state: address.region || "",
+          postal_code: address.postalCode || "",
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude
+        });
+      } else {
+        Alert.alert('Error', 'Could not determine your address');
+      }
+    } catch (error) {
+      console.error('Error getting current location:', error);
+      Alert.alert('Error', 'Failed to get your current location');
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
+  // 根据地址获取坐标
+  const geocodeAddress = async () => {
+    try {
+      setIsGeocodingAddress(true);
+      
+      if (!currentProperty.street_number || !currentProperty.street_name || 
+          !currentProperty.suburb || !currentProperty.state || 
+          !currentProperty.postal_code) {
+        Alert.alert('Incomplete Address', 'Please fill in all required address fields');
+        setIsGeocodingAddress(false);
+        return;
+      }
+
+      // 构建完整地址
+      const fullAddress = `${
+        currentProperty.unit_number ? currentProperty.unit_number + "/" : ""
+      }${currentProperty.street_number} ${currentProperty.street_name}, ${
+        currentProperty.suburb
+      }, ${currentProperty.state} ${currentProperty.postal_code}`;
+
+      // 使用 Google Geocoding API 或其他服务获取坐标
+      // 注意：此功能需要 Google API Key，以下是使用 Expo Location 的替代方案
+      const geocodeResults = await Location.geocodeAsync(fullAddress);
+
+      if (geocodeResults && geocodeResults.length > 0) {
+        const { latitude, longitude } = geocodeResults[0];
+        updateCurrentProperty({
+          latitude,
+          longitude
+        });
+        Alert.alert('Success', 'Address coordinates obtained successfully');
+      } else {
+        Alert.alert('Error', 'Could not determine coordinates for this address');
+      }
+    } catch (error) {
+      console.error('Error geocoding address:', error);
+      Alert.alert('Error', 'Failed to get coordinates for this address');
+    } finally {
+      setIsGeocodingAddress(false);
+    }
+  };
 
   const handleSubmit = async () => {
     try {
@@ -128,6 +237,31 @@ export default function HouseOwner() {
       const bedroomCount =
         currentProperty.bedrooms.length > 0 ? currentProperty.bedrooms[0] : 1;
 
+      // 如果没有坐标，尝试获取坐标
+      if (!currentProperty.latitude || !currentProperty.longitude) {
+        try {
+          // 自动尝试获取坐标
+          const fullAddress = `${
+            currentProperty.unit_number ? currentProperty.unit_number + "/" : ""
+          }${currentProperty.street_number} ${currentProperty.street_name}, ${
+            currentProperty.suburb
+          }, ${currentProperty.state} ${currentProperty.postal_code}`;
+          
+          const geocodeResults = await Location.geocodeAsync(fullAddress);
+          
+          if (geocodeResults && geocodeResults.length > 0) {
+            const { latitude, longitude } = geocodeResults[0];
+            updateCurrentProperty({
+              latitude,
+              longitude
+            });
+          }
+        } catch (geocodeError) {
+          console.error('Error getting coordinates during submission:', geocodeError);
+          // 继续提交，即使没有坐标
+        }
+      }
+
       const { data, error } = await supabase.from("properties").insert([
         {
           address: fullAddress,
@@ -145,6 +279,8 @@ export default function HouseOwner() {
           suburb: currentProperty.suburb,
           state: currentProperty.state,
           postal_code: currentProperty.postal_code,
+          latitude: currentProperty.latitude,
+          longitude: currentProperty.longitude,
         },
       ]);
 
@@ -198,6 +334,21 @@ export default function HouseOwner() {
           {/* Address Details */}
           <View className="mt-6">
             <Text className="text-lg font-semibold mb-4">Property Address</Text>
+
+            {/* Add button to get current location */}
+            <TouchableOpacity 
+              className="mb-4 py-3 px-4 bg-blue-500 rounded-lg flex-row items-center justify-center"
+              onPress={getCurrentLocation}
+              disabled={isGettingLocation}
+            >
+              <AntDesign name="enviromento" size={20} color="white" style={{ marginRight: 8 }} />
+              <Text className="text-white font-medium">
+                {isGettingLocation ? "Getting Location..." : "Use Current Location"}
+              </Text>
+              {isGettingLocation && (
+                <ActivityIndicator color="white" style={{ marginLeft: 8 }} />
+              )}
+            </TouchableOpacity>
 
             <View className="flex-row space-x-2 mb-4">
               <View className="flex-1">
@@ -283,6 +434,34 @@ export default function HouseOwner() {
                 keyboardType="numeric"
               />
             </View>
+
+            {/* Add button to geocode address */}
+            <TouchableOpacity 
+              className="mt-4 mb-4 py-3 px-4 bg-green-500 rounded-lg flex-row items-center justify-center"
+              onPress={geocodeAddress}
+              disabled={isGeocodingAddress}
+            >
+              <AntDesign name="search1" size={20} color="white" style={{ marginRight: 8 }} />
+              <Text className="text-white font-medium">
+                {isGeocodingAddress ? "Getting Coordinates..." : "Get Address Coordinates"}
+              </Text>
+              {isGeocodingAddress && (
+                <ActivityIndicator color="white" style={{ marginLeft: 8 }} />
+              )}
+            </TouchableOpacity>
+
+            {/* Display coordinates if available */}
+            {currentProperty.latitude && currentProperty.longitude && (
+              <View className="mt-2 p-3 bg-gray-50 rounded-lg mb-4">
+                <Text className="text-gray-800 font-medium">Coordinates:</Text>
+                <Text className="text-gray-800">
+                  Latitude: {currentProperty.latitude.toFixed(6)}
+                </Text>
+                <Text className="text-gray-800">
+                  Longitude: {currentProperty.longitude.toFixed(6)}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Preview Address */}
