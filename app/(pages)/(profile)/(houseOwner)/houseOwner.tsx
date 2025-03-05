@@ -14,7 +14,7 @@ import {
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { supabase } from "@/lib/supabase";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
 
 interface Property {
   property_id?: number;
@@ -99,7 +99,7 @@ export default function HouseOwner() {
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status === 'granted');
+      setLocationPermission(status === "granted");
     })();
   }, []);
 
@@ -107,11 +107,14 @@ export default function HouseOwner() {
   const getCurrentLocation = async () => {
     try {
       setIsGettingLocation(true);
-      
+
       if (!locationPermission) {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Permission Denied', 'Location permission is required to use this feature');
+        if (status !== "granted") {
+          Alert.alert(
+            "Permission Denied",
+            "Location permission is required to use this feature"
+          );
           setIsGettingLocation(false);
           return;
         }
@@ -120,18 +123,18 @@ export default function HouseOwner() {
 
       // 获取当前位置
       const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High
+        accuracy: Location.Accuracy.High,
       });
-      
+
       // 通过逆地理编码获取地址信息
       const reverseGeocode = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
-        longitude: location.coords.longitude
+        longitude: location.coords.longitude,
       });
 
       if (reverseGeocode && reverseGeocode.length > 0) {
         const address = reverseGeocode[0];
-        
+
         // 更新属性信息
         updateCurrentProperty({
           unit_number: address.name || "",
@@ -141,14 +144,14 @@ export default function HouseOwner() {
           state: address.region || "",
           postal_code: address.postalCode || "",
           latitude: location.coords.latitude,
-          longitude: location.coords.longitude
+          longitude: location.coords.longitude,
         });
       } else {
-        Alert.alert('Error', 'Could not determine your address');
+        Alert.alert("Error", "Could not determine your address");
       }
     } catch (error) {
-      console.error('Error getting current location:', error);
-      Alert.alert('Error', 'Failed to get your current location');
+      console.error("Error getting current location:", error);
+      Alert.alert("Error", "Failed to get your current location");
     } finally {
       setIsGettingLocation(false);
     }
@@ -158,11 +161,18 @@ export default function HouseOwner() {
   const geocodeAddress = async () => {
     try {
       setIsGeocodingAddress(true);
-      
-      if (!currentProperty.street_number || !currentProperty.street_name || 
-          !currentProperty.suburb || !currentProperty.state || 
-          !currentProperty.postal_code) {
-        Alert.alert('Incomplete Address', 'Please fill in all required address fields');
+
+      if (
+        !currentProperty.street_number ||
+        !currentProperty.street_name ||
+        !currentProperty.suburb ||
+        !currentProperty.state ||
+        !currentProperty.postal_code
+      ) {
+        Alert.alert(
+          "Incomplete Address",
+          "Please fill in all required address fields"
+        );
         setIsGeocodingAddress(false);
         return;
       }
@@ -182,15 +192,18 @@ export default function HouseOwner() {
         const { latitude, longitude } = geocodeResults[0];
         updateCurrentProperty({
           latitude,
-          longitude
+          longitude,
         });
-        Alert.alert('Success', 'Address coordinates obtained successfully');
+        Alert.alert("Success", "Address coordinates obtained successfully");
       } else {
-        Alert.alert('Error', 'Could not determine coordinates for this address');
+        Alert.alert(
+          "Error",
+          "Could not determine coordinates for this address"
+        );
       }
     } catch (error) {
-      console.error('Error geocoding address:', error);
-      Alert.alert('Error', 'Failed to get coordinates for this address');
+      console.error("Error geocoding address:", error);
+      Alert.alert("Error", "Failed to get coordinates for this address");
     } finally {
       setIsGeocodingAddress(false);
     }
@@ -246,18 +259,21 @@ export default function HouseOwner() {
           }${currentProperty.street_number} ${currentProperty.street_name}, ${
             currentProperty.suburb
           }, ${currentProperty.state} ${currentProperty.postal_code}`;
-          
+
           const geocodeResults = await Location.geocodeAsync(fullAddress);
-          
+
           if (geocodeResults && geocodeResults.length > 0) {
             const { latitude, longitude } = geocodeResults[0];
             updateCurrentProperty({
               latitude,
-              longitude
+              longitude,
             });
           }
         } catch (geocodeError) {
-          console.error('Error getting coordinates during submission:', geocodeError);
+          console.error(
+            "Error getting coordinates during submission:",
+            geocodeError
+          );
           // 继续提交，即使没有坐标
         }
       }
@@ -336,14 +352,21 @@ export default function HouseOwner() {
             <Text className="text-lg font-semibold mb-4">Property Address</Text>
 
             {/* Add button to get current location */}
-            <TouchableOpacity 
+            <TouchableOpacity
               className="mb-4 py-3 px-4 bg-blue-500 rounded-lg flex-row items-center justify-center"
               onPress={getCurrentLocation}
               disabled={isGettingLocation}
             >
-              <AntDesign name="enviromento" size={20} color="white" style={{ marginRight: 8 }} />
+              <AntDesign
+                name="enviromento"
+                size={20}
+                color="white"
+                style={{ marginRight: 8 }}
+              />
               <Text className="text-white font-medium">
-                {isGettingLocation ? "Getting Location..." : "Use Current Location"}
+                {isGettingLocation
+                  ? "Getting Location..."
+                  : "Use Current Location"}
               </Text>
               {isGettingLocation && (
                 <ActivityIndicator color="white" style={{ marginLeft: 8 }} />
@@ -436,14 +459,21 @@ export default function HouseOwner() {
             </View>
 
             {/* Add button to geocode address */}
-            <TouchableOpacity 
+            <TouchableOpacity
               className="mt-4 mb-4 py-3 px-4 bg-green-500 rounded-lg flex-row items-center justify-center"
               onPress={geocodeAddress}
               disabled={isGeocodingAddress}
             >
-              <AntDesign name="search1" size={20} color="white" style={{ marginRight: 8 }} />
+              <AntDesign
+                name="search1"
+                size={20}
+                color="white"
+                style={{ marginRight: 8 }}
+              />
               <Text className="text-white font-medium">
-                {isGeocodingAddress ? "Getting Coordinates..." : "Get Address Coordinates"}
+                {isGeocodingAddress
+                  ? "Getting Coordinates..."
+                  : "Get Address Coordinates"}
               </Text>
               {isGeocodingAddress && (
                 <ActivityIndicator color="white" style={{ marginLeft: 8 }} />
