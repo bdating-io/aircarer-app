@@ -304,7 +304,7 @@ export default function HouseOwner() {
       Alert.alert("Success", "Property added successfully!");
 
       // Navigate to propertyList page
-      router.push("/(tabs)/propertyList");
+      router.push("/(pages)/(account)/(payment)");
     } catch (error: any) {
       console.error("Submission error:", error);
       Alert.alert("Error", error?.message || "An unexpected error occurred");
