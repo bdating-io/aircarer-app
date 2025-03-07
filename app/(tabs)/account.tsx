@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,22 +6,22 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import useStore from "../utils/store";
-import { Ionicons } from "@expo/vector-icons";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import useStore from '../../utils/store';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Account() {
   const router = useRouter();
   const { myProfile, setMyProfile } = useStore();
-  const [userEmail, setUserEmail] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
     // 获取当前用户的邮箱
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        setUserEmail(session.user.email || "");
+        setUserEmail(session.user.email || '');
       }
     });
   }, []);
@@ -29,35 +29,35 @@ export default function Account() {
   const handleSignOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      Alert.alert("Success", "Successfully logged out!");
-      router.push("/(pages)/(authentication)/login");
+      Alert.alert('Success', 'Successfully logged out!');
+      router.push('/(pages)/(authentication)/login');
       if (error) throw error;
       setMyProfile(null);
     } catch (error) {
-      Alert.alert("Error signing out", (error as Error).message);
+      Alert.alert('Error signing out', (error as Error).message);
     }
   };
 
   const menuItems = [
     {
-      title: "Payment Options",
-      icon: "card-outline",
-      onPress: () => router.push("/(pages)/(account)/(payment)/payment"),
+      title: 'Payment Options',
+      icon: 'card-outline',
+      onPress: () => router.push('/(pages)/(account)/(payment)/payment'),
     },
     {
-      title: "Notifications",
-      icon: "notifications-outline",
-      onPress: () => router.push("/(pages)/(account)/notifications"),
+      title: 'Notifications',
+      icon: 'notifications-outline',
+      onPress: () => router.push('/(pages)/(account)/notifications'),
     },
     {
-      title: "Settings",
-      icon: "settings-outline",
-      onPress: () => router.push("/(pages)/(account)/settings"),
+      title: 'Settings',
+      icon: 'settings-outline',
+      onPress: () => router.push('/(pages)/(account)/settings'),
     },
     {
-      title: "Property List",
-      icon: "home-outline",
-      onPress: () => router.push("/(tabs)/propertyList"),
+      title: 'Property List',
+      icon: 'home-outline',
+      onPress: () => router.push('/(tabs)/propertyList'),
     },
   ];
 
@@ -82,7 +82,7 @@ export default function Account() {
             </Text>
           </View>
           <TouchableOpacity
-            onPress={() => router.push("/(pages)/(profile)/editProfile")}
+            onPress={() => router.push('/(pages)/(profile)/editProfile')}
             className="bg-white/20 px-4 py-2 rounded-lg"
           >
             <Text className="text-white">Edit</Text>
@@ -122,7 +122,7 @@ export default function Account() {
         <View className="mt-8 space-y-4">
           <TouchableOpacity
             className="bg-[#FF6B6B] rounded-lg p-4 mt-8"
-            onPress={() => router.push("/(pages)/(profile)/userTerms")}
+            onPress={() => router.push('/(pages)/(profile)/userTerms')}
           >
             <Text className="text-white text-center text-lg font-semibold">
               Update Profile test

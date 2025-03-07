@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 import {
   View,
   Text,
@@ -11,24 +11,24 @@ import {
   Alert,
   ActivityIndicator,
   Image,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import useStore from "../../utils/store";
-import { ProfileData } from "@/types/type";
-import * as ImagePicker from "expo-image-picker";
-import { decode } from "base64-arraybuffer";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import useStore from '../../../utils/store';
+import { ProfileData } from '@/types/type';
+import * as ImagePicker from 'expo-image-picker';
+import { decode } from 'base64-arraybuffer';
 
 export default function CreateProfile() {
   const router = useRouter();
   const { myProfile, setMyProfile } = useStore();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [abn, setAbn] = useState("");
-  const [selectedRole, setSelectedRole] = useState<ProfileData["role"] | null>(
-    null
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [abn, setAbn] = useState('');
+  const [selectedRole, setSelectedRole] = useState<ProfileData['role'] | null>(
+    null,
   );
-  const [backgroundCheck, setBackgroundCheck] = useState<string>("");
+  const [backgroundCheck, setBackgroundCheck] = useState<string>('');
   const [backgroundCheckImage, setBackgroundCheckImage] = useState<
     string | null
   >(null);
@@ -39,9 +39,9 @@ export default function CreateProfile() {
 
   useEffect(() => {
     if (myProfile) {
-      setFirstName(myProfile.first_name || "");
-      setLastName(myProfile.last_name || "");
-      setAbn(myProfile.abn || "");
+      setFirstName(myProfile.first_name || '');
+      setLastName(myProfile.last_name || '');
+      setAbn(myProfile.abn || '');
       setSelectedRole(myProfile.role || null);
     }
   }, [myProfile]);
@@ -51,10 +51,10 @@ export default function CreateProfile() {
     (async () => {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
+      if (status !== 'granted') {
         Alert.alert(
-          "Permission Required",
-          "Sorry, we need camera roll permissions to upload images."
+          'Permission Required',
+          'Sorry, we need camera roll permissions to upload images.',
         );
       }
     })();
@@ -83,22 +83,22 @@ export default function CreateProfile() {
           error: userError,
         } = await supabase.auth.getUser();
         if (userError || !user) {
-          throw new Error("User not authenticated");
+          throw new Error('User not authenticated');
         }
 
         // 准备文件名
-        const fileExt = imageAsset.uri.split(".").pop();
+        const fileExt = imageAsset.uri.split('.').pop();
         const fileName = `${user.id}-background-check-${Date.now()}.${fileExt}`;
         const filePath = `background-checks/${fileName}`;
 
         // 确保图片有base64数据
         if (!imageAsset.base64) {
-          throw new Error("No image data available");
+          throw new Error('No image data available');
         }
 
         // 上传到Supabase Storage
         const { data, error } = await supabase.storage
-          .from("profile-documents")
+          .from('profile-documents')
           .upload(filePath, decode(imageAsset.base64), {
             contentType: `image/${fileExt}`,
           });
@@ -109,7 +109,7 @@ export default function CreateProfile() {
 
         // 获取公共URL
         const { data: urlData } = supabase.storage
-          .from("profile-documents")
+          .from('profile-documents')
           .getPublicUrl(filePath);
 
         // 设置背景检查图片URL
@@ -119,11 +119,11 @@ export default function CreateProfile() {
         // 存储URL到用户元数据而不是profiles表中
         await updateUserMetadata(urlData.publicUrl);
 
-        Alert.alert("Success", "Background check image uploaded successfully");
+        Alert.alert('Success', 'Background check image uploaded successfully');
       }
     } catch (error: any) {
-      console.error("Error uploading image:", error.message);
-      Alert.alert("Upload Failed", error.message);
+      console.error('Error uploading image:', error.message);
+      Alert.alert('Upload Failed', error.message);
     } finally {
       setUploadingImage(false);
     }
@@ -138,7 +138,7 @@ export default function CreateProfile() {
         error: userError,
       } = await supabase.auth.getUser();
       if (userError || !user) {
-        throw new Error("User not authenticated");
+        throw new Error('User not authenticated');
       }
 
       // 获取当前元数据
@@ -158,9 +158,9 @@ export default function CreateProfile() {
 
       if (error) throw error;
 
-      console.log("User metadata updated with background check URL");
+      console.log('User metadata updated with background check URL');
     } catch (error) {
-      console.error("Error updating user metadata:", error);
+      console.error('Error updating user metadata:', error);
     }
   };
 
@@ -173,11 +173,11 @@ export default function CreateProfile() {
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        throw new Error("User not found");
+        throw new Error('User not found');
       }
 
       const { data, error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .upsert({
           user_id: user.id,
           first_name: profileData.firstName,
@@ -200,11 +200,11 @@ export default function CreateProfile() {
         role: profileData.role,
       });
 
-      Alert.alert("Success", "Profile created successfully!");
+      Alert.alert('Success', 'Profile created successfully!');
       return data;
     } catch (error: any) {
-      console.error("Error creating profile:", error.message);
-      Alert.alert("Error", error.message);
+      console.error('Error creating profile:', error.message);
+      Alert.alert('Error', error.message);
       throw error;
     } finally {
       setIsLoading(false);
@@ -214,7 +214,7 @@ export default function CreateProfile() {
   // ABN验证函数
   const validateABN = (abnValue: string): boolean => {
     // 删除所有空格
-    const cleanABN = abnValue.replace(/\s/g, "");
+    const cleanABN = abnValue.replace(/\s/g, '');
 
     // 检查是否为11位数字
     if (!/^\d{11}$/.test(cleanABN)) {
@@ -227,7 +227,7 @@ export default function CreateProfile() {
     let sum = 0;
 
     // 第一位减1
-    const digits = cleanABN.split("").map(Number);
+    const digits = cleanABN.split('').map(Number);
     digits[0] -= 1;
 
     // 应用权重算法
@@ -264,7 +264,7 @@ export default function CreateProfile() {
       setAbnValid(isValid);
       return isValid;
     } catch (error) {
-      console.error("Error validating ABN:", error);
+      console.error('Error validating ABN:', error);
       // 如果验证服务失败，回退到本地验证
       const isBasicValid = validateABN(abnValue);
       setAbnValid(isBasicValid);
@@ -286,7 +286,7 @@ export default function CreateProfile() {
     }
 
     // 如果有11位数字，进行验证
-    if (text.replace(/\s/g, "").length === 11) {
+    if (text.replace(/\s/g, '').length === 11) {
       validateABNOnline(text);
     } else {
       // 长度不符合，设置为无效
@@ -296,7 +296,7 @@ export default function CreateProfile() {
 
   const handleNext = async () => {
     if (!firstName || !lastName || !abn || !selectedRole) {
-      Alert.alert("Error", "Please fill in all required fields");
+      Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
@@ -307,8 +307,8 @@ export default function CreateProfile() {
 
     if (!isAbnValid) {
       Alert.alert(
-        "Invalid ABN",
-        "Please enter a valid Australian Business Number"
+        'Invalid ABN',
+        'Please enter a valid Australian Business Number',
       );
       return;
     }
@@ -325,23 +325,23 @@ export default function CreateProfile() {
 
       // 根据角色导航到不同页面
       switch (selectedRole) {
-        case "Cleaner":
+        case 'Cleaner':
           router.push({
-            pathname: "/(pages)/(profile)/(cleanerProfile)/cleanerProfile",
+            pathname: '/(pages)/(profile)/(cleanerProfile)/cleanerProfile',
             params: { profileData: JSON.stringify(profileData) },
           });
           break;
-        case "House Owner":
+        case 'House Owner':
           router.push({
-            pathname: "/(pages)/(profile)/(houseOwner)/houseOwner",
+            pathname: '/(pages)/(profile)/(houseOwner)/houseOwner',
             params: { profileData: JSON.stringify(profileData) },
           });
           break;
         default:
-          router.push("/(pages)/(profile)/(houseOwner)/houseOwner");
+          router.push('/(pages)/(profile)/(houseOwner)/houseOwner');
       }
     } catch (error) {
-      console.error("Navigation error:", error);
+      console.error('Navigation error:', error);
     }
   };
 
@@ -386,10 +386,10 @@ export default function CreateProfile() {
           <TextInput
             className={`border rounded-lg p-3 ${
               abnValid === true
-                ? "border-green-500"
+                ? 'border-green-500'
                 : abnValid === false
-                ? "border-red-500"
-                : "border-gray-300"
+                ? 'border-red-500'
+                : 'border-gray-300'
             }`}
             placeholder="e.g. 51 824 753 556"
             value={abn}
@@ -425,19 +425,19 @@ export default function CreateProfile() {
               <Text
                 className={`text-sm ${
                   abnValid === true
-                    ? "text-green-600"
+                    ? 'text-green-600'
                     : abnValid === false
-                    ? "text-red-600"
-                    : "text-gray-500"
+                    ? 'text-red-600'
+                    : 'text-gray-500'
                 }`}
               >
                 {validatingAbn
-                  ? "Validating ABN..."
+                  ? 'Validating ABN...'
                   : abnValid === true
-                  ? "Valid ABN"
+                  ? 'Valid ABN'
                   : abnValid === false
-                  ? "Invalid ABN format"
-                  : "Enter your 11-digit ABN"}
+                  ? 'Invalid ABN format'
+                  : 'Enter your 11-digit ABN'}
               </Text>
             </View>
           )}
@@ -449,17 +449,17 @@ export default function CreateProfile() {
         </Text>
         <View className="flex-row flex-wrap justify-between mb-6">
           {[
-            { id: "Laundry Partner", icon: "🧺", color: "bg-blue-100" },
-            { id: "Supervisor", icon: "👥", color: "bg-green-100" },
-            { id: "Cleaner", icon: "🧹", color: "bg-yellow-100" },
-            { id: "House Owner", icon: "🏠", color: "bg-purple-100" },
+            { id: 'Laundry Partner', icon: '🧺', color: 'bg-blue-100' },
+            { id: 'Supervisor', icon: '👥', color: 'bg-green-100' },
+            { id: 'Cleaner', icon: '🧹', color: 'bg-yellow-100' },
+            { id: 'House Owner', icon: '🏠', color: 'bg-purple-100' },
           ].map((role) => (
             <TouchableOpacity
               key={role.id}
               className={`w-[48%] p-4 rounded-lg mb-4 ${role.color} ${
-                selectedRole === role.id ? "border-2 border-blue-500" : ""
+                selectedRole === role.id ? 'border-2 border-blue-500' : ''
               }`}
-              onPress={() => setSelectedRole(role.id as ProfileData["role"])}
+              onPress={() => setSelectedRole(role.id as ProfileData['role'])}
             >
               <Text className="text-center text-2xl mb-2">{role.icon}</Text>
               <Text className="text-center">{role.id}</Text>
@@ -468,7 +468,7 @@ export default function CreateProfile() {
         </View>
 
         {/* Background Check Upload - 仅当角色为"Cleaner"时显示 */}
-        {selectedRole === "Cleaner" && (
+        {selectedRole === 'Cleaner' && (
           <>
             <Text className="text-gray-600 mb-2">Background Check</Text>
             <Text className="text-xs text-gray-500 mb-3">
@@ -482,8 +482,8 @@ export default function CreateProfile() {
             >
               <Text className="text-gray-500">
                 {uploadingImage
-                  ? "Uploading..."
-                  : "Upload background check document"}
+                  ? 'Uploading...'
+                  : 'Upload background check document'}
               </Text>
               {uploadingImage ? (
                 <ActivityIndicator color="#4A90E2" size="small" />
@@ -504,7 +504,7 @@ export default function CreateProfile() {
                   className="absolute top-2 right-2 bg-white rounded-full p-1"
                   onPress={() => {
                     setBackgroundCheckImage(null);
-                    setBackgroundCheck("");
+                    setBackgroundCheck('');
                   }}
                 >
                   <AntDesign name="close" size={16} color="black" />
@@ -523,11 +523,11 @@ export default function CreateProfile() {
             lastName &&
             abn &&
             selectedRole &&
-            (selectedRole !== "Cleaner" ||
-              (selectedRole === "Cleaner" && backgroundCheck)) &&
+            (selectedRole !== 'Cleaner' ||
+              (selectedRole === 'Cleaner' && backgroundCheck)) &&
             abnValid === true
-              ? "bg-[#4A90E2]"
-              : "bg-gray-200"
+              ? 'bg-[#4A90E2]'
+              : 'bg-gray-200'
           }`}
           onPress={handleNext}
           disabled={
@@ -535,7 +535,7 @@ export default function CreateProfile() {
             !lastName ||
             !abn ||
             !selectedRole ||
-            (selectedRole === "Cleaner" && !backgroundCheck) ||
+            (selectedRole === 'Cleaner' && !backgroundCheck) ||
             abnValid !== true
           }
         >
@@ -545,14 +545,14 @@ export default function CreateProfile() {
               lastName &&
               abn &&
               selectedRole &&
-              (selectedRole !== "Cleaner" ||
-                (selectedRole === "Cleaner" && backgroundCheck)) &&
+              (selectedRole !== 'Cleaner' ||
+                (selectedRole === 'Cleaner' && backgroundCheck)) &&
               abnValid === true
-                ? "text-white"
-                : "text-gray-500"
+                ? 'text-white'
+                : 'text-gray-500'
             }`}
           >
-            {validatingAbn ? "Validating..." : "Next"}
+            {validatingAbn ? 'Validating...' : 'Next'}
           </Text>
         </TouchableOpacity>
       </View>

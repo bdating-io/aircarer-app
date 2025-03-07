@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,20 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
-import useStore from "../../utils/store";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { supabase } from '@/lib/supabase';
+import useStore from '../../../utils/store';
 
 export default function Welcome() {
   const router = useRouter();
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
 
   useEffect(() => {
-    myProfile && myProfile.first_name && setNickname( myProfile.first_name);
+    myProfile && myProfile.first_name && setNickname(myProfile.first_name);
   }, [myProfile]);
 
   const handleContinue = async () => {
@@ -33,19 +33,19 @@ export default function Welcome() {
       } = await supabase.auth.getUser();
 
       if (userError) {
-        console.error("Error getting user:", userError);
-        Alert.alert("Error", "Failed to get user information");
+        console.error('Error getting user:', userError);
+        Alert.alert('Error', 'Failed to get user information');
         return;
       }
 
       if (!user) {
-        console.error("No user found");
-        Alert.alert("Error", "User not found");
+        console.error('No user found');
+        Alert.alert('Error', 'User not found');
         return;
       }
 
       const { data, error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .upsert({
           user_id: user.id,
           first_name: nickname.trim(),
@@ -54,23 +54,23 @@ export default function Welcome() {
         .select();
 
       if (error) {
-        console.error("Supabase error:", error.message, error.details);
+        console.error('Supabase error:', error.message, error.details);
         throw error;
       }
 
-      console.log("Profile updated successfully:", data);
+      console.log('Profile updated successfully:', data);
       myProfile.first_name = nickname.trim();
       setMyProfile(myProfile);
-      router.push("/(pages)/(profile)/userTerms");
+      router.push('/(pages)/(profile)/userTerms');
     } catch (error: any) {
-      console.error("Error updating first name:", {
+      console.error('Error updating first name:', {
         message: error?.message,
         details: error?.details,
         error,
       });
       Alert.alert(
-        "Error",
-        error?.message || "Failed to update first name. Please try again."
+        'Error',
+        error?.message || 'Failed to update first name. Please try again.',
       );
     } finally {
       setIsLoading(false);
@@ -111,7 +111,7 @@ export default function Welcome() {
 
         <TouchableOpacity
           className={`bg-[#4A90E2] rounded-xl py-4 ${
-            !nickname?.trim() ? "opacity-50" : ""
+            !nickname?.trim() ? 'opacity-50' : ''
           }`}
           onPress={handleContinue}
           disabled={!nickname.trim()}

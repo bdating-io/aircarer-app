@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack } from 'expo-router';
 
 export default function RootLayout() {
   return <RootLayoutNav />;
@@ -7,10 +7,10 @@ export default function RootLayout() {
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="authentication" options={{ headerShown: false }} />
-      <Stack.Screen name="profile" options={{ headerShown: false }} />
-      <Stack.Screen name="account" options={{ headerShown: false }} />
-      <Stack.Screen name="createTask" options={{ headerShown: false }} />
+      <Stack.Screen name="(authentication)" options={{ headerShown: false }} />
+      <Stack.Screen name="(profile)" options={{ headerShown: false }} />
+      <Stack.Screen name="(account)" options={{ headerShown: false }} />
+      <Stack.Screen name="(createTask)" options={{ headerShown: false }} />
     </Stack>
   );
 }

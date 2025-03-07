@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,21 +7,21 @@ import {
   SafeAreaView,
   Alert,
   ScrollView,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import useStore from "../../utils/store";
-import { Ionicons } from "@expo/vector-icons";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import useStore from '../../../utils/store';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function EditProfile() {
   const router = useRouter();
   const { myProfile, setMyProfile } = useStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    first_name: myProfile?.first_name || "",
-    last_name: myProfile?.last_name || "",
-    bio: myProfile?.bio || "",
-    location: myProfile?.location || "",
+    first_name: myProfile?.first_name || '',
+    last_name: myProfile?.last_name || '',
+    bio: myProfile?.bio || '',
+    location: myProfile?.location || '',
   });
 
   const updateProfile = async () => {
@@ -31,7 +31,7 @@ export default function EditProfile() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) throw new Error("No user found");
+      if (!user) throw new Error('No user found');
 
       const updates = {
         user_id: user.id,
@@ -39,15 +39,15 @@ export default function EditProfile() {
         updated_at: new Date(),
       };
 
-      const { error } = await supabase.from("profiles").upsert(updates);
+      const { error } = await supabase.from('profiles').upsert(updates);
 
       if (error) throw error;
 
       setMyProfile({ ...myProfile, ...formData });
-      Alert.alert("Success", "Profile updated successfully!");
+      Alert.alert('Success', 'Profile updated successfully!');
       router.back();
     } catch (error) {
-      Alert.alert("Error", (error as Error).message);
+      Alert.alert('Error', (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -180,7 +180,7 @@ export default function EditProfile() {
           disabled={loading}
         >
           <Text className="text-white text-center text-lg font-semibold">
-            {loading ? "Saving..." : "Save"}
+            {loading ? 'Saving...' : 'Save'}
           </Text>
         </TouchableOpacity>
       </View>

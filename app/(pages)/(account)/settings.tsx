@@ -1,26 +1,26 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   SafeAreaView,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import useStore from "../../utils/store";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import useStore from '../../../utils/store';
 
 export default function Settings() {
   const router = useRouter();
   const [fontSize, setFontSize] = useState(22);
-  const [language, setLanguage] = useState("English");
-  const [character, setCharacter] = useState("House Owner");
+  const [language, setLanguage] = useState('English');
+  const [character, setCharacter] = useState('House Owner');
 
   const handleIncreaseFontSize = () => {
     if (fontSize < 30) {
       setFontSize(fontSize + 2);
     } else {
-      Alert.alert("Maximum font size reached");
+      Alert.alert('Maximum font size reached');
     }
   };
 
@@ -28,17 +28,17 @@ export default function Settings() {
     if (fontSize > 14) {
       setFontSize(fontSize - 2);
     } else {
-      Alert.alert("Minimum font size reached");
+      Alert.alert('Minimum font size reached');
     }
   };
 
   const toggleLanguage = () => {
-    setLanguage(language === "English" ? "中文" : "English");
+    setLanguage(language === 'English' ? '中文' : 'English');
   };
 
   const toggleCharacter = () => {
     setCharacter(
-      character === "House Owner" ? "Service Provider" : "House Owner"
+      character === 'House Owner' ? 'Service Provider' : 'House Owner',
     );
   };
 
@@ -106,16 +106,16 @@ export default function Settings() {
           <TouchableOpacity
             className="bg-[#FF6B6B] py-3 rounded-lg"
             onPress={() => {
-              Alert.alert("Report Bug", "Would you like to report a bug?", [
+              Alert.alert('Report Bug', 'Would you like to report a bug?', [
                 {
-                  text: "Cancel",
-                  style: "cancel",
+                  text: 'Cancel',
+                  style: 'cancel',
                 },
                 {
-                  text: "Report",
+                  text: 'Report',
                   onPress: () => {
                     // Handle bug report
-                    Alert.alert("Thank you", "Your report has been submitted.");
+                    Alert.alert('Thank you', 'Your report has been submitted.');
                   },
                 },
               ]);

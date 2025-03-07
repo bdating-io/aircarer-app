@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,20 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import useStore from "../utils/store";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import useStore from '../../utils/store';
 
 export default function Home() {
   const router = useRouter();
   const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
   const { myProfile, setMyProfile, mySession, setMySession } = useStore();
-  const [userEmail, setUserEmail] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>('');
 
   // Store the task title
-  const [taskTitle, setTaskTitle] = useState<string>("");
+  const [taskTitle, setTaskTitle] = useState<string>('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -27,7 +27,7 @@ export default function Home() {
       if (session?.user) {
         checkProfile(session.user.id);
         checkAddress(session.user.id);
-        setUserEmail(session.user.email || "");
+        setUserEmail(session.user.email || '');
       }
     });
 
@@ -37,16 +37,16 @@ export default function Home() {
       if (session?.user) {
         checkProfile(session.user.id);
         checkAddress(session.user.id);
-        setUserEmail(session.user.email || "");
+        setUserEmail(session.user.email || '');
       }
     });
   }, []);
 
   const checkProfile = async (userId: string) => {
     const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("first_name, last_name, abn, role")
-      .eq("user_id", userId)
+      .from('profiles')
+      .select('first_name, last_name, abn, role')
+      .eq('user_id', userId)
       .single();
 
     setMyProfile(profile);
@@ -56,14 +56,14 @@ export default function Home() {
   // Check address
   const checkAddress = async (userId: string) => {
     const { data: address, error } = await supabase
-      .from("addresses")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("type", "USER_ADDRESS")
+      .from('addresses')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', 'USER_ADDRESS')
       .single();
 
     if (error) {
-      console.error("Error checking address:", error);
+      console.error('Error checking address:', error);
       return;
     }
 
@@ -78,28 +78,28 @@ export default function Home() {
       setMySession(null);
       setHasProfile(false);
     } catch (error) {
-      Alert.alert("Error signing out", (error as Error).message);
+      Alert.alert('Error signing out', (error as Error).message);
     }
-    router.push("/(tabs)/home");
+    router.push('/(tabs)/home');
   };
 
   // Create Task => Insert row => if successful, navigate
   const handleCreateTask = async () => {
     // 1) check if user typed a non-empty taskTitle
     if (!taskTitle.trim()) {
-      Alert.alert("Missing title", "Please enter a task title first.");
+      Alert.alert('Missing title', 'Please enter a task title first.');
       return;
     }
 
     // 2) check if user is logged in
     if (!mySession?.user) {
-      Alert.alert("Not logged in", "Please log in first.");
+      Alert.alert('Not logged in', 'Please log in first.');
       return;
     }
 
     try {
       // 2) Instead of .insert(), call the Postgres function
-      const { data, error } = await supabase.rpc("create_task", {
+      const { data, error } = await supabase.rpc('create_task', {
         p_customer_id: mySession.user.id,
         p_task_title: taskTitle.trim(),
       });
@@ -107,19 +107,21 @@ export default function Home() {
 
       // data will be an array of inserted rows (should be length 1)
       if (!data || data.length === 0) {
-        Alert.alert("Error", "No task returned from create_task RPC.");
+        Alert.alert('Error', 'No task returned from create_task RPC.');
         return;
       }
 
       // The newly created task is data[0]
       const newTask = data[0];
-      Alert.alert("Task Created!", `Task ID = ${newTask.task_id}`);
+      Alert.alert('Task Created!', `Task ID = ${newTask.task_id}`);
 
       // Navigate
-      router.push(`/(pages)/(createTask)/placeDetails?taskId=${newTask.task_id}`);
+      router.push(
+        `/(pages)/(createTask)/placeDetails?taskId=${newTask.task_id}`,
+      );
     } catch (err) {
-      console.error("RPC error:", err);
-      Alert.alert("Error", "Failed to create task via RPC");
+      console.error('RPC error:', err);
+      Alert.alert('Error', 'Failed to create task via RPC');
     }
   };
   // If not logged in => Show login
@@ -141,7 +143,7 @@ export default function Home() {
           <View className="absolute bottom-12 left-6 right-6">
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-xl p-4 mb-4"
-              onPress={() => router.push("/(pages)/(authentication)/login")}
+              onPress={() => router.push('/(pages)/(authentication)/login')}
             >
               <Text className="text-white text-center text-lg font-semibold">
                 Log in
@@ -150,7 +152,7 @@ export default function Home() {
 
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-xl p-4"
-              onPress={() => router.push("/(pages)/(authentication)/signup")}
+              onPress={() => router.push('/(pages)/(authentication)/signup')}
             >
               <Text className="text-white text-center text-lg font-semibold">
                 Create an account
@@ -181,7 +183,7 @@ export default function Home() {
           </View>
           <TouchableOpacity
             className="bg-[#FF6B6B] rounded-lg p-4 mt-8"
-            onPress={() => router.push("/(pages)/(profile)/userTerms")}
+            onPress={() => router.push('/(pages)/(profile)/userTerms')}
           >
             <Text className="text-white text-center text-lg font-semibold">
               Create Profile
@@ -202,9 +204,9 @@ export default function Home() {
           {myProfile?.role && (
             <View className="bg-white/20 px-3 py-1 rounded-lg mr-3">
               <Text className="text-white font-medium">
-                {myProfile.role === "Cleaner"
+                {myProfile.role === 'Cleaner'
                   ? "I'm a Cleaner"
-                  : myProfile.role === "House Owner"
+                  : myProfile.role === 'House Owner'
                   ? "I'm a House Owner"
                   : `I'm a ${myProfile.role}`}
               </Text>
@@ -226,7 +228,7 @@ export default function Home() {
         </Text>
         <Text className="text-white opacity-80">{userEmail}</Text>
 
-        {myProfile?.role === "Cleaner" && !hasAddress ? (
+        {myProfile?.role === 'Cleaner' && !hasAddress ? (
           // Cleaner no address
           <View className="mt-8 space-y-4">
             <Text className="text-2xl text-white font-semibold">
@@ -235,7 +237,9 @@ export default function Home() {
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-lg p-4"
               onPress={() =>
-                router.push("/(pages)/(profile)/(cleanerProfile)/cleanerProfile")
+                router.push(
+                  '/(pages)/(profile)/(cleanerProfile)/cleanerProfile',
+                )
               }
             >
               <Text className="text-white text-center text-lg font-semibold">
@@ -243,7 +247,7 @@ export default function Home() {
               </Text>
             </TouchableOpacity>
           </View>
-        ) : myProfile?.role === "Cleaner" ? (
+        ) : myProfile?.role === 'Cleaner' ? (
           // Cleaner has address
           <View className="mt-8 space-y-4">
             <Text className="text-2xl text-white font-semibold">
@@ -251,14 +255,14 @@ export default function Home() {
             </Text>
             <TouchableOpacity
               className="bg-[#FF6B6B] rounded-lg p-4"
-              onPress={() => router.push("/opportunity")}
+              onPress={() => router.push('/opportunity')}
             >
               <Text className="text-white text-center text-lg font-semibold">
                 Browse Opportunities
               </Text>
             </TouchableOpacity>
           </View>
-        ) : myProfile?.role === "House Owner" ? (
+        ) : myProfile?.role === 'House Owner' ? (
           // House Owner
           <View className="mt-8 space-y-4">
             <Text className="text-2xl text-white font-semibold">
@@ -292,4 +296,3 @@ export default function Home() {
     </SafeAreaView>
   );
 }
-

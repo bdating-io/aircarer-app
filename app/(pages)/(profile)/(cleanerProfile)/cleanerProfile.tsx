@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,25 +7,25 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
-import { AddressFormData, AustralianState } from "@/types/address";
-import useStore from "../../../utils/store";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '@/lib/supabase';
+import { AddressFormData, AustralianState } from '@/types/address';
+import useStore from '../../../../utils/store';
 
 export default function AddressForm() {
   const router = useRouter();
   const [formData, setFormData] = useState<AddressFormData>({
-    type: "USER_ADDRESS",
-    street_number: "",
-    street_name: "",
-    city: "",
-    state: "",
-    postal_code: "",
-    country: "Australia", // 默认值
-    latitude: "",
-    longitude: "",
+    type: 'USER_ADDRESS',
+    street_number: '',
+    street_name: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    country: 'Australia', // 默认值
+    latitude: '',
+    longitude: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const { setMyAddress } = useStore();
@@ -40,30 +40,29 @@ export default function AddressForm() {
 
   const getAddress = async (userId: string) => {
     const { data: address, error } = await supabase
-      .from("addresses")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("type", "USER_ADDRESS")
+      .from('addresses')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', 'USER_ADDRESS')
       .single();
 
     if (error) {
-      console.error("Error checking address:", error);
+      console.error('Error checking address:', error);
       return;
     }
 
     setFormData({
-      type: "USER_ADDRESS",
+      type: 'USER_ADDRESS',
       street_number: address.street_number,
       street_name: address.street_name,
       city: address.city,
       state: address.state,
       postal_code: address.postal_code,
-      country: "Australia", // 默认值
+      country: 'Australia', // 默认值
       latitude: address.latitude,
-      longitude: address.longitude
-    })
+      longitude: address.longitude,
+    });
   };
-
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -72,36 +71,38 @@ export default function AddressForm() {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("User not found");
+      if (userError || !user) throw new Error('User not found');
 
       const { data, error } = await supabase
-        .from("addresses")
-        .upsert({
-          user_id: user.id,
-          type: 'USER_ADDRESS',
-          street_number: formData.street_number,
-          street_name: formData.street_name,
-          city: formData.city,
-          state: formData.state,
-          postal_code: formData.postal_code,
-          country: formData.country,
-          latitude: formData.latitude || null,
-          longitude: formData.longitude || null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,type' })
+        .from('addresses')
+        .upsert(
+          {
+            user_id: user.id,
+            type: 'USER_ADDRESS',
+            street_number: formData.street_number,
+            street_name: formData.street_name,
+            city: formData.city,
+            state: formData.state,
+            postal_code: formData.postal_code,
+            country: formData.country,
+            latitude: formData.latitude || null,
+            longitude: formData.longitude || null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id,type' },
+        )
         .select()
         .single();
 
       if (error) throw error;
 
-      Alert.alert("Success", "Address saved successfully!");
+      Alert.alert('Success', 'Address saved successfully!');
 
       setMyAddress(formData);
-      router.push("/(pages)/(profile)/(cleanerProfile)/workingArea");
+      router.push('/(pages)/(profile)/(cleanerProfile)/workingArea');
     } catch (error: any) {
-      console.error("Error saving address:", error.message);
-      Alert.alert("Error", error.message);
+      console.error('Error saving address:', error.message);
+      Alert.alert('Error', error.message);
     } finally {
       setIsLoading(false);
     }
@@ -211,7 +212,7 @@ export default function AddressForm() {
             disabled={isLoading}
           >
             <Text className="text-white text-center text-lg font-semibold">
-              {isLoading ? "Saving..." : "Save Address"}
+              {isLoading ? 'Saving...' : 'Save Address'}
             </Text>
           </TouchableOpacity>
         </View>
