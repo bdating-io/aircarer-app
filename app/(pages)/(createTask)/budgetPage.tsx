@@ -82,7 +82,7 @@ export default function BudgetPage() {
   //  compute estimatedPrice
   useEffect(() => {
     if (loading) return;
-    let basePrice = 40 + 20 * (bedrooms + bathrooms);
+    const basePrice = 40 + 20 * (bedrooms + bathrooms);
     let multiplier = 1;
     if (taskType === "Regular Cleaning") multiplier = 2;
     if (taskType === "Deep Cleaning") multiplier = 3;

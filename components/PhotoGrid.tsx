@@ -21,8 +21,8 @@ export const PhotoGrid: React.FC<PhotoGridProps> = ({
       quality: 1,
     });
     if (!result.canceled) {
-      let newImages = [...images];
-      for (let asset of result.assets) {
+      const newImages = [...images];
+      for (const asset of result.assets) {
         if (newImages.length < maxImages) {
           newImages.push(asset.uri);
         } else {

@@ -1,5 +1,3 @@
-import { TextInputProps, TouchableOpacityProps } from "react-native";
-
 declare interface User {
   user_id: number;
   first_name: string;

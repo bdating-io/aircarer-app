@@ -1,31 +1,29 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   SafeAreaView,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   Alert,
   ActivityIndicator,
-} from "react-native";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import PhoneInput from "react-native-phone-number-input";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import PhoneInput from 'react-native-phone-number-input';
 
 export default function Signup() {
   const router = useRouter();
-  const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState("+61");
-  const [verificationCode, setVerificationCode] = useState("");
+  const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+61');
+  const [verificationCode, setVerificationCode] = useState('');
   const [showVerification, setShowVerification] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [formattedValue, setFormattedValue] = useState("");
+  const [formattedValue, setFormattedValue] = useState('');
   const phoneInput = useRef<PhoneInput>(null);
 
   useEffect(() => {
@@ -33,19 +31,17 @@ export default function Signup() {
   }, []);
 
   const checkSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (session) {
-      router.replace("/(tabs)/home");
+      router.replace('/(tabs)/home');
     }
-  };
-
-  const googleSignup = () => {
-    console.log("Google Signup");
   };
 
   const sendVerificationCode = async () => {
     if (!phone) {
-      Alert.alert("Error", "Please enter your phone number");
+      Alert.alert('Error', 'Please enter your phone number');
       return;
     }
 
@@ -59,11 +55,11 @@ export default function Signup() {
       if (error) throw error;
 
       setShowVerification(true);
-      Alert.alert("Success", "Verification code sent to your phone");
+      Alert.alert('Success', 'Verification code sent to your phone');
     } catch (error) {
       Alert.alert(
-        "Error",
-        error instanceof Error ? error.message : "An error occurred"
+        'Error',
+        error instanceof Error ? error.message : 'An error occurred',
       );
     } finally {
       setLoading(false);
@@ -72,7 +68,7 @@ export default function Signup() {
 
   const verifyPhone = async () => {
     if (!verificationCode) {
-      Alert.alert("Error", "Please enter verification code");
+      Alert.alert('Error', 'Please enter verification code');
       return;
     }
 
@@ -81,19 +77,19 @@ export default function Signup() {
       const { error } = await supabase.auth.verifyOtp({
         phone: `${countryCode}${phone}`,
         token: verificationCode,
-        type: "sms",
+        type: 'sms',
       });
 
       if (error) throw error;
       setPhoneVerified(true);
       Alert.alert(
-        "Success",
-        "Phone verified successfully! Please complete your registration."
+        'Success',
+        'Phone verified successfully! Please complete your registration.',
       );
     } catch (error) {
       Alert.alert(
-        "Error",
-        error instanceof Error ? error.message : "An error occurred"
+        'Error',
+        error instanceof Error ? error.message : 'An error occurred',
       );
     } finally {
       setLoading(false);
@@ -102,12 +98,12 @@ export default function Signup() {
 
   const completeSignUp = async () => {
     if (!email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields");
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
@@ -124,12 +120,12 @@ export default function Signup() {
 
       if (error) throw error;
 
-      Alert.alert("Success", "Account created successfully!");
-      router.push("/(pages)/(authentication)/login");
+      Alert.alert('Success', 'Account created successfully!');
+      router.push('/(pages)/(authentication)/login');
     } catch (error) {
       Alert.alert(
-        "Error",
-        error instanceof Error ? error.message : "An error occurred"
+        'Error',
+        error instanceof Error ? error.message : 'An error occurred',
       );
     } finally {
       setLoading(false);
@@ -154,24 +150,24 @@ export default function Signup() {
         withDarkTheme
         withShadow
         containerStyle={{
-          width: "100%",
-          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          width: '100%',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
           borderRadius: 8,
         }}
         textContainerStyle={{
-          backgroundColor: "transparent",
+          backgroundColor: 'transparent',
         }}
         textInputStyle={{
-          color: "white",
+          color: 'white',
         }}
         codeTextStyle={{
-          color: "white",
+          color: 'white',
         }}
         flagButtonStyle={{
-          backgroundColor: "transparent",
+          backgroundColor: 'transparent',
         }}
         countryPickerButtonStyle={{
-          backgroundColor: "transparent",
+          backgroundColor: 'transparent',
         }}
       />
     </View>
@@ -181,11 +177,7 @@ export default function Signup() {
     <SafeAreaView className="flex-1 bg-[#4A90E2]">
       <View className="flex-1 px-6">
         {/* Header */}
-        <View className="flex-row items-center pt-4">
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
+        <View className="flex-row items-center pt-4"></View>
 
         {/* Logo & Welcome */}
         <View className="items-center mt-12">
@@ -275,7 +267,7 @@ export default function Signup() {
         <View className="mt-8">
           <TouchableOpacity
             className={`bg-[#FF6B6B] rounded-xl p-4 ${
-              loading ? "opacity-50" : ""
+              loading ? 'opacity-50' : ''
             }`}
             onPress={completeSignUp}
             disabled={loading}
@@ -293,10 +285,10 @@ export default function Signup() {
         {/* Login Link */}
         <View className="flex-row justify-center mt-6">
           <Text className="text-white opacity-80">
-            Already have an account?{" "}
+            Already have an account?{' '}
           </Text>
           <TouchableOpacity
-            onPress={() => router.push("/(pages)/(authentication)/login")}
+            onPress={() => router.replace('/(pages)/(authentication)/login')}
           >
             <Text className="text-white font-semibold">Log in</Text>
           </TouchableOpacity>

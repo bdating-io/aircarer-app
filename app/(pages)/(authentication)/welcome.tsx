@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
   SafeAreaView,
   Dimensions,
 } from 'react-native';
@@ -14,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Button } from '@ant-design/react-native';
 import { AntDesign } from '@expo/vector-icons';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 interface FeatureItemProps {
   icon: string;
@@ -75,14 +74,14 @@ export default function WelcomePage() {
         <Button
           type="primary"
           style={styles.loginButton}
-          onPress={() => router.push('/(pages)/(authentication)/login')}
+          onPress={() => router.replace('/(pages)/(authentication)/login')}
         >
           Log In
         </Button>
 
         <Button
           style={styles.signupButton}
-          onPress={() => router.push('/(pages)/(authentication)/signup')}
+          onPress={() => router.replace('/(pages)/(authentication)/signup')}
         >
           Create Account
         </Button>
