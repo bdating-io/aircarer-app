@@ -5,10 +5,9 @@ import {
   SafeAreaView,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
 import PhoneInput from 'react-native-phone-number-input';
 import { useAuthViewModel } from '@/viewModels/authViewModel';
 
@@ -16,28 +15,24 @@ export default function Login() {
   const router = useRouter();
   const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const phoneInput = useRef<PhoneInput>(null);
-  const [formattedValue, setFormattedValue] = useState('');
 
-  const { isCodeSent, signInWithEmail, handlePhoneLogin } = useAuthViewModel();
+  const {
+    phone,
+    isCodeSent,
+    loading,
+    signInWithEmail,
+    signInWithPhone,
+    checkSession,
+    setPhone,
+  } = useAuthViewModel();
 
   // 添加会话检查
   useEffect(() => {
     checkSession();
   }, []);
-
-  const checkSession = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session) {
-      // 如果已登录，重定向到首页
-      router.replace('/(tabs)/home');
-    }
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#4A90E2]">
@@ -121,8 +116,7 @@ export default function Login() {
                   defaultValue={phone}
                   defaultCode="AU"
                   layout="first"
-                  onChangeText={(text) => setPhone(text)}
-                  onChangeFormattedText={(text) => setFormattedValue(text)}
+                  onChangeFormattedText={setPhone}
                   containerStyle={{
                     width: '100%',
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -143,7 +137,7 @@ export default function Login() {
                 <View className="bg-white/10 rounded-xl p-4">
                   <TextInput
                     className="text-white text-lg"
-                    placeholder="Verification Code"
+                    placeholder="Enter Verification Code"
                     placeholderTextColor="rgba(255,255,255,0.7)"
                     value={verificationCode}
                     onChangeText={setVerificationCode}
@@ -163,17 +157,21 @@ export default function Login() {
               if (loginMethod === 'email') {
                 signInWithEmail(email, password);
               } else {
-                handlePhoneLogin(formattedValue, verificationCode);
+                signInWithPhone(verificationCode);
               }
             }}
           >
-            <Text className="text-white text-center text-lg font-semibold">
-              {loginMethod === 'email'
-                ? 'Log in'
-                : isCodeSent
-                  ? 'Verify Code'
-                  : 'Send Code'}
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className="text-white text-center text-lg font-semibold">
+                {loginMethod === 'email'
+                  ? 'Log in'
+                  : isCodeSent
+                    ? 'Verify Code'
+                    : 'Send Code'}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 

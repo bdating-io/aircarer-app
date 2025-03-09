@@ -5,132 +5,34 @@ import {
   SafeAreaView,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 import PhoneInput from 'react-native-phone-number-input';
+import { useAuthViewModel } from '@/viewModels/authViewModel';
 
 export default function Signup() {
   const router = useRouter();
-  const [phone, setPhone] = useState('');
-  const [countryCode, setCountryCode] = useState('+61');
   const [verificationCode, setVerificationCode] = useState('');
-  const [showVerification, setShowVerification] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [formattedValue, setFormattedValue] = useState('');
   const phoneInput = useRef<PhoneInput>(null);
+  const {
+    phone,
+    loading,
+    phoneVerified,
+    showVerification,
+    checkSession,
+    sendVerificationCode,
+    verifyPhone,
+    completeSignUp,
+    setPhone,
+  } = useAuthViewModel();
 
   useEffect(() => {
     checkSession();
   }, []);
-
-  const checkSession = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session) {
-      router.replace('/(tabs)/home');
-    }
-  };
-
-  const sendVerificationCode = async () => {
-    if (!phone) {
-      Alert.alert('Error', 'Please enter your phone number');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signUp({
-        phone: `${countryCode}${phone}`,
-        password: Math.random().toString(36).slice(-8),
-      });
-
-      if (error) throw error;
-
-      setShowVerification(true);
-      Alert.alert('Success', 'Verification code sent to your phone');
-    } catch (error) {
-      Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'An error occurred',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyPhone = async () => {
-    if (!verificationCode) {
-      Alert.alert('Error', 'Please enter verification code');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        phone: `${countryCode}${phone}`,
-        token: verificationCode,
-        type: 'sms',
-      });
-
-      if (error) throw error;
-      setPhoneVerified(true);
-      Alert.alert(
-        'Success',
-        'Phone verified successfully! Please complete your registration.',
-      );
-    } catch (error) {
-      Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'An error occurred',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const completeSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({
-        email,
-        password,
-        data: {
-          phone_verified: true,
-          phone: `${countryCode}${phone}`,
-        },
-      });
-
-      if (error) throw error;
-
-      Alert.alert('Success', 'Account created successfully!');
-      router.push('/(pages)/(authentication)/login');
-    } catch (error) {
-      Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'An error occurred',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const renderPhoneInput = () => (
     <View className="mb-4">
@@ -139,13 +41,8 @@ export default function Signup() {
         defaultValue={phone}
         defaultCode="AU"
         layout="first"
-        onChangeText={(text) => {
-          setPhone(text);
-        }}
         onChangeFormattedText={(text) => {
-          setFormattedValue(text);
-          const countryCode = text.split(phone)[0];
-          setCountryCode(countryCode);
+          setPhone(text);
         }}
         withDarkTheme
         withShadow
@@ -208,7 +105,7 @@ export default function Signup() {
                   <TextInput
                     className="bg-white/10 rounded-lg p-4 text-white mb-4"
                     placeholder="Enter verification code"
-                    placeholderTextColor="gray"
+                    placeholderTextColor="rgba(255,255,255,0.7)"
                     value={verificationCode}
                     onChangeText={setVerificationCode}
                     keyboardType="number-pad"
@@ -216,7 +113,7 @@ export default function Signup() {
                   />
                   <TouchableOpacity
                     className="bg-blue-500 rounded-lg py-4 mb-4"
-                    onPress={verifyPhone}
+                    onPress={() => verifyPhone(verificationCode)}
                     disabled={loading}
                   >
                     <Text className="text-white text-center">Verify Phone</Text>
@@ -269,7 +166,7 @@ export default function Signup() {
             className={`bg-[#FF6B6B] rounded-xl p-4 ${
               loading ? 'opacity-50' : ''
             }`}
-            onPress={completeSignUp}
+            onPress={() => completeSignUp(email, password, confirmPassword)}
             disabled={loading}
           >
             {loading ? (

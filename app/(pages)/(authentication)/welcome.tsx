@@ -16,7 +16,7 @@ import { AntDesign } from '@expo/vector-icons';
 const { height } = Dimensions.get('window');
 
 interface FeatureItemProps {
-  icon: string;
+  icon: 'checkcircleo' | 'Safety' | 'lock';
   title: string;
   description: string;
 }
@@ -59,7 +59,7 @@ export default function WelcomePage() {
           description="Schedule cleaning services with just a few taps"
         />
         <FeatureItem
-          icon="safetycertificate"
+          icon="Safety"
           title="Trusted Cleaners"
           description="All cleaners are vetted and background-checked"
         />
