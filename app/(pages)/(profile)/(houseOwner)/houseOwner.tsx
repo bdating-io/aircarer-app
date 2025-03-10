@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,11 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
-import * as Location from "expo-location";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { supabase } from '@/clients/supabase';
+import * as Location from 'expo-location';
 
 interface Property {
   property_id?: number;
@@ -39,20 +39,20 @@ interface Property {
 }
 
 const initialProperty: Property = {
-  address: "",
+  address: '',
   pet_cleaning: false,
   carpet_cleaning: false,
   range_hood_cleaning: false,
   oven_cleaning: false,
-  entry_method: "",
-  bedrooms: [""],
+  entry_method: '',
+  bedrooms: [''],
   bathrooms: 1,
-  unit_number: "",
-  street_number: "",
-  street_name: "",
-  suburb: "",
-  state: "",
-  postal_code: "",
+  unit_number: '',
+  street_number: '',
+  street_name: '',
+  suburb: '',
+  state: '',
+  postal_code: '',
   latitude: undefined,
   longitude: undefined,
 };
@@ -67,19 +67,19 @@ const ToggleButton = ({ value, onToggle, label }: ToggleButtonProps) => (
   <View className="flex-row space-x-2">
     <TouchableOpacity
       className={`px-6 py-2 rounded-full border ${
-        value ? "bg-blue-500 border-blue-500" : "border-gray-300"
+        value ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
       }`}
       onPress={() => onToggle(true)}
     >
-      <Text className={value ? "text-white" : "text-gray-600"}>YES</Text>
+      <Text className={value ? 'text-white' : 'text-gray-600'}>YES</Text>
     </TouchableOpacity>
     <TouchableOpacity
       className={`px-6 py-2 rounded-full border ${
-        !value ? "bg-blue-500 border-blue-500" : "border-gray-300"
+        !value ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
       }`}
       onPress={() => onToggle(false)}
     >
-      <Text className={!value ? "text-white" : "text-gray-600"}>No</Text>
+      <Text className={!value ? 'text-white' : 'text-gray-600'}>No</Text>
     </TouchableOpacity>
   </View>
 );
@@ -99,7 +99,7 @@ export default function HouseOwner() {
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status === "granted");
+      setLocationPermission(status === 'granted');
     })();
   }, []);
 
@@ -110,10 +110,10 @@ export default function HouseOwner() {
 
       if (!locationPermission) {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
+        if (status !== 'granted') {
           Alert.alert(
-            "Permission Denied",
-            "Location permission is required to use this feature"
+            'Permission Denied',
+            'Location permission is required to use this feature',
           );
           setIsGettingLocation(false);
           return;
@@ -137,21 +137,21 @@ export default function HouseOwner() {
 
         // 更新属性信息
         updateCurrentProperty({
-          unit_number: address.name || "",
-          street_number: address.streetNumber || "",
-          street_name: address.street || "",
-          suburb: address.city || address.district || "",
-          state: address.region || "",
-          postal_code: address.postalCode || "",
+          unit_number: address.name || '',
+          street_number: address.streetNumber || '',
+          street_name: address.street || '',
+          suburb: address.city || address.district || '',
+          state: address.region || '',
+          postal_code: address.postalCode || '',
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         });
       } else {
-        Alert.alert("Error", "Could not determine your address");
+        Alert.alert('Error', 'Could not determine your address');
       }
     } catch (error) {
-      console.error("Error getting current location:", error);
-      Alert.alert("Error", "Failed to get your current location");
+      console.error('Error getting current location:', error);
+      Alert.alert('Error', 'Failed to get your current location');
     } finally {
       setIsGettingLocation(false);
     }
@@ -170,8 +170,8 @@ export default function HouseOwner() {
         !currentProperty.postal_code
       ) {
         Alert.alert(
-          "Incomplete Address",
-          "Please fill in all required address fields"
+          'Incomplete Address',
+          'Please fill in all required address fields',
         );
         setIsGeocodingAddress(false);
         return;
@@ -179,7 +179,7 @@ export default function HouseOwner() {
 
       // 构建完整地址
       const fullAddress = `${
-        currentProperty.unit_number ? currentProperty.unit_number + "/" : ""
+        currentProperty.unit_number ? currentProperty.unit_number + '/' : ''
       }${currentProperty.street_number} ${currentProperty.street_name}, ${
         currentProperty.suburb
       }, ${currentProperty.state} ${currentProperty.postal_code}`;
@@ -194,16 +194,16 @@ export default function HouseOwner() {
           latitude,
           longitude,
         });
-        Alert.alert("Success", "Address coordinates obtained successfully");
+        Alert.alert('Success', 'Address coordinates obtained successfully');
       } else {
         Alert.alert(
-          "Error",
-          "Could not determine coordinates for this address"
+          'Error',
+          'Could not determine coordinates for this address',
         );
       }
     } catch (error) {
-      console.error("Error geocoding address:", error);
-      Alert.alert("Error", "Failed to get coordinates for this address");
+      console.error('Error geocoding address:', error);
+      Alert.alert('Error', 'Failed to get coordinates for this address');
     } finally {
       setIsGeocodingAddress(false);
     }
@@ -218,7 +218,7 @@ export default function HouseOwner() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        Alert.alert("Error", "Please login first");
+        Alert.alert('Error', 'Please login first');
         return;
       }
 
@@ -231,19 +231,19 @@ export default function HouseOwner() {
         !currentProperty.postal_code ||
         !currentProperty.entry_method
       ) {
-        Alert.alert("Error", "Please fill in all required fields");
+        Alert.alert('Error', 'Please fill in all required fields');
         return;
       }
 
       // Construct full address
       const fullAddress = `${
-        currentProperty.unit_number ? currentProperty.unit_number + "/" : ""
+        currentProperty.unit_number ? currentProperty.unit_number + '/' : ''
       }${currentProperty.street_number} ${currentProperty.street_name}, ${
         currentProperty.suburb
       }, ${currentProperty.state} ${currentProperty.postal_code}`;
 
       // 检查数据库结构
-      console.log("Bedrooms data:", currentProperty.bedrooms);
+      console.log('Bedrooms data:', currentProperty.bedrooms);
 
       // 如果 bedrooms 是一个数组，但数据库期望一个单一的 smallint
       // 我们可以取第一个卧室的值或者计算总数
@@ -255,7 +255,7 @@ export default function HouseOwner() {
         try {
           // 自动尝试获取坐标
           const fullAddress = `${
-            currentProperty.unit_number ? currentProperty.unit_number + "/" : ""
+            currentProperty.unit_number ? currentProperty.unit_number + '/' : ''
           }${currentProperty.street_number} ${currentProperty.street_name}, ${
             currentProperty.suburb
           }, ${currentProperty.state} ${currentProperty.postal_code}`;
@@ -271,14 +271,14 @@ export default function HouseOwner() {
           }
         } catch (geocodeError) {
           console.error(
-            "Error getting coordinates during submission:",
-            geocodeError
+            'Error getting coordinates during submission:',
+            geocodeError,
           );
           // 继续提交，即使没有坐标
         }
       }
 
-      const { data, error } = await supabase.from("properties").insert([
+      const { data, error } = await supabase.from('properties').insert([
         {
           address: fullAddress,
           bedrooms: bedroomCount, // 使用单个数字而不是数组
@@ -301,13 +301,13 @@ export default function HouseOwner() {
       ]);
 
       if (error) throw error;
-      Alert.alert("Success", "Property added successfully!");
+      Alert.alert('Success', 'Property added successfully!');
 
       // Navigate to propertyList page
-      router.push("/(tabs)/propertyList");
+      router.push('/(tabs)/propertyList');
     } catch (error: any) {
-      console.error("Submission error:", error);
-      Alert.alert("Error", error?.message || "An unexpected error occurred");
+      console.error('Submission error:', error);
+      Alert.alert('Error', error?.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -343,7 +343,7 @@ export default function HouseOwner() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <ScrollView className="flex-1 px-4">
@@ -365,8 +365,8 @@ export default function HouseOwner() {
               />
               <Text className="text-white font-medium">
                 {isGettingLocation
-                  ? "Getting Location..."
-                  : "Use Current Location"}
+                  ? 'Getting Location...'
+                  : 'Use Current Location'}
               </Text>
               {isGettingLocation && (
                 <ActivityIndicator color="white" style={{ marginLeft: 8 }} />
@@ -472,8 +472,8 @@ export default function HouseOwner() {
               />
               <Text className="text-white font-medium">
                 {isGeocodingAddress
-                  ? "Getting Coordinates..."
-                  : "Get Address Coordinates"}
+                  ? 'Getting Coordinates...'
+                  : 'Get Address Coordinates'}
               </Text>
               {isGeocodingAddress && (
                 <ActivityIndicator color="white" style={{ marginLeft: 8 }} />
@@ -505,13 +505,13 @@ export default function HouseOwner() {
                 <Text className="text-gray-800">
                   {currentProperty.unit_number
                     ? `${currentProperty.unit_number}/`
-                    : ""}
-                  {currentProperty.street_number} {currentProperty.street_name},{" "}
+                    : ''}
+                  {currentProperty.street_number} {currentProperty.street_name},{' '}
                   {currentProperty.suburb},
-                  {currentProperty.state ? ` ${currentProperty.state}` : ""}
+                  {currentProperty.state ? ` ${currentProperty.state}` : ''}
                   {currentProperty.postal_code
                     ? currentProperty.postal_code
-                    : ""}
+                    : ''}
                 </Text>
               </View>
             )}
@@ -537,7 +537,7 @@ export default function HouseOwner() {
               className="mt-2"
               onPress={() =>
                 updateCurrentProperty({
-                  bedrooms: [...currentProperty.bedrooms, ""],
+                  bedrooms: [...currentProperty.bedrooms, ''],
                 })
               }
             >
@@ -637,8 +637,8 @@ export default function HouseOwner() {
                 className="ml-2"
                 onPress={() =>
                   Alert.alert(
-                    "Entry Method",
-                    "Please provide details on how the cleaner can access your property (e.g., key in mailbox, door code, etc.)"
+                    'Entry Method',
+                    'Please provide details on how the cleaner can access your property (e.g., key in mailbox, door code, etc.)',
                   )
                 }
               >
@@ -648,8 +648,8 @@ export default function HouseOwner() {
             <TextInput
               className={`border ${
                 !currentProperty.entry_method
-                  ? "border-red-500"
-                  : "border-gray-300"
+                  ? 'border-red-500'
+                  : 'border-gray-300'
               } rounded-lg p-3`}
               placeholder="Enter method details"
               value={currentProperty.entry_method}
@@ -690,8 +690,8 @@ export default function HouseOwner() {
           ) : (
             <Text className="text-white font-medium">
               {currentIndex === properties.length - 1
-                ? "Submit"
-                : "Next Property"}
+                ? 'Submit'
+                : 'Next Property'}
             </Text>
           )}
         </TouchableOpacity>

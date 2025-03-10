@@ -8,8 +8,8 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/supabase';
-import useStore from '../../utils/store';
+import { supabase } from '@/clients/supabase';
+import useStore from '../../lib/store';
 
 export default function Home() {
   const router = useRouter();
@@ -207,8 +207,8 @@ export default function Home() {
                 {myProfile.role === 'Cleaner'
                   ? "I'm a Cleaner"
                   : myProfile.role === 'House Owner'
-                  ? "I'm a House Owner"
-                  : `I'm a ${myProfile.role}`}
+                    ? "I'm a House Owner"
+                    : `I'm a ${myProfile.role}`}
               </Text>
             </View>
           )}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/clients/supabase';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
-import useStore from '../../../utils/store';
+import useStore from '../../../lib/store';
 import { ProfileData } from '@/types/type';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
@@ -388,8 +388,8 @@ export default function CreateProfile() {
               abnValid === true
                 ? 'border-green-500'
                 : abnValid === false
-                ? 'border-red-500'
-                : 'border-gray-300'
+                  ? 'border-red-500'
+                  : 'border-gray-300'
             }`}
             placeholder="e.g. 51 824 753 556"
             value={abn}
@@ -427,17 +427,17 @@ export default function CreateProfile() {
                   abnValid === true
                     ? 'text-green-600'
                     : abnValid === false
-                    ? 'text-red-600'
-                    : 'text-gray-500'
+                      ? 'text-red-600'
+                      : 'text-gray-500'
                 }`}
               >
                 {validatingAbn
                   ? 'Validating ABN...'
                   : abnValid === true
-                  ? 'Valid ABN'
-                  : abnValid === false
-                  ? 'Invalid ABN format'
-                  : 'Enter your 11-digit ABN'}
+                    ? 'Valid ABN'
+                    : abnValid === false
+                      ? 'Invalid ABN format'
+                      : 'Enter your 11-digit ABN'}
               </Text>
             </View>
           )}

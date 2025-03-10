@@ -1,9 +1,10 @@
-import { Stack } from "expo-router";
-import { useEffect } from "react";
-import { useRouter, useSegments } from "expo-router";
-import { supabase } from "@/lib/supabase";
+import React from 'react';
+import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { useRouter, useSegments } from 'expo-router';
+import { supabase } from '@/clients/supabase';
 
-import "../global.css";
+import '../global.css';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -16,13 +17,13 @@ export default function RootLayout() {
 
       if (!data.session) {
         if (
-          segments[0] !== "(pages)" ||
-          (segments[0] === "(pages)" && segments[1] !== "(authentication)")
+          segments[0] !== '(pages)' ||
+          (segments[0] === '(pages)' && segments[1] !== '(authentication)')
         ) {
-          router.replace("/(pages)/(authentication)/welcome");
+          router.replace('/(pages)/(authentication)/welcome');
         }
-      } else if (segments[1] === "(authentication)") {
-        router.replace("/(tabs)/home");
+      } else if (segments[1] === '(authentication)') {
+        router.replace('/(tabs)/home');
       }
     };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,11 @@ import {
   RefreshControl,
   StyleSheet,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { supabase } from "../../lib/supabase";
-import { format } from "date-fns";
-import { AntDesign } from "@expo/vector-icons";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '@/clients/supabase';
+import { format } from 'date-fns';
+import { AntDesign } from '@expo/vector-icons';
 
 // 定义任务类型
 type Task = {
@@ -64,7 +64,7 @@ export default function Opportunity() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        Alert.alert("Error", "No user logged in.");
+        Alert.alert('Error', 'No user logged in.');
         setLoading(false);
         return;
       }
@@ -73,20 +73,20 @@ export default function Opportunity() {
       // 1. cleaner_id 为 null (未分配给清洁工)
       // 2. customer_id 不等于当前用户ID (不是当前用户创建的任务)
       const { data, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .is("cleaner_id", null) // 未分配给清洁工
-        .order("scheduled_start_time", { ascending: true });
+        .from('tasks')
+        .select('*')
+        .is('cleaner_id', null) // 未分配给清洁工
+        .order('scheduled_start_time', { ascending: true });
 
       if (error) {
-        console.error("Query error:", error);
+        console.error('Query error:', error);
         throw error;
       }
 
       console.log(`Found ${data?.length || 0} available tasks`);
       setTasks(data || []);
     } catch (error) {
-      console.error("Error fetching tasks:", error);
+      console.error('Error fetching tasks:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -105,32 +105,32 @@ export default function Opportunity() {
   // 接受任务
   const handleAcceptTask = async (taskId: number) => {
     if (!currentUserId) {
-      Alert.alert("Error", "You must be logged in to accept tasks");
+      Alert.alert('Error', 'You must be logged in to accept tasks');
       return;
     }
 
-    Alert.alert("Accept Task", "Are you sure you want to accept this task?", [
-      { text: "No", style: "cancel" },
+    Alert.alert('Accept Task', 'Are you sure you want to accept this task?', [
+      { text: 'No', style: 'cancel' },
       {
-        text: "Yes",
+        text: 'Yes',
         onPress: async () => {
           try {
             // 更新任务，将当前用户设为清洁工
             const { error } = await supabase
-              .from("tasks")
+              .from('tasks')
               .update({
                 cleaner_id: currentUserId,
               })
-              .eq("task_id", taskId);
+              .eq('task_id', taskId);
 
             if (error) throw error;
 
             Alert.alert(
-              "Success",
-              "Task accepted! You can now view it in your task list and confirm it.",
+              'Success',
+              'Task accepted! You can now view it in your task list and confirm it.',
               [
                 {
-                  text: "OK",
+                  text: 'OK',
                   onPress: () => {
                     // 刷新任务列表
                     fetchTasks();
@@ -138,11 +138,11 @@ export default function Opportunity() {
                     router.push(`/(pages)/(tasks)/task?id=${taskId}`);
                   },
                 },
-              ]
+              ],
             );
           } catch (error) {
-            console.error("Error accepting task:", error);
-            Alert.alert("Error", "Failed to accept task. Please try again.");
+            console.error('Error accepting task:', error);
+            Alert.alert('Error', 'Failed to accept task. Please try again.');
           }
         },
       },
@@ -159,7 +159,7 @@ export default function Opportunity() {
       <View style={styles.taskInfo}>
         <AntDesign name="calendar" size={16} color="gray" />
         <Text style={styles.infoText}>
-          {format(new Date(item.scheduled_start_time), "MMM dd, yyyy HH:mm")}
+          {format(new Date(item.scheduled_start_time), 'MMM dd, yyyy HH:mm')}
         </Text>
       </View>
 
@@ -236,109 +236,109 @@ export default function Opportunity() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: "#4A90E2",
+    backgroundColor: '#4A90E2',
     padding: 16,
     paddingTop: 60,
   },
   headerText: {
-    color: "white",
+    color: 'white',
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   subHeaderText: {
-    color: "white",
+    color: 'white',
     fontSize: 16,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   list: {
     padding: 16,
   },
   taskCard: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   taskHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   taskType: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   price: {
     fontSize: 18,
-    color: "#4A90E2",
-    fontWeight: "600",
+    color: '#4A90E2',
+    fontWeight: '600',
   },
   taskInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
   infoText: {
     marginLeft: 8,
-    color: "#666",
+    color: '#666',
     flex: 1,
   },
   statusText: {
     marginLeft: 8,
-    color: "#666",
+    color: '#666',
   },
   centerContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyContainer: {
     padding: 24,
-    alignItems: "center",
+    alignItems: 'center',
   },
   emptyText: {
-    color: "#666",
+    color: '#666',
     fontSize: 16,
   },
   // 新增样式
   buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 12,
   },
   viewButton: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 4,
     flex: 1,
     marginRight: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
   viewButtonText: {
-    color: "#333",
-    fontWeight: "500",
+    color: '#333',
+    fontWeight: '500',
   },
   acceptButton: {
-    backgroundColor: "#4A90E2",
+    backgroundColor: '#4A90E2',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 4,
     flex: 1,
     marginLeft: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
   acceptButtonText: {
-    color: "white",
-    fontWeight: "500",
+    color: 'white',
+    fontWeight: '500',
   },
 });

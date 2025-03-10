@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,19 +6,23 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { Button, ActivityIndicator } from "react-native-paper";
-import { supabase } from "@/lib/supabase";
-import { Session } from "@supabase/supabase-js";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Button, ActivityIndicator } from 'react-native-paper';
+import { supabase } from '@/clients/supabase';
+import { Session } from '@supabase/supabase-js';
 
 export default function PlaceDetails() {
   const router = useRouter();
   const { taskId } = useLocalSearchParams() as { taskId?: string };
 
-  const cleaningTypes = ["Regular Cleaning", "End of Lease Cleaning"];
-  const cleaningLevels = ["Quick Cleaning", "Regular Cleaning", "Deep Cleaning"];
+  const cleaningTypes = ['Regular Cleaning', 'End of Lease Cleaning'];
+  const cleaningLevels = [
+    'Quick Cleaning',
+    'Regular Cleaning',
+    'Deep Cleaning',
+  ];
 
   const [session, setSession] = useState<Session | null>(null);
   const [propertyOpen, setPropertyOpen] = useState(false);
@@ -30,9 +34,11 @@ export default function PlaceDetails() {
   const [noProperties, setNoProperties] = useState(false);
 
   const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
-  const [cleaningType, setCleaningType] = useState("");
-  const [cleaningLevel, setCleaningLevel] = useState("");
-  const [equipmentProvided, setEquipmentProvided] = useState<"tasker" | "owner">("tasker");
+  const [cleaningType, setCleaningType] = useState('');
+  const [cleaningLevel, setCleaningLevel] = useState('');
+  const [equipmentProvided, setEquipmentProvided] = useState<
+    'tasker' | 'owner'
+  >('tasker');
 
   // ------------------ Load session & fetch properties ------------------
   useEffect(() => {
@@ -51,7 +57,7 @@ export default function PlaceDetails() {
         if (session?.user) {
           fetchUserProperties(session.user.id);
         }
-      }
+      },
     );
     return () => {
       subscription.subscription.unsubscribe();
@@ -63,12 +69,12 @@ export default function PlaceDetails() {
     setLoadingProperties(true);
     try {
       const { data, error } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("user_id", userId);
+        .from('properties')
+        .select('*')
+        .eq('user_id', userId);
 
       if (error) {
-        console.error("Error fetching properties:", error);
+        console.error('Error fetching properties:', error);
         setLoadingProperties(false);
         return;
       }
@@ -82,7 +88,7 @@ export default function PlaceDetails() {
       setProperties(data);
       setNoProperties(false);
     } catch (err) {
-      console.error("Could not fetch properties:", err);
+      console.error('Could not fetch properties:', err);
     } finally {
       setLoadingProperties(false);
     }
@@ -91,61 +97,66 @@ export default function PlaceDetails() {
   // ------------------ Submit => Update existing task & go next ------------------
   const handleSubmit = async () => {
     if (!session?.user) {
-      Alert.alert("Not logged in", "Please log in first.");
+      Alert.alert('Not logged in', 'Please log in first.');
       return;
     }
     if (!taskId) {
-      Alert.alert("No Task ID", "No taskId provided in route params.");
+      Alert.alert('No Task ID', 'No taskId provided in route params.');
       return;
     }
 
     // Check property
     if (!selectedProperty) {
-      Alert.alert("Property required", "Please select a property first.");
+      Alert.alert('Property required', 'Please select a property first.');
       return;
     }
     // Check cleaningType
     if (!cleaningType) {
-      Alert.alert("Select Cleaning Type", "Please select a cleaning type.");
+      Alert.alert('Select Cleaning Type', 'Please select a cleaning type.');
       return;
     }
     // Check cleaningLevel
     if (!cleaningLevel) {
-      Alert.alert("Select Cleaning Level", "Please select a cleaning level.");
+      Alert.alert('Select Cleaning Level', 'Please select a cleaning level.');
       return;
     }
 
     try {
       const { data, error } = await supabase
-        .from("tasks")
+        .from('tasks')
         .update({
           property_id: selectedProperty.property_id,
           address: selectedProperty.address,
           cleaning_type: cleaningType,
           task_type: cleaningLevel,
-          bring_equipment: equipmentProvided === "tasker" ? "Yes" : "No",
+          bring_equipment: equipmentProvided === 'tasker' ? 'Yes' : 'No',
           // 新增：更新 tasks 表里的经纬度（从 properties 表获取）
           latitude: selectedProperty.latitude,
           longitude: selectedProperty.longitude,
         })
-        .eq("task_id", taskId)
-        .select("*")
+        .eq('task_id', taskId)
+        .select('*')
         .single();
 
       if (error) throw error;
 
-      Alert.alert("Success", "Task updated successfully!");
+      Alert.alert('Success', 'Task updated successfully!');
       router.push(`/(pages)/(createTask)/dateSelection?taskId=${taskId}`);
     } catch (err) {
-      console.error("Error updating task:", err);
-      Alert.alert("Error", "Failed to update task. Please try again.");
+      console.error('Error updating task:', err);
+      Alert.alert('Error', 'Failed to update task. Please try again.');
     }
   };
 
   // ------------------ Render Logic ------------------
   if (loadingProperties) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
         <ActivityIndicator size="large" />
         <Text>Loading properties...</Text>
       </View>
@@ -154,7 +165,12 @@ export default function PlaceDetails() {
 
   if (noProperties) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
         <Text style={{ fontSize: 16, marginBottom: 12 }}>
           Please create a property first in your account profile.
         </Text>
@@ -176,10 +192,10 @@ export default function PlaceDetails() {
           <Text style={styles.dropdownText}>
             {selectedProperty
               ? selectedProperty.address
-              : "Select your property here"}
+              : 'Select your property here'}
           </Text>
           <Ionicons
-            name={propertyOpen ? "chevron-up" : "chevron-down"}
+            name={propertyOpen ? 'chevron-up' : 'chevron-down'}
             size={20}
             color="#000"
           />
@@ -197,7 +213,7 @@ export default function PlaceDetails() {
                 }}
               >
                 <Text style={styles.dropdownItemText}>
-                  {prop.address || "No address"}
+                  {prop.address || 'No address'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -213,10 +229,10 @@ export default function PlaceDetails() {
           onPress={() => setTypeOpen(!typeOpen)}
         >
           <Text style={styles.dropdownText}>
-            {cleaningType || "Select cleaning type here"}
+            {cleaningType || 'Select cleaning type here'}
           </Text>
           <Ionicons
-            name={typeOpen ? "chevron-up" : "chevron-down"}
+            name={typeOpen ? 'chevron-up' : 'chevron-down'}
             size={20}
             color="#000"
           />
@@ -247,10 +263,10 @@ export default function PlaceDetails() {
           onPress={() => setLevelOpen(!levelOpen)}
         >
           <Text style={styles.dropdownText}>
-            {cleaningLevel || "Select cleaning level here"}
+            {cleaningLevel || 'Select cleaning level here'}
           </Text>
           <Ionicons
-            name={levelOpen ? "chevron-up" : "chevron-down"}
+            name={levelOpen ? 'chevron-up' : 'chevron-down'}
             size={20}
             color="#000"
           />
@@ -274,18 +290,20 @@ export default function PlaceDetails() {
       </View>
 
       {/* Equipment Provided */}
-      <Text style={styles.label}>Does the cleaner need to bring equipment and supplies?</Text>
+      <Text style={styles.label}>
+        Does the cleaner need to bring equipment and supplies?
+      </Text>
       <View style={styles.equipmentContainer}>
         <Button
-          mode={equipmentProvided === "tasker" ? "contained" : "outlined"}
-          onPress={() => setEquipmentProvided("tasker")}
+          mode={equipmentProvided === 'tasker' ? 'contained' : 'outlined'}
+          onPress={() => setEquipmentProvided('tasker')}
           style={
-            equipmentProvided === "tasker"
+            equipmentProvided === 'tasker'
               ? [styles.buttonBase, styles.selectedButton]
               : [styles.buttonBase, styles.unselectedButton]
           }
           labelStyle={
-            equipmentProvided === "tasker"
+            equipmentProvided === 'tasker'
               ? styles.selectedLabel
               : styles.unselectedLabel
           }
@@ -294,15 +312,15 @@ export default function PlaceDetails() {
         </Button>
 
         <Button
-          mode={equipmentProvided === "owner" ? "contained" : "outlined"}
-          onPress={() => setEquipmentProvided("owner")}
+          mode={equipmentProvided === 'owner' ? 'contained' : 'outlined'}
+          onPress={() => setEquipmentProvided('owner')}
           style={
-            equipmentProvided === "owner"
+            equipmentProvided === 'owner'
               ? [styles.buttonBase, styles.selectedButton]
               : [styles.buttonBase, styles.unselectedButton]
           }
           labelStyle={
-            equipmentProvided === "owner"
+            equipmentProvided === 'owner'
               ? styles.selectedLabel
               : styles.unselectedLabel
           }
@@ -315,14 +333,14 @@ export default function PlaceDetails() {
       <TouchableOpacity
         onPress={handleSubmit}
         style={{
-          backgroundColor: "#4E89CE",
+          backgroundColor: '#4E89CE',
           padding: 16,
           borderRadius: 8,
-          alignItems: "center",
+          alignItems: 'center',
           marginTop: 16,
         }}
       >
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>Next</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Next</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -331,27 +349,27 @@ export default function PlaceDetails() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: '#F8F9FA',
     padding: 16,
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 16,
   },
   label: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   dropdownWrapper: {
     marginBottom: 16,
   },
   dropdown: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderColor: "#4E89CE",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderColor: '#4E89CE',
     borderWidth: 1,
     borderRadius: 4,
     paddingHorizontal: 12,
@@ -359,11 +377,11 @@ const styles = StyleSheet.create({
   },
   dropdownText: {
     fontSize: 16,
-    color: "#000",
+    color: '#000',
   },
   dropdownMenu: {
-    backgroundColor: "#fff",
-    borderColor: "#ccc",
+    backgroundColor: '#fff',
+    borderColor: '#ccc',
     borderWidth: 1,
     borderTopWidth: 0,
     borderRadius: 4,
@@ -372,16 +390,16 @@ const styles = StyleSheet.create({
   dropdownItem: {
     paddingHorizontal: 12,
     paddingVertical: 14,
-    borderBottomColor: "#eee",
+    borderBottomColor: '#eee',
     borderBottomWidth: 1,
   },
   dropdownItemText: {
     fontSize: 16,
-    color: "#000",
+    color: '#000',
   },
   equipmentContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 24,
   },
   buttonBase: {
@@ -389,18 +407,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   selectedButton: {
-    backgroundColor: "#4E89CE",
+    backgroundColor: '#4E89CE',
   },
   unselectedButton: {
-    borderColor: "#4E89CE",
+    borderColor: '#4E89CE',
     borderWidth: 1,
   },
   selectedLabel: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 14,
   },
   unselectedLabel: {
-    color: "#000",
+    color: '#000',
     fontSize: 14,
   },
 });

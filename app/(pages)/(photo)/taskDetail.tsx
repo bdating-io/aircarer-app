@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,12 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import { Ionicons } from "@expo/vector-icons";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '@/clients/supabase';
+import { Ionicons } from '@expo/vector-icons';
 
-type RoomType = "living_room" | "bedroom" | "kitchen" | "bathroom" | "other";
+type RoomType = 'living_room' | 'bedroom' | 'kitchen' | 'bathroom' | 'other';
 
 interface CleaningTip {
   roomType: RoomType;
@@ -35,10 +35,10 @@ export default function TaskDetail() {
       setLoading(true);
       // 获取最新的进行中任务
       const { data: tasks, error: taskError } = await supabase
-        .from("tasks")
+        .from('tasks')
         .select()
-        .eq("status", "In Progress")
-        .order("scheduled_start_time", { ascending: false })
+        .eq('status', 'In Progress')
+        .order('scheduled_start_time', { ascending: false })
         .limit(1);
 
       if (taskError) throw taskError;
@@ -49,15 +49,15 @@ export default function TaskDetail() {
 
       // 获取任务相关的照片
       const { data: photos, error: photoError } = await supabase
-        .from("room_photos")
+        .from('room_photos')
         .select()
-        .eq("task_id", taskId)
-        .eq("photo_type", "before");
+        .eq('task_id', taskId)
+        .eq('photo_type', 'before');
 
       if (photoError) throw photoError;
       setBeforePhotos(photos || []);
     } catch (error) {
-      console.error("Error fetching task data:", error);
+      console.error('Error fetching task data:', error);
     } finally {
       setLoading(false);
     }
@@ -66,58 +66,58 @@ export default function TaskDetail() {
   // 清洁提示数据
   const cleaningTips: CleaningTip[] = [
     {
-      roomType: "living_room",
-      title: "Living Room",
+      roomType: 'living_room',
+      title: 'Living Room',
       tips: [
-        "Dust all surfaces including shelves, tables, and electronics",
-        "Vacuum carpets and rugs thoroughly",
-        "Mop hard floors with appropriate cleaner",
-        "Clean mirrors and glass surfaces",
-        "Organize and straighten items",
+        'Dust all surfaces including shelves, tables, and electronics',
+        'Vacuum carpets and rugs thoroughly',
+        'Mop hard floors with appropriate cleaner',
+        'Clean mirrors and glass surfaces',
+        'Organize and straighten items',
       ],
     },
     {
-      roomType: "bedroom",
-      title: "Bedroom",
+      roomType: 'bedroom',
+      title: 'Bedroom',
       tips: [
-        "Change bed linens if requested",
-        "Dust all surfaces including nightstands and dressers",
-        "Vacuum carpets and under the bed",
-        "Clean mirrors and glass surfaces",
-        "Organize visible items neatly",
+        'Change bed linens if requested',
+        'Dust all surfaces including nightstands and dressers',
+        'Vacuum carpets and under the bed',
+        'Clean mirrors and glass surfaces',
+        'Organize visible items neatly',
       ],
     },
     {
-      roomType: "kitchen",
-      title: "Kitchen",
+      roomType: 'kitchen',
+      title: 'Kitchen',
       tips: [
-        "Clean all countertops and backsplash",
-        "Clean outside of all appliances",
-        "Clean inside microwave",
-        "Clean sink and faucet",
-        "Sweep and mop floor",
+        'Clean all countertops and backsplash',
+        'Clean outside of all appliances',
+        'Clean inside microwave',
+        'Clean sink and faucet',
+        'Sweep and mop floor',
       ],
     },
     {
-      roomType: "bathroom",
-      title: "Bathroom",
+      roomType: 'bathroom',
+      title: 'Bathroom',
       tips: [
-        "Clean and sanitize toilet, sink, and shower/tub",
-        "Clean mirrors and glass surfaces",
-        "Wipe down all counters and fixtures",
-        "Sweep and mop floor",
-        "Replace towels if requested",
+        'Clean and sanitize toilet, sink, and shower/tub',
+        'Clean mirrors and glass surfaces',
+        'Wipe down all counters and fixtures',
+        'Sweep and mop floor',
+        'Replace towels if requested',
       ],
     },
     {
-      roomType: "other",
-      title: "General Tips",
+      roomType: 'other',
+      title: 'General Tips',
       tips: [
-        "Work from top to bottom in each room",
-        "Use microfiber cloths to avoid streaks",
-        "Use appropriate cleaners for different surfaces",
-        "Ventilate rooms while cleaning",
-        "Take before and after photos of each area",
+        'Work from top to bottom in each room',
+        'Use microfiber cloths to avoid streaks',
+        'Use appropriate cleaners for different surfaces',
+        'Ventilate rooms while cleaning',
+        'Take before and after photos of each area',
       ],
     },
   ];
@@ -136,7 +136,7 @@ export default function TaskDetail() {
         <Text className="text-lg text-gray-800 mb-4">No active task found</Text>
         <TouchableOpacity
           className="bg-blue-500 py-3 px-6 rounded-lg"
-          onPress={() => router.push("/")}
+          onPress={() => router.push('/')}
         >
           <Text className="text-white font-bold">Go to Home</Text>
         </TouchableOpacity>
@@ -159,10 +159,10 @@ export default function TaskDetail() {
         {/* 任务信息 */}
         <View className="mb-6 bg-white p-4 rounded-lg shadow-sm">
           <Text className="text-lg font-semibold text-gray-800">
-            {task.task_type || "Task"}
+            {task.task_type || 'Task'}
           </Text>
           <Text className="text-gray-600 mt-1">
-            {task.address || "No address provided"}
+            {task.address || 'No address provided'}
           </Text>
           <Text className="text-gray-600 mt-1">
             {new Date(task.scheduled_start_time).toLocaleString()}
@@ -216,7 +216,7 @@ export default function TaskDetail() {
         <View className="mt-4 mb-8">
           <TouchableOpacity
             className="py-4 rounded-lg items-center bg-green-500"
-            onPress={() => router.push("/afterClean")}
+            onPress={() => router.push('/afterClean')}
           >
             <Text className="text-white font-bold">
               Complete Cleaning & Take Photos

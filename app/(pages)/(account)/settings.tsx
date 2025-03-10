@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import useStore from '../../../utils/store';
 
 export default function Settings() {
   const router = useRouter();

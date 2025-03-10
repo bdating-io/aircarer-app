@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,18 @@ import {
   FlatList,
   StyleSheet,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { supabase } from "@/lib/supabase";
-import { AntDesign } from "@expo/vector-icons";
-import { format } from "date-fns";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { supabase } from '@/clients/supabase';
+import { AntDesign } from '@expo/vector-icons';
+import { format } from 'date-fns';
 
 interface Task {
   task_id: number;
   customer_id: string;
   task_title: string; // shown as the card's main title
-  task_type: string;  // new row with icon
-  scheduled_start_time: string | null; 
+  task_type: string; // new row with icon
+  scheduled_start_time: string | null;
   estimated_price: number;
   budget: number;
   confirmed_price: number | null;
@@ -59,7 +59,7 @@ export default function EditTask() {
           fetchTasksByUserId(user.id);
         }
       } catch (error) {
-        console.error("Error fetching user info:", error);
+        console.error('Error fetching user info:', error);
       }
     };
     fetchUserInfo();
@@ -68,23 +68,23 @@ export default function EditTask() {
   const fetchTasksByUserId = async (uid: string) => {
     try {
       setLoading(true);
-      console.log("Fetching tasks for user ID:", uid);
+      console.log('Fetching tasks for user ID:', uid);
 
       const { data, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("customer_id", uid)
-        .order("date_updated", { ascending: false });
+        .from('tasks')
+        .select('*')
+        .eq('customer_id', uid)
+        .order('date_updated', { ascending: false });
 
       if (error) {
-        console.error("Error fetching tasks:", error);
+        console.error('Error fetching tasks:', error);
         throw error;
       }
 
       console.log(`Fetched ${data?.length || 0} tasks`);
       setTasks(data || []);
     } catch (error) {
-      console.error("Error in fetchTasks:", error);
+      console.error('Error in fetchTasks:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -103,7 +103,7 @@ export default function EditTask() {
   // Open edit page
   const handleEditTask = (task: Task) => {
     router.push({
-      pathname: "/(pages)/(tasks)/editTaskDetail",
+      pathname: '/(pages)/(tasks)/editTaskDetail',
       params: {
         taskId: task.task_id.toString(),
         taskData: JSON.stringify(task),
@@ -114,27 +114,35 @@ export default function EditTask() {
   // Each list item
   const renderTask = ({ item }: { item: Task }) => {
     // Format scheduled_start_time or show "No date"
-    let displayDate = "No date";
+    let displayDate = 'No date';
     if (item.scheduled_start_time) {
       try {
-        displayDate = format(new Date(item.scheduled_start_time), "MMM d, yyyy");
+        displayDate = format(
+          new Date(item.scheduled_start_time),
+          'MMM d, yyyy',
+        );
       } catch (err) {
-        console.log("Error formatting date:", err);
+        console.log('Error formatting date:', err);
       }
     }
 
     return (
-      <TouchableOpacity style={styles.taskCard} onPress={() => handleEditTask(item)}>
+      <TouchableOpacity
+        style={styles.taskCard}
+        onPress={() => handleEditTask(item)}
+      >
         {/* Title row */}
         <View style={styles.taskHeader}>
-          <Text style={styles.taskTitle}>{item.task_title || "Unnamed Task"}</Text>
+          <Text style={styles.taskTitle}>
+            {item.task_title || 'Unnamed Task'}
+          </Text>
           <Text style={styles.price}>${item.budget}</Text>
         </View>
 
         {/* Task Type row */}
         <View style={styles.taskInfo}>
           <AntDesign name="tool" size={16} color="gray" />
-          <Text style={styles.infoText}>{item.task_type || "No type"}</Text>
+          <Text style={styles.infoText}>{item.task_type || 'No type'}</Text>
         </View>
 
         {/* Date row */}
@@ -202,83 +210,83 @@ export default function EditTask() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: "#4A90E2",
+    backgroundColor: '#4A90E2',
     padding: 16,
     paddingTop: 60,
   },
   headerText: {
-    color: "white",
+    color: 'white',
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   list: {
     padding: 16,
   },
   taskCard: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   taskHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   taskTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   price: {
     fontSize: 18,
-    color: "#4A90E2",
-    fontWeight: "600",
+    color: '#4A90E2',
+    fontWeight: '600',
   },
   taskInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
   infoText: {
     marginLeft: 8,
-    color: "#666",
+    color: '#666',
     flex: 1,
   },
   centerContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
   loadingText: {
     marginTop: 10,
-    color: "#666",
+    color: '#666',
     fontSize: 16,
   },
   emptyContainer: {
     padding: 40,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyText: {
-    color: "#666",
+    color: '#666',
     fontSize: 18,
-    fontWeight: "500",
+    fontWeight: '500',
     marginTop: 16,
   },
   emptySubText: {
-    color: "#999",
+    color: '#999',
     fontSize: 14,
     marginTop: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-} from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { supabase } from '@/clients/supabase';
 
 interface Property {
   property_id?: number;
@@ -43,19 +43,19 @@ const ToggleButton = ({ value, onToggle }: ToggleButtonProps) => (
   <View className="flex-row space-x-2">
     <TouchableOpacity
       className={`px-6 py-2 rounded-full border ${
-        value ? "bg-blue-500 border-blue-500" : "border-gray-300"
+        value ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
       }`}
       onPress={() => onToggle(true)}
     >
-      <Text className={value ? "text-white" : "text-gray-600"}>YES</Text>
+      <Text className={value ? 'text-white' : 'text-gray-600'}>YES</Text>
     </TouchableOpacity>
     <TouchableOpacity
       className={`px-6 py-2 rounded-full border ${
-        !value ? "bg-blue-500 border-blue-500" : "border-gray-300"
+        !value ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
       }`}
       onPress={() => onToggle(false)}
     >
-      <Text className={!value ? "text-white" : "text-gray-600"}>No</Text>
+      <Text className={!value ? 'text-white' : 'text-gray-600'}>No</Text>
     </TouchableOpacity>
   </View>
 );
@@ -77,9 +77,9 @@ export default function EditProperty() {
     try {
       setFetchLoading(true);
       const { data, error } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("property_id", property_id)
+        .from('properties')
+        .select('*')
+        .eq('property_id', property_id)
         .single();
 
       if (error) throw error;
@@ -87,7 +87,7 @@ export default function EditProperty() {
         setProperty(data);
       }
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      Alert.alert('Error', err.message);
     } finally {
       setFetchLoading(false);
     }
@@ -108,19 +108,19 @@ export default function EditProperty() {
         !property.postal_code ||
         !property.entry_method
       ) {
-        Alert.alert("Error", "Please fill in all required fields");
+        Alert.alert('Error', 'Please fill in all required fields');
         return;
       }
 
       // Construct full address
       const fullAddress = `${
-        property.unit_number ? property.unit_number + "/" : ""
+        property.unit_number ? property.unit_number + '/' : ''
       }${property.street_number} ${property.street_name}, ${property.suburb}, ${
         property.state
       } ${property.postal_code}`;
 
       const { error } = await supabase
-        .from("properties")
+        .from('properties')
         .update({
           address: fullAddress,
           bedrooms: property.bedrooms,
@@ -137,13 +137,13 @@ export default function EditProperty() {
           state: property.state,
           postal_code: property.postal_code,
         })
-        .eq("property_id", propertyId);
+        .eq('property_id', propertyId);
 
       if (error) throw error;
-      Alert.alert("Success", "Property updated successfully!");
+      Alert.alert('Success', 'Property updated successfully!');
       router.back();
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
     }
@@ -151,35 +151,35 @@ export default function EditProperty() {
 
   const handleDelete = async () => {
     Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to delete this property? This action cannot be undone.",
+      'Confirm Delete',
+      'Are you sure you want to delete this property? This action cannot be undone.',
       [
         {
-          text: "Cancel",
-          style: "cancel",
+          text: 'Cancel',
+          style: 'cancel',
         },
         {
-          text: "Delete",
-          style: "destructive",
+          text: 'Delete',
+          style: 'destructive',
           onPress: async () => {
             try {
               setLoading(true);
               const { error } = await supabase
-                .from("properties")
+                .from('properties')
                 .delete()
-                .eq("property_id", propertyId);
+                .eq('property_id', propertyId);
 
               if (error) throw error;
-              Alert.alert("Success", "Property deleted successfully!");
+              Alert.alert('Success', 'Property deleted successfully!');
               router.back();
             } catch (err: any) {
-              Alert.alert("Error", err.message);
+              Alert.alert('Error', err.message);
             } finally {
               setLoading(false);
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -223,7 +223,7 @@ export default function EditProperty() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <ScrollView className="flex-1 px-4">
@@ -316,10 +316,10 @@ export default function EditProperty() {
                   Address Preview:
                 </Text>
                 <Text className="text-gray-800">
-                  {property.unit_number ? `${property.unit_number}/` : ""}
-                  {property.street_number} {property.street_name},{" "}
-                  {property.suburb},{property.state ? ` ${property.state}` : ""}
-                  {property.postal_code ? property.postal_code : ""}
+                  {property.unit_number ? `${property.unit_number}/` : ''}
+                  {property.street_number} {property.street_name},{' '}
+                  {property.suburb},{property.state ? ` ${property.state}` : ''}
+                  {property.postal_code ? property.postal_code : ''}
                 </Text>
               </View>
             )}
@@ -454,8 +454,8 @@ export default function EditProperty() {
                 className="ml-2"
                 onPress={() =>
                   Alert.alert(
-                    "Entry Method",
-                    "Please provide details on how the cleaner can access your property (e.g., key in mailbox, door code, etc.)"
+                    'Entry Method',
+                    'Please provide details on how the cleaner can access your property (e.g., key in mailbox, door code, etc.)',
                   )
                 }
               >
@@ -464,7 +464,7 @@ export default function EditProperty() {
             </View>
             <TextInput
               className={`border ${
-                !property.entry_method ? "border-red-500" : "border-gray-300"
+                !property.entry_method ? 'border-red-500' : 'border-gray-300'
               } rounded-lg p-3`}
               placeholder="Enter method details"
               value={property.entry_method}

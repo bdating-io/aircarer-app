@@ -4,26 +4,18 @@ import {
   Text,
   SafeAreaView,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import MapView, { Marker, Circle } from 'react-native-maps';
-import * as Location from 'expo-location';
-import useStore from '@/utils/store';
-import { supabase, SUPABASE_URL } from '@/lib/supabase';
+import useStore from '@/lib/store';
+import { supabase } from '@/clients/supabase';
 
 export default function WorkingArea() {
   const router = useRouter();
-  const {
-    myAddress,
-    mySession,
-    myProfile,
-    myWorkPreference,
-    setMyWorkPreference,
-  } = useStore();
+  const { myAddress, mySession, setMyWorkPreference } = useStore();
   const params = useLocalSearchParams();
   const [workDistance, setWorkDistance] = useState(10);
   const [coordinates, setCoordinates] = useState<{
@@ -36,14 +28,17 @@ export default function WorkingArea() {
   const geocodeAddress = async (
     address: string,
   ): Promise<{ latitude: number; longitude: number }> => {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/geodecode`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${mySession.access_token}`,
+    const response = await fetch(
+      `${process.env.SUPABASE_URL}/functions/v1/geodecode`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${mySession.access_token}`,
+        },
+        body: JSON.stringify({ address: address }),
       },
-      body: JSON.stringify({ address: address }),
-    });
+    );
     const data = await response.json();
     return data;
   };

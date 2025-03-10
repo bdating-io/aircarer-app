@@ -4,12 +4,11 @@ import {
   Text,
   SafeAreaView,
   TouchableOpacity,
-  Image,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/supabase';
-import useStore from '../../utils/store';
+import { supabase } from '@/clients/supabase';
+import useStore from '../../lib/store';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Account() {

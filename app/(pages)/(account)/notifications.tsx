@@ -1,36 +1,36 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   SafeAreaView,
   FlatList,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 const sampleNotifications = [
   {
-    id: "1",
-    title: "New Cleaning Request",
-    message: "You have received a new cleaning request in your area",
-    type: "task",
+    id: '1',
+    title: 'New Cleaning Request',
+    message: 'You have received a new cleaning request in your area',
+    type: 'task',
     is_read: false,
     created_at: new Date().toISOString(),
   },
   {
-    id: "2",
-    title: "Payment Received",
-    message: "Payment of $120 has been processed for your last service",
-    type: "payment",
+    id: '2',
+    title: 'Payment Received',
+    message: 'Payment of $120 has been processed for your last service',
+    type: 'payment',
     is_read: false,
     created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
   },
   {
-    id: "3",
-    title: "New Message",
-    message: "John Smith: When will you arrive?",
-    type: "message",
+    id: '3',
+    title: 'New Message',
+    message: 'John Smith: When will you arrive?',
+    type: 'message',
     is_read: true,
     created_at: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
   },
@@ -42,27 +42,31 @@ export default function Notifications() {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case "message":
-        return "mail-outline";
-      case "task":
-        return "clipboard-outline";
-      case "payment":
-        return "card-outline";
+      case 'message':
+        return 'mail-outline';
+      case 'task':
+        return 'clipboard-outline';
+      case 'payment':
+        return 'card-outline';
       default:
-        return "notifications-outline";
+        return 'notifications-outline';
     }
   };
 
-  const renderNotification = ({ item }: { item: any }) => (
+  const renderNotification = ({
+    item,
+  }: {
+    item: (typeof sampleNotifications)[0];
+  }) => (
     <TouchableOpacity
       className={`p-4 border-b border-gray-100 ${
-        !item.is_read ? "bg-blue-50" : ""
+        !item.is_read ? 'bg-blue-50' : ''
       }`}
       onPress={() => {
         setNotifications(
           notifications.map((n) =>
-            n.id === item.id ? { ...n, is_read: true } : n
-          )
+            n.id === item.id ? { ...n, is_read: true } : n,
+          ),
         );
       }}
     >

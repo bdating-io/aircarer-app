@@ -13,7 +13,7 @@ import { AntDesign } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import * as Linking from 'expo-linking';
 import * as Location from 'expo-location';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '@/clients/supabase';
 import { format, differenceInHours } from 'date-fns';
 
 type Task = {

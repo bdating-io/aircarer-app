@@ -1,8 +1,9 @@
-import { View } from "react-native";
-import { Redirect } from "expo-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { Session } from "@supabase/supabase-js";
+import React from 'react';
+import { View } from 'react-native';
+import { Redirect } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/clients/supabase';
+import { Session } from '@supabase/supabase-js';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);

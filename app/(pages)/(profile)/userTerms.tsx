@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '@/clients/supabase';
 
 export default function UserTerms() {
   const router = useRouter();
@@ -29,19 +29,19 @@ export default function UserTerms() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("profiles")
-        .select("terms_accepted")
-        .eq("user_id", user.id)
+        .from('profiles')
+        .select('terms_accepted')
+        .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
 
       if (data?.terms_accepted) {
         // 如果已同意条款，直接跳转到创建档案
-        router.replace("/(pages)/(profile)/createUserProfile");
+        router.replace('/(pages)/(profile)/createUserProfile');
       }
     } catch (error) {
-      console.error("Error checking terms:", error);
+      console.error('Error checking terms:', error);
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ export default function UserTerms() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase.from("profiles").upsert({
+      const { error } = await supabase.from('profiles').upsert({
         user_id: user.id,
         terms_accepted: true,
         terms_accepted_at: new Date().toISOString(),
@@ -62,10 +62,10 @@ export default function UserTerms() {
 
       if (error) throw error;
 
-      router.push("/(pages)/(profile)/createUserProfile");
+      router.push('/(pages)/(profile)/createUserProfile');
     } catch (error) {
-      console.error("Error accepting terms:", error);
-      Alert.alert("Error", "Failed to accept terms");
+      console.error('Error accepting terms:', error);
+      Alert.alert('Error', 'Failed to accept terms');
     }
   };
 
