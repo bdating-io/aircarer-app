@@ -1,3 +1,4 @@
+import React from 'react';
 import { Stack } from 'expo-router';
 
 export default function RootLayout() {
@@ -10,7 +11,6 @@ function RootLayoutNav() {
       <Stack.Screen name="userTerms" options={{ headerShown: false }} />
       <Stack.Screen name="createUserProfile" options={{ headerShown: false }} />
       <Stack.Screen name="editProfile" options={{ headerShown: false }} />
-      <Stack.Screen name="propertyList" options={{ headerShown: false }} />
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="(cleanerProfile)" options={{ headerShown: false }} />
       <Stack.Screen name="(houseOwner)" options={{ headerShown: false }} />

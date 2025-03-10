@@ -116,7 +116,7 @@ export default function Signup() {
                     editable={!loading}
                   />
                   <TouchableOpacity
-                    className="bg-blue-500 rounded-lg py-4 mb-4"
+                    className="bg-[#FF6B6B] rounded-lg py-4 mb-4"
                     onPress={() => verifyPhone(verificationCode)}
                     disabled={loading}
                   >

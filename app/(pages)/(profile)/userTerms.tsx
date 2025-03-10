@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  NativeScrollEvent,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -73,7 +74,7 @@ export default function UserTerms() {
     layoutMeasurement,
     contentOffset,
     contentSize,
-  }: any) => {
+  }: NativeScrollEvent) => {
     const paddingToBottom = 20;
     const isCloseToBottom =
       layoutMeasurement.height + contentOffset.y >=
