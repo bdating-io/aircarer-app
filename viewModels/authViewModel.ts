@@ -1,6 +1,7 @@
 import { supabaseClient } from '@/clients/supabase';
+import { AuthError } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
 export const useAuthViewModel = () => {
@@ -10,6 +11,25 @@ export const useAuthViewModel = () => {
   const [showVerification, setShowVerification] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [phone, setPhone] = useState('');
+  const [resendDisabled, setResendDisabled] = useState(true);
+  const [countdown, setCountdown] = useState(30);
+
+  // Countdown Timer Effect
+  useEffect(() => {
+    if (isCodeSent && resendDisabled) {
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === 1) {
+            clearInterval(timer);
+            setResendDisabled(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [resendDisabled, isCodeSent]);
 
   const signInWithEmail = async (email: string, password: string) => {
     setLoading(true);
@@ -18,8 +38,7 @@ export const useAuthViewModel = () => {
       Alert.alert('Success', 'Successfully logged in!');
       router.replace('/(tabs)/home');
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An unexpected error occurred, please try again.');
+      Alert.alert('Error', (error as AuthError).message);
     } finally {
       setLoading(false);
     }
@@ -41,17 +60,20 @@ export const useAuthViewModel = () => {
         router.replace('/(tabs)/home');
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An unexpected error occurred, please try again.');
+      Alert.alert('Error', (error as AuthError).message);
     } finally {
       setLoading(false);
     }
   };
 
   const checkSession = async () => {
-    const session = await supabaseClient.getSession();
-    if (session) {
-      router.replace('/(tabs)/home');
+    try {
+      const session = await supabaseClient.getSession();
+      if (session) {
+        router.replace('/(tabs)/home');
+      }
+    } catch (error) {
+      Alert.alert('Error', (error as AuthError).message);
     }
   };
 
@@ -62,12 +84,13 @@ export const useAuthViewModel = () => {
     }
     setLoading(true);
     try {
-      supabaseClient.signUp(phone, Math.random().toString(36).slice(-8));
+      await supabaseClient.signUp(phone, Math.random().toString(36).slice(-8));
       setShowVerification(true);
+      setIsCodeSent(true);
       Alert.alert('Success', 'Verification code sent to your phone');
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An unexpected error occurred, please try again.');
+      console.log('error', error);
+      Alert.alert('Error', (error as AuthError).message);
     } finally {
       setLoading(false);
     }
@@ -82,15 +105,13 @@ export const useAuthViewModel = () => {
     setLoading(true);
     try {
       await supabaseClient.verifyPhone(phone, verificationCode);
-
       setPhoneVerified(true);
       Alert.alert(
         'Success',
         'Phone verified successfully! Please complete your registration.',
       );
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An unexpected error occurred, please try again.');
+      Alert.alert('Error', (error as AuthError).message);
     } finally {
       setLoading(false);
     }
@@ -117,8 +138,21 @@ export const useAuthViewModel = () => {
       Alert.alert('Success', 'Account created successfully!');
       router.replace('/(tabs)/home');
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An unexpected error occurred, please try again.');
+      Alert.alert('Error', (error as AuthError).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendOTP = async () => {
+    setLoading(true);
+    setResendDisabled(true);
+    setCountdown(30);
+    try {
+      await supabaseClient.resend(phone);
+      Alert.alert('Success', 'Verification code sent to your phone');
+    } catch (error) {
+      Alert.alert('Error', (error as AuthError).message);
     } finally {
       setLoading(false);
     }
@@ -131,6 +165,8 @@ export const useAuthViewModel = () => {
     loading,
     showVerification,
     phoneVerified,
+    resendDisabled,
+    countdown,
     // Methods
     signInWithEmail,
     signInWithPhone,
@@ -139,5 +175,6 @@ export const useAuthViewModel = () => {
     verifyPhone,
     completeSignUp,
     setPhone,
+    resendOTP,
   };
 };

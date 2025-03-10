@@ -36,7 +36,7 @@ export const supabaseClient = {
       password,
     });
     if (error) {
-      throw error;
+      throw new Error(error.message);
     }
   },
   signInWithPhone: async (phone: string) => {
@@ -44,7 +44,7 @@ export const supabaseClient = {
       phone,
     });
     if (error) {
-      throw error;
+      throw new Error(error.message);
     }
   },
 
@@ -55,7 +55,7 @@ export const supabaseClient = {
       type: 'sms',
     });
     if (error) {
-      throw error;
+      throw new Error(error.message);
     }
   },
 
@@ -71,13 +71,13 @@ export const supabaseClient = {
     }
   },
 
-  signUp: async (email: string, password: string) => {
+  signUp: async (phone: string, password: string) => {
     const { error } = await supabase.auth.signUp({
-      email,
+      phone,
       password,
     });
     if (error) {
-      throw error;
+      throw new Error(error.message);
     }
   },
 
@@ -91,7 +91,17 @@ export const supabaseClient = {
       },
     });
     if (error) {
-      throw error;
+      throw new Error(error.message);
+    }
+  },
+
+  resend: async (phone: string) => {
+    const { error } = await supabase.auth.resend({
+      phone,
+      type: 'sms',
+    });
+    if (error) {
+      throw new Error(error.message);
     }
   },
 };

@@ -23,11 +23,15 @@ export default function Signup() {
     loading,
     phoneVerified,
     showVerification,
+    isCodeSent,
+    resendDisabled,
+    countdown,
     checkSession,
     sendVerificationCode,
     verifyPhone,
     completeSignUp,
     setPhone,
+    resendOTP,
   } = useAuthViewModel();
 
   useEffect(() => {
@@ -92,7 +96,7 @@ export default function Signup() {
 
               {!showVerification ? (
                 <TouchableOpacity
-                  className="bg-blue-500 rounded-lg py-4 mb-4"
+                  className="bg-[#FF6B6B] rounded-lg py-4 mb-4"
                   onPress={sendVerificationCode}
                   disabled={loading}
                 >
@@ -118,6 +122,21 @@ export default function Signup() {
                   >
                     <Text className="text-white text-center">Verify Phone</Text>
                   </TouchableOpacity>
+                  {isCodeSent && (
+                    <TouchableOpacity
+                      className="mt-4 items-center"
+                      onPress={resendOTP}
+                      disabled={resendDisabled}
+                    >
+                      <Text
+                        className={`${resendDisabled ? 'text-gray-400' : 'text-white font-semibold'}`}
+                      >
+                        {resendDisabled
+                          ? `Resend Code in ${countdown}s`
+                          : 'Resend Code'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </>
               )}
             </>
@@ -161,23 +180,25 @@ export default function Signup() {
         </View>
 
         {/* Sign Up Button */}
-        <View className="mt-8">
-          <TouchableOpacity
-            className={`bg-[#FF6B6B] rounded-xl p-4 ${
-              loading ? 'opacity-50' : ''
-            }`}
-            onPress={() => completeSignUp(email, password, confirmPassword)}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white text-center text-lg font-semibold">
-                Create account
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        {phoneVerified && (
+          <View className="mt-8">
+            <TouchableOpacity
+              className={`bg-[#FF6B6B] rounded-xl p-4 ${
+                loading ? 'opacity-50' : ''
+              }`}
+              onPress={() => completeSignUp(email, password, confirmPassword)}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-white text-center text-lg font-semibold">
+                  Create account
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Login Link */}
         <View className="flex-row justify-center mt-6">

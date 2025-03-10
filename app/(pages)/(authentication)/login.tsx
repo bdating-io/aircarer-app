@@ -23,10 +23,13 @@ export default function Login() {
     phone,
     isCodeSent,
     loading,
+    resendDisabled,
+    countdown,
     signInWithEmail,
     signInWithPhone,
     checkSession,
     setPhone,
+    resendOTP,
   } = useAuthViewModel();
 
   // 添加会话检查
@@ -134,7 +137,7 @@ export default function Login() {
                 />
               </View>
               {isCodeSent && (
-                <View className="bg-white/10 rounded-xl p-4">
+                <View className="bg-white/10 rounded-xl p-4 ">
                   <TextInput
                     className="text-white text-lg"
                     placeholder="Enter Verification Code"
@@ -150,7 +153,7 @@ export default function Login() {
         </View>
 
         {/* Action Button */}
-        <View className="mt-8">
+        <View className="mt-8 ">
           <TouchableOpacity
             className="bg-[#FF6B6B] rounded-xl p-4"
             onPress={() => {
@@ -173,6 +176,21 @@ export default function Login() {
               </Text>
             )}
           </TouchableOpacity>
+          {isCodeSent && (
+            <TouchableOpacity
+              className="mt-4 items-center"
+              onPress={resendOTP}
+              disabled={resendDisabled}
+            >
+              <Text
+                className={`${resendDisabled ? 'text-gray-400' : 'text-white font-semibold'}`}
+              >
+                {resendDisabled
+                  ? `Resend Code in ${countdown}s`
+                  : 'Resend Code'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Sign Up Link */}
