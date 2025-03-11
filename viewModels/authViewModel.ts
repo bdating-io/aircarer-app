@@ -149,7 +149,7 @@ export const useAuthViewModel = () => {
     setResendDisabled(true);
     setCountdown(30);
     try {
-      await supabaseClient.resend(phone);
+      await supabaseClient.resendVerificationCode(phone);
       Alert.alert('Success', 'Verification code sent to your phone');
     } catch (error) {
       Alert.alert('Error', (error as AuthError).message);

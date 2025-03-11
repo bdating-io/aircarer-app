@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { supabase } from '@/clients/supabase';
 import { AntDesign } from '@expo/vector-icons';
 
@@ -45,20 +45,19 @@ export default function Layout() {
     }
   };
 
+  const tabBarStyle = {
+    backgroundColor: theme.background,
+    height: 60,
+    paddingBottom: 6,
+    paddingTop: 6,
+    marginBottom: 15,
+  };
+
   return (
     <Tabs
       initialRouteName="home"
       screenOptions={{
-        tabBarStyle: {
-          backgroundColor: theme.background,
-          borderTopWidth: 1,
-          borderTopColor: theme.border,
-          height: 60,
-          paddingBottom: 6,
-          paddingTop: 6,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
+        tabBarStyle: tabBarStyle,
         tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.inactive,
         tabBarLabelStyle: {
@@ -101,24 +100,13 @@ export default function Layout() {
             <AntDesign name="search1" size={22} color={color} />
           ),
           tabBarStyle:
-            userRole === 'Cleaner'
-              ? {
-                  backgroundColor: theme.background,
-                  borderTopWidth: 1,
-                  borderTopColor: theme.border,
-                  height: 60,
-                  paddingBottom: 6,
-                  paddingTop: 6,
-                  elevation: 0,
-                  shadowOpacity: 0,
-                }
-              : { display: 'none' },
+            userRole === 'Cleaner' ? tabBarStyle : { display: 'none' },
           href: userRole === 'Cleaner' ? undefined : null,
         }}
       />
 
       <Tabs.Screen
-        name="tasklist"
+        name="cleanerTasks"
         options={{
           title: 'My Tasks',
           headerShown: true,
@@ -126,18 +114,7 @@ export default function Layout() {
             <AntDesign name="profile" size={22} color={color} />
           ),
           tabBarStyle:
-            userRole === 'Cleaner'
-              ? {
-                  backgroundColor: theme.background,
-                  borderTopWidth: 1,
-                  borderTopColor: theme.border,
-                  height: 60,
-                  paddingBottom: 6,
-                  paddingTop: 6,
-                  elevation: 0,
-                  shadowOpacity: 0,
-                }
-              : { display: 'none' },
+            userRole === 'Cleaner' ? tabBarStyle : { display: 'none' },
           href: userRole === 'Cleaner' ? undefined : null,
         }}
       />
@@ -152,43 +129,21 @@ export default function Layout() {
             <AntDesign name="pluscircleo" size={22} color={color} />
           ),
           tabBarStyle:
-            userRole === 'House Owner'
-              ? {
-                  backgroundColor: theme.background,
-                  borderTopWidth: 1,
-                  borderTopColor: theme.border,
-                  height: 60,
-                  paddingBottom: 6,
-                  paddingTop: 6,
-                  elevation: 0,
-                  shadowOpacity: 0,
-                }
-              : { display: 'none' },
+            userRole === 'House Owner' ? tabBarStyle : { display: 'none' },
           href: userRole === 'House Owner' ? undefined : null,
         }}
       />
 
       <Tabs.Screen
-        name="editTask"
+        name="houseOwnerTasks"
         options={{
-          title: 'Tasks',
+          title: 'My Tasks',
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <AntDesign name="edit" size={22} color={color} />
           ),
           tabBarStyle:
-            userRole === 'House Owner'
-              ? {
-                  backgroundColor: theme.background,
-                  borderTopWidth: 1,
-                  borderTopColor: theme.border,
-                  height: 60,
-                  paddingBottom: 6,
-                  paddingTop: 6,
-                  elevation: 0,
-                  shadowOpacity: 0,
-                }
-              : { display: 'none' },
+            userRole === 'House Owner' ? tabBarStyle : { display: 'none' },
           href: userRole === 'House Owner' ? undefined : null,
         }}
       />

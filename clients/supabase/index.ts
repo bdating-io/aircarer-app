@@ -95,7 +95,7 @@ export const supabaseClient = {
     }
   },
 
-  resend: async (phone: string) => {
+  resendVerificationCode: async (phone: string) => {
     const { error } = await supabase.auth.resend({
       phone,
       type: 'sms',
@@ -103,5 +103,48 @@ export const supabaseClient = {
     if (error) {
       throw new Error(error.message);
     }
+  },
+
+  signOut: async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw new Error(error.message);
+    }
+  },
+
+  getUser: async (userId: string) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
+  getUserAddresses: async (userId: string) => {
+    const { data, error } = await supabase
+      .from('addresses')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', 'USER_ADDRESS');
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
+  getUserProfile: async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, abn, role')
+      .eq('user_id', userId)
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
   },
 };

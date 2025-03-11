@@ -6,44 +6,16 @@ import {
   ActivityIndicator,
   RefreshControl,
   FlatList,
-  StyleSheet,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/clients/supabase';
 import { AntDesign } from '@expo/vector-icons';
 import { format } from 'date-fns';
+import { HouseOwnerTask } from '@/types/task';
 
-interface Task {
-  task_id: number;
-  customer_id: string;
-  task_title: string; // shown as the card's main title
-  task_type: string; // new row with icon
-  scheduled_start_time: string | null;
-  estimated_price: number;
-  budget: number;
-  confirmed_price: number | null;
-  payment_status: string;
-  date_updated: string;
-  approval_status: string;
-  address: string;
-  latitude: number | null;
-  longitude: number | null;
-  is_confirmed: boolean;
-  cleaner_id: string | null;
-  check_in_time: string | null;
-  check_in_latitude: number | null;
-  check_in_longitude: number | null;
-  cleaning_type: string;
-  bring_equipment: string;
-  property_id: number | null;
-  estimated_hours: number;
-  schedule_mode: string;
-}
-
-export default function EditTask() {
+export default function HouseOwnerTasksScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<HouseOwnerTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -101,7 +73,7 @@ export default function EditTask() {
   };
 
   // Open edit page
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = (task: HouseOwnerTask) => {
     router.push({
       pathname: '/(pages)/(tasks)/editTaskDetail',
       params: {
@@ -112,7 +84,7 @@ export default function EditTask() {
   };
 
   // Each list item
-  const renderTask = ({ item }: { item: Task }) => {
+  const renderTask = ({ item }: { item: HouseOwnerTask }) => {
     // Format scheduled_start_time or show "No date"
     let displayDate = 'No date';
     if (item.scheduled_start_time) {
@@ -128,41 +100,47 @@ export default function EditTask() {
 
     return (
       <TouchableOpacity
-        style={styles.taskCard}
+        className="bg-white rounded-lg p-4 mb-3 shadow"
         onPress={() => handleEditTask(item)}
       >
         {/* Title row */}
-        <View style={styles.taskHeader}>
-          <Text style={styles.taskTitle}>
+        <View className="flex-row justify-between items-center mb-3">
+          <Text className="text-lg font-semibold">
             {item.task_title || 'Unnamed Task'}
           </Text>
-          <Text style={styles.price}>${item.budget}</Text>
+          <Text className="text-lg text-blue-500 font-semibold">
+            ${item.budget}
+          </Text>
         </View>
 
         {/* Task Type row */}
-        <View style={styles.taskInfo}>
+        <View className="flex-row items-center mb-2">
           <AntDesign name="tool" size={16} color="gray" />
-          <Text style={styles.infoText}>{item.task_type || 'No type'}</Text>
+          <Text className="ml-2 text-gray-600 flex-1">
+            {item.task_type || 'No type'}
+          </Text>
         </View>
 
         {/* Date row */}
-        <View style={styles.taskInfo}>
+        <View className="flex-row items-center mb-2">
           <AntDesign name="calendar" size={16} color="gray" />
-          <Text style={styles.infoText}>{displayDate}</Text>
+          <Text className="ml-2 text-gray-600 flex-1">{displayDate}</Text>
         </View>
 
         {/* Address row */}
-        <View style={styles.taskInfo}>
+        <View className="flex-row items-center mb-2">
           <AntDesign name="enviromento" size={16} color="gray" />
-          <Text style={styles.infoText} numberOfLines={1}>
+          <Text className="ml-2 text-gray-600 flex-1" numberOfLines={1}>
             {item.address}
           </Text>
         </View>
 
         {/* Payment row */}
-        <View style={styles.taskInfo}>
+        <View className="flex-row items-center mb-2">
           <AntDesign name="creditcard" size={16} color="gray" />
-          <Text style={styles.infoText}>Payment: {item.payment_status}</Text>
+          <Text className="ml-2 text-gray-600 flex-1">
+            Payment: {item.payment_status}
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -170,22 +148,22 @@ export default function EditTask() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 justify-center items-center bg-gray-100">
         <ActivityIndicator size="large" color="#4A90E2" />
-        <Text style={styles.loadingText}>Loading tasks...</Text>
+        <Text className="mt-2 text-gray-600 text-lg">Loading tasks...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-white">
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>My Tasks</Text>
+      <View className="bg-blue-500 p-4 pt-16">
+        <Text className="text-white text-2xl font-semibold">My Tasks</Text>
       </View>
 
       <FlatList
-        style={styles.list}
+        className="p-4"
         data={tasks}
         renderItem={renderTask}
         keyExtractor={(item) => item.task_id.toString()}
@@ -193,10 +171,12 @@ export default function EditTask() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          <View className="p-10 items-center justify-center">
             <AntDesign name="calendar" size={60} color="#CCCCCC" />
-            <Text style={styles.emptyText}>No tasks available</Text>
-            <Text style={styles.emptySubText}>
+            <Text className="text-gray-600 text-lg font-medium mt-4">
+              No tasks available
+            </Text>
+            <Text className="text-gray-500 text-sm mt-2 text-center">
               Your cleaning tasks will appear here
             </Text>
           </View>
@@ -205,88 +185,3 @@ export default function EditTask() {
     </View>
   );
 }
-
-// Styles
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#4A90E2',
-    padding: 16,
-    paddingTop: 60,
-  },
-  headerText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  list: {
-    padding: 16,
-  },
-  taskCard: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  taskHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  taskTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  price: {
-    fontSize: 18,
-    color: '#4A90E2',
-    fontWeight: '600',
-  },
-  taskInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoText: {
-    marginLeft: 8,
-    color: '#666',
-    flex: 1,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 10,
-    color: '#666',
-    fontSize: 16,
-  },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyText: {
-    color: '#666',
-    fontSize: 18,
-    fontWeight: '500',
-    marginTop: 16,
-  },
-  emptySubText: {
-    color: '#999',
-    fontSize: 14,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-});

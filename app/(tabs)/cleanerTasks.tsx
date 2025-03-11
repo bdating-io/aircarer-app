@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   View,
   Text,
@@ -11,25 +12,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/clients/supabase';
 import { format, differenceInHours } from 'date-fns';
 import { AntDesign } from '@expo/vector-icons';
+import { CleanerTask } from '@/types/task';
 
-type Task = {
-  task_id: number;
-  task_type: 'Quick Cleaning' | 'Regular Cleaning' | 'Deep Cleaning';
-  task_title: string;
-  estimated_price: number;
-  confirmed_price: number | null;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
-  payment_status: 'Not Paid' | 'Paid';
-  scheduled_start_time: string;
-  actual_start_time: string | null;
-  completion_time: string | null;
-  approval_status: 'Pending' | 'Approved' | 'Rejected';
-  budget: number;
-};
-
-export default function TaskList() {
+export default function CleanerTasksScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<CleanerTask[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -169,7 +156,7 @@ export default function TaskList() {
   };
 
   // 获取任务状态的颜色 (Tailwind classes or inline)
-  const getStatusColor = (status: Task['status']) => {
+  const getStatusColor = (status: CleanerTask['status']) => {
     switch (status) {
       case 'Pending':
         return 'bg-yellow-500';
@@ -185,7 +172,7 @@ export default function TaskList() {
   };
 
   // 获取任务类型的图标
-  const getTaskTypeIcon = (type: Task['task_type']) => {
+  const getTaskTypeIcon = (type: CleanerTask['task_type']) => {
     switch (type) {
       case 'Quick Cleaning':
         return 'clockcircle';
@@ -199,7 +186,7 @@ export default function TaskList() {
   };
 
   // 渲染单个任务项
-  const renderTask = ({ item }: { item: Task }) => (
+  const renderTask = ({ item }: { item: CleanerTask }) => (
     <View className="bg-white p-4 mb-2 rounded-lg shadow-sm">
       {/* 整个区域可点击跳转详情 
         如果你不想这个功能，可以去掉 onPress & Wrap */}
@@ -293,8 +280,9 @@ export default function TaskList() {
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center p-4">
             <Text className="text-gray-500 text-center">
-              You haven't accepted any tasks yet. Check the Opportunities tab to
-              find available tasks.
+              {
+                "You haven't accepted any tasks yet. Check the Opportunities tab to find available tasks."
+              }
             </Text>
           </View>
         }

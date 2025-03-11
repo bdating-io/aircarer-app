@@ -8,7 +8,8 @@ module.exports = {
     './*.{js,jsx,ts,tsx}',
     './assets/fonts/fontsDisplay.html',
   ],
-  presets: [import('nativewind/preset')],
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  presets: [require('nativewind/preset')],
   theme: {
     extend: {
       fontFamily: {
