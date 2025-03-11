@@ -1,8 +1,4 @@
-import { Stack } from 'expo-router';
-
-export default function RootLayout() {
-  return <RootLayoutNav />;
-}
+import { Stack } from "expo-router";
 
 function RootLayoutNav() {
   return (

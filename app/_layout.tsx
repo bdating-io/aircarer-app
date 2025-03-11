@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { useRouter, useSegments } from "expo-router";
 import { supabase } from "@/lib/supabase";
+import { StripeProvider } from "@/app/stripe-provider";
 
 import "../global.css";
 
@@ -30,10 +31,12 @@ export default function RootLayout() {
   }, [segments]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(pages)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <StripeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(pages)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </StripeProvider>
   );
 }
 
