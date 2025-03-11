@@ -1,10 +1,10 @@
-export interface ProfileData {
+export type ProfileData = {
   firstName: string;
   lastName: string;
   abn: string;
-  role: "Laundry Partner" | "Supervisor" | "Cleaner" | "House Owner";
-  backgroundCheck: string;
-}
+  role: 'Laundry Partner' | 'Supervisor' | 'Cleaner' | 'House Owner';
+  isBackgroundChecked: boolean;
+};
 
 export interface Profile {
   id: string;
@@ -12,7 +12,7 @@ export interface Profile {
   last_name: string;
   email: string;
   avatar_url?: string;
-  role: "cleaner" | "house_owner";
+  role: 'cleaner' | 'house_owner';
   terms_accepted: boolean;
   terms_accepted_at?: string;
   created_at: string;

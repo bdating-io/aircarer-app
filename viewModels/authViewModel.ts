@@ -1,4 +1,4 @@
-import { supabaseClient } from '@/clients/supabase';
+import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { AuthError } from '@supabase/supabase-js';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -34,7 +34,7 @@ export const useAuthViewModel = () => {
   const signInWithEmail = async (email: string, password: string) => {
     setLoading(true);
     try {
-      await supabaseClient.signInWithEmail(email, password);
+      await supabaseAuthClient.signInWithEmail(email, password);
       Alert.alert('Success', 'Successfully logged in!');
       router.replace('/(tabs)/home');
     } catch (error) {
@@ -48,14 +48,14 @@ export const useAuthViewModel = () => {
     setLoading(true);
     try {
       if (!isCodeSent) {
-        await supabaseClient.signInWithPhone(phone);
+        await supabaseAuthClient.signInWithPhone(phone);
         setIsCodeSent(true);
         Alert.alert(
           'Success',
           'Verification code has been sent to your phone!',
         );
       } else {
-        await supabaseClient.verifyPhone(phone, verificationCode);
+        await supabaseAuthClient.verifyPhone(phone, verificationCode);
         Alert.alert('Success', 'Successfully logged in!');
         router.replace('/(tabs)/home');
       }
@@ -68,7 +68,7 @@ export const useAuthViewModel = () => {
 
   const checkSession = async () => {
     try {
-      const session = await supabaseClient.getSession();
+      const session = await supabaseAuthClient.getSession();
       if (session) {
         router.replace('/(tabs)/home');
       }
@@ -84,7 +84,10 @@ export const useAuthViewModel = () => {
     }
     setLoading(true);
     try {
-      await supabaseClient.signUp(phone, Math.random().toString(36).slice(-8));
+      await supabaseAuthClient.signUp(
+        phone,
+        Math.random().toString(36).slice(-8),
+      );
       setShowVerification(true);
       setIsCodeSent(true);
       Alert.alert('Success', 'Verification code sent to your phone');
@@ -104,7 +107,7 @@ export const useAuthViewModel = () => {
 
     setLoading(true);
     try {
-      await supabaseClient.verifyPhone(phone, verificationCode);
+      await supabaseAuthClient.verifyPhone(phone, verificationCode);
       setPhoneVerified(true);
       Alert.alert(
         'Success',
@@ -134,7 +137,14 @@ export const useAuthViewModel = () => {
 
     setLoading(true);
     try {
-      await supabaseClient.updateUser(email, password, phone);
+      await supabaseAuthClient.updateUser({
+        email,
+        password,
+        data: {
+          phone_verified: true,
+          phone,
+        },
+      });
       Alert.alert('Success', 'Account created successfully!');
       router.replace('/(tabs)/home');
     } catch (error) {
@@ -149,7 +159,7 @@ export const useAuthViewModel = () => {
     setResendDisabled(true);
     setCountdown(30);
     try {
-      await supabaseClient.resendVerificationCode(phone);
+      await supabaseAuthClient.resendVerificationCode(phone);
       Alert.alert('Success', 'Verification code sent to your phone');
     } catch (error) {
       Alert.alert('Error', (error as AuthError).message);

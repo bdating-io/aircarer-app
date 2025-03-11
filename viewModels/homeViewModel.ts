@@ -1,4 +1,6 @@
-import { supabase, supabaseClient } from '@/clients/supabase';
+import { supabase } from '@/clients/supabase';
+import { supabaseAuthClient } from '@/clients/supabase/auth';
+import { supabaseDBClient } from '@/clients/supabase/database';
 import useStore from '@/lib/store';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -37,7 +39,7 @@ export const useHomeViewModel = () => {
 
   const checkProfile = async (userId: string) => {
     try {
-      const profile = await supabaseClient.getUserProfile(userId);
+      const profile = await supabaseDBClient.getUserProfileById(userId);
       setMyProfile(profile);
       setHasProfile(!!profile?.first_name);
     } catch (error) {
@@ -48,7 +50,7 @@ export const useHomeViewModel = () => {
   // Check address
   const checkAddress = async (userId: string) => {
     try {
-      const addresses = await supabaseClient.getUserAddresses(userId);
+      const addresses = await supabaseDBClient.getUserAddressesById(userId);
       setHasAddress(!!addresses);
     } catch (error) {
       Alert.alert('Error checking address', (error as Error).message);
@@ -57,7 +59,7 @@ export const useHomeViewModel = () => {
 
   const handleSignOut = async () => {
     try {
-      await supabaseClient.signOut();
+      await supabaseAuthClient.signOut();
       setMyProfile(null);
       setMySession(null);
       setHasProfile(false);
