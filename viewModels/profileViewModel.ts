@@ -5,7 +5,7 @@ import useStore from '@/lib/store';
 import { ProfileData } from '@/types/type';
 import { imagePicker } from '@/utils/imagePicker';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
 export const profileViewModel = () => {
@@ -28,6 +28,23 @@ export const profileViewModel = () => {
   const [selectedRole, setSelectedRole] = useState<ProfileData['role'] | null>(
     null,
   );
+
+  useEffect(() => {
+    if (myProfile) {
+      setFirstName(myProfile.first_name || '');
+      setLastName(myProfile.last_name || '');
+      setAbn(myProfile.abn || '');
+      console.log('myProfile.role:', myProfile.role);
+      setSelectedRole(myProfile.role || null);
+    }
+  }, [myProfile]);
+
+  // 请求相机权限
+  useEffect(() => {
+    (async () => {
+      await imagePicker.requestImagePermission();
+    })();
+  }, []);
 
   const checkTermsAcceptance = async () => {
     try {
@@ -80,7 +97,6 @@ export const profileViewModel = () => {
         const fileExt = imageAsset.uri.split('.').pop();
         const fileName = `${user.id}-background-check-${Date.now()}.${fileExt}`;
         const filePath = `background-checks/${fileName}`;
-        console.log('Uploading image:', filePath);
         // 上传到Supabase Storage
         await supabaseStorageClient.uploadImage(filePath, imageAsset, fileExt);
         console.log('Image uploaded successfully');
@@ -274,12 +290,12 @@ export const profileViewModel = () => {
           break;
         case 'House Owner':
           router.push({
-            pathname: '/(pages)/(profile)/(houseOwner)/houseOwner',
+            pathname: '/(pages)/(profile)/(houseOwner)/createProperty',
             params: { profileData: JSON.stringify(profileData) },
           });
           break;
         default:
-          router.push('/(pages)/(profile)/(houseOwner)/houseOwner');
+          router.push('/(pages)/(profile)/(houseOwner)/createProperty');
       }
     } catch (error) {
       console.error('Navigation error:', error);

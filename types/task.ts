@@ -1,5 +1,5 @@
 export type HouseOwnerTask = {
-  task_id: number;
+  task_id?: number;
   customer_id: string;
   task_title: string; // shown as the card's main title
   task_type: string; // new row with icon
@@ -26,7 +26,7 @@ export type HouseOwnerTask = {
 };
 
 export type CleanerTask = {
-  task_id: number;
+  task_id?: number;
   task_type: 'Quick Cleaning' | 'Regular Cleaning' | 'Deep Cleaning';
   task_title: string;
   estimated_price: number;

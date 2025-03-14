@@ -14,7 +14,6 @@ function RootLayoutNav() {
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="(cleanerProfile)" options={{ headerShown: false }} />
       <Stack.Screen name="(houseOwner)" options={{ headerShown: false }} />
-      <Stack.Screen name="editProperty" options={{ headerShown: false }} />
     </Stack>
   );
 }

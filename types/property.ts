@@ -1,5 +1,5 @@
 export type Property = {
-  property_id: string;
+  property_id?: string;
   user_id: string;
   address: string;
   bedrooms: number;
@@ -15,4 +15,6 @@ export type Property = {
   suburb?: string;
   state?: string;
   postal_code?: string;
+  latitude?: number;
+  longitude?: number;
 };

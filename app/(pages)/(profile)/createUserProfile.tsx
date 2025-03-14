@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import {
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import { ProfileData } from '@/types/type';
-import { imagePicker } from '@/utils/imagePicker';
 import { profileViewModel } from '@/viewModels/profileViewModel';
 
 export default function CreateProfile() {
@@ -23,7 +22,6 @@ export default function CreateProfile() {
     lastName,
     setLastName,
     abn,
-    setAbn,
     abnValid,
     validatingAbn,
     selectedRole,
@@ -33,28 +31,10 @@ export default function CreateProfile() {
     backgroundCheckImage,
     setBackgroundCheckImage,
     uploadingImage,
-    myProfile,
     pickBackgroundCheckImage,
     handleAbnChange,
     validateAndSubmitProfile,
   } = profileViewModel();
-
-  useEffect(() => {
-    if (myProfile) {
-      setFirstName(myProfile.first_name || '');
-      setLastName(myProfile.last_name || '');
-      setAbn(myProfile.abn || '');
-      console.log('myProfile.role:', myProfile.role);
-      setSelectedRole(myProfile.role || null);
-    }
-  }, [myProfile]);
-
-  // 请求相机权限
-  useEffect(() => {
-    (async () => {
-      await imagePicker.requestImagePermission();
-    })();
-  }, []);
 
   // 图片上传函数
 

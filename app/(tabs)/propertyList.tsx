@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { usePropertyListViewModel } from '@/viewModels/propertyListViewModel';
+import { usePropertyViewModel } from '@/viewModels/propertyViewModel';
 
 export default function PropertyList() {
   const {
@@ -19,7 +19,7 @@ export default function PropertyList() {
     handleEditProperty,
     renderSpecialRequirements,
     handleDeleteProperty,
-  } = usePropertyListViewModel();
+  } = usePropertyViewModel();
 
   useEffect(() => {
     fetchUserAndProperties();
@@ -111,8 +111,8 @@ export default function PropertyList() {
                         className="flex-row items-center bg-amber-400 px-4 py-2 rounded-md mr-3"
                         onPress={() =>
                           handleEditProperty(
-                            property.property_id,
                             property.user_id,
+                            property.property_id,
                           )
                         }
                       >
@@ -124,8 +124,8 @@ export default function PropertyList() {
                         className="flex-row items-center bg-red-500 px-4 py-2 rounded-md"
                         onPress={() =>
                           handleDeleteProperty(
-                            property.property_id,
                             property.user_id,
+                            property.property_id,
                           )
                         }
                       >
@@ -140,8 +140,6 @@ export default function PropertyList() {
               </View>
             ))
           )}
-
-          <View className="h-20" />
         </ScrollView>
       )}
 

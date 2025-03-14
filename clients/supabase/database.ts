@@ -1,8 +1,10 @@
 import { ProfileData } from '@/types/type';
 import { supabase } from '.';
+import { Property } from '@/types/property';
+import { User } from '@supabase/auth-js';
 
 export const supabaseDBClient = {
-  getUserById: async (userId: string) => {
+  getUserById: async (userId: string): Promise<User> => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -74,6 +76,40 @@ export const supabaseDBClient = {
       })
       .select()
       .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+  },
+
+  getUserPropertiesById: async (userId: string): Promise<Property[]> => {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('*')
+      .eq('user_id', userId);
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
+  addUserProperty: async (property: Property) => {
+    const { error } = await supabase.from('properties').upsert([
+      {
+        ...property,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    if (error) {
+      throw new Error(error.message);
+    }
+  },
+
+  deleteUserProperty: async (propertyId: string, userId: string) => {
+    const { error } = await supabase
+      .from('properties')
+      .delete()
+      .eq('property_id', propertyId)
+      .eq('user_id', userId);
     if (error) {
       throw new Error(error.message);
     }
