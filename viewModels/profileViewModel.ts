@@ -34,7 +34,6 @@ export const profileViewModel = () => {
       setFirstName(myProfile.first_name || '');
       setLastName(myProfile.last_name || '');
       setAbn(myProfile.abn || '');
-      console.log('myProfile.role:', myProfile.role);
       setSelectedRole(myProfile.role || null);
     }
   }, [myProfile]);

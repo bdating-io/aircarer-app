@@ -43,7 +43,6 @@ const ToggleButton = ({ value, onToggle }: ToggleButtonProps) => (
 
 export default function CreateProperty() {
   const {
-    properties,
     unitNumber,
     streetNumber,
     streetName,
@@ -373,9 +372,7 @@ export default function CreateProperty() {
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-medium">
-              {properties.length > 0 ? 'Submit' : 'Next Property'}
-            </Text>
+            <Text className="text-white font-medium">{'Submit'}</Text>
           )}
         </TouchableOpacity>
       </View>

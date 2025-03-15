@@ -75,33 +75,34 @@ export const usePropertyViewModel = () => {
       return;
     }
 
-    try {
-      Alert.alert(
-        'Delete Property',
-        'Are you sure you want to delete this property?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Delete',
-            style: 'destructive',
-            onPress: async () => {
+    Alert.alert(
+      'Delete Property',
+      'Are you sure you want to delete this property?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
               setLoading(true);
               console.log('propertyId:', propertyId);
               console.log('userId:', userId);
               await supabaseDBClient.deleteUserProperty(propertyId, userId);
               Alert.alert('Success', 'Property deleted!');
               await fetchUserAndProperties();
+            } catch (error) {
+              Alert.alert(
+                'Error',
+                (error as Error).message || 'Failed to delete property',
+              );
+            } finally {
               setLoading(false);
-            },
+            }
           },
-        ],
-      );
-    } catch (error) {
-      Alert.alert(
-        'Error',
-        (error as Error).message || 'Failed to delete property',
-      );
-    }
+        },
+      ],
+    );
   };
 
   const handleEditProperty = (userId: string, propertyId?: string) => {
