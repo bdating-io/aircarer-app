@@ -9,11 +9,11 @@ import * as Location from 'expo-location';
 export const usePropertyViewModel = () => {
   const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
+  const [property, setProperty] = useState<Property>();
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<boolean>(false);
   const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
-  const [isGeocodingAddress, setIsGeocodingAddress] = useState<boolean>(false);
 
   //New Property Form State
   const [unitNumber, setUnitNumber] = useState('');
@@ -59,6 +59,20 @@ export const usePropertyViewModel = () => {
         'Error',
         (error as Error).message || 'Failed to fetch properties',
       );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProperty = async (property_id: string) => {
+    try {
+      setLoading(true);
+      const property = await supabaseDBClient.getUserPropertyById(property_id);
+      if (property) {
+        setProperty(property);
+      }
+    } catch (error) {
+      Alert.alert('Error', (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -120,6 +134,39 @@ export const usePropertyViewModel = () => {
     router.push(
       `/(pages)/(profile)/(houseOwner)/editProperty?propertyId=${propertyId}`,
     );
+  };
+
+  const editProperty = async () => {
+    // Validate required fields
+    if (
+      !property ||
+      !property.street_number ||
+      !property.street_name ||
+      !property.suburb ||
+      !property.state ||
+      !property.postal_code ||
+      !property.entry_method
+    ) {
+      Alert.alert('Error', 'Please fill in all required fields');
+      return;
+    }
+    if (!property.property_id) {
+      throw new Error('Property ID not found');
+    }
+    try {
+      setLoading(true);
+
+      await supabaseDBClient.updateUserProperty(property.property_id, {
+        ...property,
+      });
+
+      Alert.alert('Success', 'Property updated successfully!');
+      router.back();
+    } catch (error) {
+      Alert.alert('Error', (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddProperty = () => {
@@ -189,69 +236,19 @@ export const usePropertyViewModel = () => {
     }
   };
 
-  // 根据地址获取坐标
-  const geocodeAddress = async () => {
-    try {
-      setIsGeocodingAddress(true);
-
-      if (
-        !unitNumber ||
-        !streetNumber ||
-        !streetName ||
-        !suburb ||
-        !state ||
-        !postalCode
-      ) {
-        Alert.alert(
-          'Incomplete Address',
-          'Please fill in all required address fields',
-        );
-        setIsGeocodingAddress(false);
-        return;
-      }
-
-      const fullAddress = `${
-        unitNumber ? unitNumber + '/' : ''
-      }${streetNumber} ${streetName}, ${suburb}, ${state} ${postalCode}`;
-
-      // 使用 Google Geocoding API 或其他服务获取坐标
-      // 注意：此功能需要 Google API Key，以下是使用 Expo Location 的替代方案
-      const geocodeResults = await Location.geocodeAsync(fullAddress);
-
-      if (geocodeResults && geocodeResults.length > 0) {
-        const { latitude, longitude } = geocodeResults[0];
-        setLatitude(latitude);
-        setLongitude(longitude);
-        Alert.alert('Success', 'Address coordinates obtained successfully');
-      } else {
-        Alert.alert(
-          'Error',
-          'Could not determine coordinates for this address',
-        );
-      }
-    } catch (error) {
-      console.error('Error geocoding address:', error);
-      Alert.alert('Error', 'Failed to get coordinates for this address');
-    } finally {
-      setIsGeocodingAddress(false);
-    }
-  };
-
-  const handleSubmit = async () => {
+  const addProperty = async () => {
     try {
       setLoading(true);
       // Get current user ID
       const user = await supabaseAuthClient.getUser();
       // Validate required fields
       if (
-        !unitNumber ||
         !streetNumber ||
         !streetName ||
         !suburb ||
         !state ||
         !postalCode ||
-        !latitude ||
-        !longitude
+        !entryMethod
       ) {
         Alert.alert(
           'Incomplete Address',
@@ -317,54 +314,62 @@ export const usePropertyViewModel = () => {
         (error as Error).message || 'An unexpected error occurred',
       );
     } finally {
+      await fetchUserAndProperties();
       setLoading(false);
     }
   };
 
   return {
+    // Values
+    property,
     properties,
     loading,
     currentUserId,
     locationPermission,
     isGettingLocation,
-    isGeocodingAddress,
     unitNumber,
-    setUnitNumber,
     streetNumber,
-    setStreetNumber,
     streetName,
-    setStreetName,
     suburb,
-    setSuburb,
     state,
-    setState,
     postalCode,
-    setPostalCode,
     latitude,
-    setLatitude,
     longitude,
-    setLongitude,
     bedrooms,
-    setBedrooms,
     bathrooms,
-    setBathrooms,
     petCleaning,
-    setPetCleaning,
     carpetCleaning,
-    setCarpetCleaning,
     rangeHoodCleaning,
-    setRangeHoodCleaning,
     ovenCleaning,
-    setOvenCleaning,
     entryMethod,
+
+    // Setters
+    setProperty,
+    setUnitNumber,
+    setStreetNumber,
+    setStreetName,
+    setSuburb,
+    setState,
+    setPostalCode,
+    setLatitude,
+    setLongitude,
+    setBedrooms,
+    setBathrooms,
+    setPetCleaning,
+    setCarpetCleaning,
+    setRangeHoodCleaning,
+    setOvenCleaning,
     setEntryMethod,
+
+    // Functions
+    fetchProperty,
     fetchUserAndProperties,
     handleDeleteProperty,
     handleEditProperty,
     handleAddProperty,
     renderSpecialRequirements,
     getCurrentLocation,
-    geocodeAddress,
-    handleSubmit,
+    addProperty,
+    editProperty,
   };
 };

@@ -92,6 +92,18 @@ export const supabaseDBClient = {
     return data;
   },
 
+  getUserPropertyById: async (propertyId: string): Promise<Property> => {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('*')
+      .eq('property_id', propertyId)
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
   addUserProperty: async (property: Property) => {
     const { error } = await supabase.from('properties').upsert([
       {
@@ -110,6 +122,22 @@ export const supabaseDBClient = {
       .delete()
       .eq('property_id', propertyId)
       .eq('user_id', userId);
+    if (error) {
+      throw new Error(error.message);
+    }
+  },
+
+  updateUserProperty: async (
+    propertyId: string,
+    property: Partial<Property>,
+  ) => {
+    const { error } = await supabase
+      .from('properties')
+      .update({
+        ...property,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('property_id', propertyId);
     if (error) {
       throw new Error(error.message);
     }

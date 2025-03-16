@@ -10,11 +10,11 @@ export type Property = {
   oven_cleaning: boolean;
   entry_method: string;
   unit_number?: string;
-  street_number?: string;
-  street_name?: string;
-  suburb?: string;
-  state?: string;
-  postal_code?: string;
+  street_number: string;
+  street_name: string;
+  suburb: string;
+  state: string;
+  postal_code: string;
   latitude?: number;
   longitude?: number;
 };

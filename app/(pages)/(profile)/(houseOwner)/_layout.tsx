@@ -16,7 +16,6 @@ function RootLayoutNav() {
           headerTitle: 'Create Property',
           headerTitleStyle: {
             fontSize: 20,
-            fontWeight: 'bold',
           },
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()}>
