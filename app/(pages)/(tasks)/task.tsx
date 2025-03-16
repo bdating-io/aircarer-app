@@ -16,26 +16,8 @@ import * as Linking from "expo-linking";
 import * as Location from "expo-location";
 import { supabase } from "../../../lib/supabase";
 import { format, differenceInHours } from "date-fns";
+import { z } from "zod";
 
-type Task = {
-  task_id: number;
-  task_type: "Quick Cleaning" | "Regular Cleaning" | "Deep Cleaning";
-  estimated_price: number;
-  confirmed_price: number | null;
-  status: "Pending" | "In Progress" | "Completed" | "Cancelled";
-  payment_status: "Not Paid" | "Paid";
-  scheduled_start_time: string;
-  actual_start_time: string | null;
-  completion_time: string | null;
-  approval_status: "Pending" | "Approved" | "Rejected";
-  address: string;
-  latitude: number;
-  longitude: number;
-  is_confirmed: boolean;
-  cleaner_id: string | null;
-  customer_id: string;
-  check_in_time: string | null;
-};
 
 const getOrdinalSuffix = (day: number) => {
   if (day > 3 && day < 21) return "th";
@@ -73,6 +55,37 @@ const getRandomLocation = () => ({
       (MELBOURNE_BOUNDS.longitude.max - MELBOURNE_BOUNDS.longitude.min),
 });
 
+const TaskSchema = z.object({
+  task_id: z.string(),
+  task_type: z.enum(["Quick Cleaning", "Regular Cleaning", "Deep Cleaning"]).nullable(),
+  estimated_price: z.number().nullable(),
+  confirmed_price: z.number().nullable(),
+  status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
+  payment_status: z.enum(["Not Paid", "Paid"]).nullable(),
+  scheduled_start_time: z.string(),
+  actual_start_time: z.string().nullable(),
+  completion_time: z.string().nullable(),
+  approval_status: z.enum(["Pending", "Approved", "Rejected"]).nullable(),
+  address: z.string(),
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
+  is_confirmed: z.boolean(),
+  cleaner_id: z.string().nullable(),
+  customer_id: z.string(),
+  check_in_time: z.string().nullable(),
+});
+
+type Task = z.infer<typeof TaskSchema>;
+
+const isTask = (data: any): data is Task => {
+  const result = TaskSchema.safeParse(data);
+  if (!result.success) {
+    throw new Error(`Validation failed: ${JSON.stringify(result.error.issues)}`);
+  }
+  return true;
+};
+
+
 export default function Task() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -102,7 +115,12 @@ export default function Task() {
           .single();
 
         if (error) throw error;
-        setTask(data);
+        if (data /* && isTask(data)*/) {
+          data.payment_status = 'Not Paid'
+          setTask(data);
+        } else {
+          throw new Error("Fetched data does not match Task type");
+        }
 
         // 检查是否已签到
         if (data.check_in_time) {
@@ -551,7 +569,7 @@ export default function Task() {
 
       <ScrollView className="flex-1">
         {/* Map */}
-        <View className="h-48">
+       { task.latitude && task.longitude && <View className="h-48">
           <MapView
             style={{ flex: 1 }}
             initialRegion={{
@@ -570,7 +588,7 @@ export default function Task() {
             />
           </MapView>
         </View>
-
+      }
         {/* Task Info */}
         <View className="p-4">
           <Text className="text-xl font-bold">{task.task_type}</Text>
