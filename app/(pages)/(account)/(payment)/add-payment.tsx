@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '@/clients/supabase';
 
 export default function AddPayment() {
   const router = useRouter();
@@ -14,21 +14,24 @@ export default function AddPayment() {
 
   const handleSave = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const paymentData = type === 'credit' 
-        ? {
-            type: 'credit',
-            card_last4: cardNumber.slice(-4),
-            user_id: user.id
-          }
-        : {
-            type: 'bsb',
-            bsb: bsb,
-            account_number_last4: accountNumber.slice(-4),
-            user_id: user.id
-          };
+      const paymentData =
+        type === 'credit'
+          ? {
+              type: 'credit',
+              card_last4: cardNumber.slice(-4),
+              user_id: user.id,
+            }
+          : {
+              type: 'bsb',
+              bsb: bsb,
+              account_number_last4: accountNumber.slice(-4),
+              user_id: user.id,
+            };
 
       const { error } = await supabase
         .from('payment_methods')
@@ -54,17 +57,21 @@ export default function AddPayment() {
 
       <View className="p-4">
         <View className="flex-row mb-4">
-          <TouchableOpacity 
+          <TouchableOpacity
             className={`flex-1 p-4 ${type === 'credit' ? 'bg-blue-500' : 'bg-gray-200'}`}
             onPress={() => setType('credit')}
           >
-            <Text className={type === 'credit' ? 'text-white' : 'text-black'}>Credit Card</Text>
+            <Text className={type === 'credit' ? 'text-white' : 'text-black'}>
+              Credit Card
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             className={`flex-1 p-4 ${type === 'bsb' ? 'bg-blue-500' : 'bg-gray-200'}`}
             onPress={() => setType('bsb')}
           >
-            <Text className={type === 'bsb' ? 'text-white' : 'text-black'}>Bank Account</Text>
+            <Text className={type === 'bsb' ? 'text-white' : 'text-black'}>
+              Bank Account
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -95,7 +102,7 @@ export default function AddPayment() {
           </>
         )}
 
-        <TouchableOpacity 
+        <TouchableOpacity
           className="bg-blue-500 p-4 rounded-lg mt-4"
           onPress={handleSave}
         >
@@ -104,4 +111,4 @@ export default function AddPayment() {
       </View>
     </SafeAreaView>
   );
-} 
+}

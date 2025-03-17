@@ -1,7 +1,7 @@
 import { supabase } from '@/clients/supabase';
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
-import useStore from '@/lib/store';
+import useStore from '@/utils/store';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';

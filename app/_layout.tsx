@@ -3,9 +3,9 @@ import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import { supabase } from '@/clients/supabase';
-import { StripeProvider } from '@/app/stripe-provider';
 
 import '../global.css';
+import StripeProvider from '../clients/supabase/stripe';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -40,16 +40,5 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
     </StripeProvider>
-  );
-}
-
-function RootLayoutNav() {
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(pages)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="+not-found" />
-    </Stack>
   );
 }

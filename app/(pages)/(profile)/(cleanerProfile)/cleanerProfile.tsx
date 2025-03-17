@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/clients/supabase';
 import { AddressFormData, AustralianState } from '@/types/address';
-import useStore from '../../../../lib/store';
+import useStore from '@/utils/store';
 
 export default function AddressForm() {
   const router = useRouter();

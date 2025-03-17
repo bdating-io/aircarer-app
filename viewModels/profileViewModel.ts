@@ -1,7 +1,7 @@
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
 import { supabaseStorageClient } from '@/clients/supabase/storage';
-import useStore from '@/lib/store';
+import useStore from '@/utils/store';
 import { ProfileData } from '@/types/type';
 import { imagePicker } from '@/utils/imagePicker';
 import { useRouter } from 'expo-router';

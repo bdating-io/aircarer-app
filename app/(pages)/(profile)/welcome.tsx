@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import { supabase } from '@/clients/supabase';
-import useStore from '../../../lib/store';
+import useStore from '@/utils/store';
 
 export default function Welcome() {
   const router = useRouter();

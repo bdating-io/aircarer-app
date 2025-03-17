@@ -13,9 +13,9 @@ import { AntDesign } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import * as Linking from 'expo-linking';
 import * as Location from 'expo-location';
-import { supabase } from '../../../lib/supabase';
 import { format, differenceInHours } from 'date-fns';
 import { z } from 'zod';
+import { supabase } from '@/clients/supabase';
 
 const getOrdinalSuffix = (day: number) => {
   if (day > 3 && day < 21) return 'th';

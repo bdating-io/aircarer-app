@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/clients/supabase';
-import useStore from '../../lib/store';
 import { Ionicons } from '@expo/vector-icons';
+import useStore from '@/utils/store';
 
 export default function Account() {
   const router = useRouter();

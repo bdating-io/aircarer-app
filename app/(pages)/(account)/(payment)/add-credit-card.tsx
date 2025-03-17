@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,33 +6,33 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { supabase } from "@/lib/supabase";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '@/clients/supabase';
 
 export default function AddCreditCard() {
   const router = useRouter();
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardHolderName, setCardHolderName] = useState("");
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [cardHolderName, setCardHolderName] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCardNumberChange = (text: string) => {
     // 格式化卡号为4位一组
     const formattedText = text
-      .replace(/\s/g, "")
-      .replace(/(\d{4})/g, "$1 ")
+      .replace(/\s/g, '')
+      .replace(/(\d{4})/g, '$1 ')
       .trim();
     setCardNumber(formattedText);
   };
 
   const handleExpiryChange = (text: string) => {
     // 格式化为MM/YY
-    const cleaned = text.replace(/\D/g, "");
+    const cleaned = text.replace(/\D/g, '');
     if (cleaned.length <= 2) {
       setExpiry(cleaned);
     } else {
@@ -46,7 +46,7 @@ export default function AddCreditCard() {
 
       // 基本验证
       if (!cardNumber || !expiry || !cvv || !cardHolderName) {
-        Alert.alert("Error", "Please fill all fields");
+        Alert.alert('Error', 'Please fill all fields');
         return;
       }
 
@@ -55,13 +55,13 @@ export default function AddCreditCard() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) throw new Error("User not authenticated");
+      if (!user) throw new Error('User not authenticated');
 
       // 创建支付方式记录
-      const { error } = await supabase.from("payment_methods").insert({
+      const { error } = await supabase.from('payment_methods').insert({
         user_id: user.id,
-        type: "credit",
-        card_last4: cardNumber.replace(/\s/g, "").slice(-4),
+        type: 'credit',
+        card_last4: cardNumber.replace(/\s/g, '').slice(-4),
         card_expiry: expiry,
         card_holder_name: cardHolderName,
         is_default: isDefault,
@@ -69,18 +69,18 @@ export default function AddCreditCard() {
 
       if (error) throw error;
 
-      Alert.alert("Success", "Credit card added successfully");
-      router.push("/(pages)/(account)/(payment)");
+      Alert.alert('Success', 'Credit card added successfully');
+      router.push('/(pages)/(account)/(payment)');
     } catch (error) {
-      console.error("Error saving credit card:", error);
-      Alert.alert("Error", "Failed to save credit card");
+      console.error('Error saving credit card:', error);
+      Alert.alert('Error', 'Failed to save credit card');
     } finally {
       setIsLoading(false);
     }
   };
 
   const showCVVInfo = () => {
-    router.push("/(pages)/(account)/(payment)/cvv-info");
+    router.push('/(pages)/(account)/(payment)/cvv-info');
   };
 
   return (
@@ -142,7 +142,7 @@ export default function AddCreditCard() {
         >
           <View
             className={`w-5 h-5 border rounded mr-2 ${
-              isDefault ? "bg-blue-500 border-blue-500" : "border-gray-300"
+              isDefault ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
             }`}
           >
             {isDefault && <AntDesign name="check" size={16} color="white" />}

@@ -10,7 +10,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import MapView, { Marker, Circle } from 'react-native-maps';
-import useStore from '@/lib/store';
+import useStore from '@/utils/store';
 import { supabase } from '@/clients/supabase';
 
 export default function WorkingArea() {

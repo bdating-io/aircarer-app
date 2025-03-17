@@ -18,7 +18,7 @@
 // } from "@expo/vector-icons";
 // import { Camera, CameraType } from "expo-camera";
 // import * as ImageManipulator from "expo-image-manipulator";
-// import { supabase } from "@/lib/supabase";
+// import { supabase } from "@/clients/supabase";
 // import { SafeAreaView } from "react-native-safe-area-context";
 
 // type PaymentMethod = "bsb" | "credit" | null;

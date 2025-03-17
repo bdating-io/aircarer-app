@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,17 +9,17 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ScrollView,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { supabase } from "@/lib/supabase";
-import { KeyboardAwareView } from "./components/KeyboardAwareView";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '@/clients/supabase';
+import KeyboardAwareView from './components/KeyboardAwareView';
 
 export default function AddBankAccount() {
   const router = useRouter();
-  const [bsb, setBsb] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
+  const [bsb, setBsb] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,13 +29,13 @@ export default function AddBankAccount() {
 
       // 基本验证
       if (!bsb || !accountNumber) {
-        Alert.alert("Error", "Please fill all fields");
+        Alert.alert('Error', 'Please fill all fields');
         return;
       }
 
       // BSB 格式验证
-      if (!/^\d{6}$/.test(bsb.replace(/-/g, ""))) {
-        Alert.alert("Error", "BSB must be 6 digits");
+      if (!/^\d{6}$/.test(bsb.replace(/-/g, ''))) {
+        Alert.alert('Error', 'BSB must be 6 digits');
         return;
       }
 
@@ -44,12 +44,12 @@ export default function AddBankAccount() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) throw new Error("User not authenticated");
+      if (!user) throw new Error('User not authenticated');
 
       // 创建支付方式记录
-      const { error } = await supabase.from("payment_methods").insert({
+      const { error } = await supabase.from('payment_methods').insert({
         user_id: user.id,
-        type: "bsb",
+        type: 'bsb',
         bsb: bsb,
         account_number_last4: accountNumber.slice(-4),
         is_default: isDefault,
@@ -57,11 +57,11 @@ export default function AddBankAccount() {
 
       if (error) throw error;
 
-      Alert.alert("Success", "Bank account added successfully");
-      router.push("/(pages)/(account)/(payment)");
+      Alert.alert('Success', 'Bank account added successfully');
+      router.push('/(pages)/(account)/(payment)');
     } catch (error) {
-      console.error("Error saving bank account:", error);
-      Alert.alert("Error", "Failed to save bank account");
+      console.error('Error saving bank account:', error);
+      Alert.alert('Error', 'Failed to save bank account');
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +70,7 @@ export default function AddBankAccount() {
   // BSB格式化: XXX-XXX
   const handleBsbChange = (text: string) => {
     // 移除所有非数字字符
-    const cleaned = text.replace(/\D/g, "");
+    const cleaned = text.replace(/\D/g, '');
 
     // 添加格式化
     if (cleaned.length <= 3) {
@@ -116,7 +116,7 @@ export default function AddBankAccount() {
           >
             <View
               className={`w-5 h-5 border rounded mr-2 ${
-                isDefault ? "bg-blue-500 border-blue-500" : "border-gray-300"
+                isDefault ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
               }`}
             >
               {isDefault && <AntDesign name="check" size={16} color="white" />}
