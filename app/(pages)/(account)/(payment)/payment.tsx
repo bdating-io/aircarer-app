@@ -1,48 +1,56 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
-import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  SafeAreaView,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
 
-type PaymentMethod = "bsb" | "credit" | null;
+type PaymentMethod = 'bsb' | 'credit' | null;
 
 export default function Payment() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
   const [cardInfo, setCardInfo] = useState({
-    number: "",
-    expiry: "",
-    cvv: "",
-    bsb: "",
-    accountNumber: "",
+    number: '',
+    expiry: '',
+    cvv: '',
+    bsb: '',
+    accountNumber: '',
   });
 
   const renderStep1 = () => (
-    <View className="flex-1 bg-white p-4">
-      <View className="flex-row items-center mb-6">
-        <TouchableOpacity onPress={() => router.back()}>
-          <AntDesign name="left" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-lg font-semibold ml-4">Create Profile</Text>
-      </View>
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 p-4">
+        <View className="flex-row items-center mb-6">
+          <TouchableOpacity onPress={() => router.back()}>
+            <AntDesign name="left" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="text-lg font-semibold ml-4">Create Profile</Text>
+        </View>
 
-      <Text className="text-lg mb-4">Payment Method</Text>
-      <TouchableOpacity
-        className="border border-gray-300 rounded-lg p-4 mb-4"
-        onPress={() => setStep(2)}
-      >
-        <Text className="text-blue-500">+ Add new payment method</Text>
-      </TouchableOpacity>
-
-      <View className="mt-auto">
+        <Text className="text-lg mb-4">Payment Method</Text>
         <TouchableOpacity
-          className="bg-blue-500 rounded-lg p-4"
+          className="border border-gray-300 rounded-lg p-4 mb-4"
           onPress={() => setStep(2)}
         >
-          <Text className="text-white text-center">Next</Text>
+          <Text className="text-blue-500">+ Add new payment method</Text>
         </TouchableOpacity>
+
+        <View className="mt-auto">
+          <TouchableOpacity
+            className="bg-blue-500 rounded-lg p-4"
+            onPress={() => setStep(2)}
+          >
+            <Text className="text-white text-center">Next</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 
   const renderStep2 = () => (
@@ -58,7 +66,7 @@ export default function Payment() {
       <TouchableOpacity
         className="border border-gray-300 rounded-lg p-4 mb-4"
         onPress={() => {
-          setPaymentMethod("bsb");
+          setPaymentMethod('bsb');
           setStep(3);
         }}
       >
@@ -68,7 +76,7 @@ export default function Payment() {
       <TouchableOpacity
         className="border border-gray-300 rounded-lg p-4 mb-4"
         onPress={() => {
-          setPaymentMethod("credit");
+          setPaymentMethod('credit');
           setStep(4);
         }}
       >
@@ -170,7 +178,7 @@ export default function Payment() {
     <View className="flex-1 bg-white p-4">
       <View className="flex-row items-center mb-6">
         <TouchableOpacity
-          onPress={() => setStep(paymentMethod === "bsb" ? 3 : 4)}
+          onPress={() => setStep(paymentMethod === 'bsb' ? 3 : 4)}
         >
           <AntDesign name="left" size={24} color="black" />
         </TouchableOpacity>
@@ -178,7 +186,7 @@ export default function Payment() {
       </View>
 
       <Text className="text-lg mb-4">Payment Method</Text>
-      {paymentMethod === "credit" && (
+      {paymentMethod === 'credit' && (
         <View className="flex-row items-center border border-gray-300 rounded-lg p-4">
           <AntDesign name="creditcard" size={24} color="black" />
           <Text className="ml-4">•••• {cardInfo.number.slice(-4)}</Text>
@@ -195,7 +203,7 @@ export default function Payment() {
       <View className="mt-auto">
         <TouchableOpacity
           className="bg-blue-500 rounded-lg p-4"
-          onPress={() => router.push("/(tabs)/home")}
+          onPress={() => router.push('/(tabs)/home')}
         >
           <Text className="text-white text-center">Next</Text>
         </TouchableOpacity>

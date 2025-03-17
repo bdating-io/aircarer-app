@@ -206,7 +206,7 @@ export default function Signup() {
             Already have an account?{' '}
           </Text>
           <TouchableOpacity
-            onPress={() => router.replace('/(pages)/(authentication)/login')}
+            onPress={() => router.navigate('/(pages)/(authentication)/login')}
           >
             <Text className="text-white font-semibold">Log in</Text>
           </TouchableOpacity>

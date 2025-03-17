@@ -8,6 +8,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/clients/supabase';
@@ -250,140 +251,142 @@ export default function EditTaskDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Edit Task</Text>
-        <Text style={styles.subtitle}>Task ID: {taskId}</Text>
-      </View>
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Edit Task</Text>
+          <Text style={styles.subtitle}>Task ID: {taskId}</Text>
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Task Type</Text>
-        <TextInput
-          style={styles.input}
-          value={taskType}
-          onChangeText={setTaskType}
-          placeholder="Enter task type"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Task Type</Text>
+          <TextInput
+            style={styles.input}
+            value={taskType}
+            onChangeText={setTaskType}
+            placeholder="Enter task type"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Status</Text>
-        <TextInput
-          style={styles.input}
-          value={status}
-          onChangeText={setStatus}
-          placeholder="Enter status"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Status</Text>
+          <TextInput
+            style={styles.input}
+            value={status}
+            onChangeText={setStatus}
+            placeholder="Enter status"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Scheduled Date</Text>
-        <TextInput
-          style={styles.input}
-          value={scheduledDate}
-          onChangeText={setScheduledDate}
-          placeholder="YYYY-MM-DD"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Scheduled Date</Text>
+          <TextInput
+            style={styles.input}
+            value={scheduledDate}
+            onChangeText={setScheduledDate}
+            placeholder="YYYY-MM-DD"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Scheduled Time</Text>
-        <TextInput
-          style={styles.input}
-          value={scheduledTime}
-          onChangeText={setScheduledTime}
-          placeholder="HH:MM:SS"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Scheduled Time</Text>
+          <TextInput
+            style={styles.input}
+            value={scheduledTime}
+            onChangeText={setScheduledTime}
+            placeholder="HH:MM:SS"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Address</Text>
-        <TextInput
-          style={styles.input}
-          value={address}
-          onChangeText={setAddress}
-          placeholder="Enter address"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Address</Text>
+          <TextInput
+            style={styles.input}
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Enter address"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Estimated Price ($)</Text>
-        <TextInput
-          style={styles.input}
-          value={estimatedPrice}
-          onChangeText={setEstimatedPrice}
-          keyboardType="numeric"
-          placeholder="Enter estimated price"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Estimated Price ($)</Text>
+          <TextInput
+            style={styles.input}
+            value={estimatedPrice}
+            onChangeText={setEstimatedPrice}
+            keyboardType="numeric"
+            placeholder="Enter estimated price"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Cleaning Type</Text>
-        <TextInput
-          style={styles.input}
-          value={cleaningType}
-          onChangeText={setCleaningType}
-          placeholder="Enter cleaning type"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Cleaning Type</Text>
+          <TextInput
+            style={styles.input}
+            value={cleaningType}
+            onChangeText={setCleaningType}
+            placeholder="Enter cleaning type"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Bring Equipment</Text>
-        <TextInput
-          style={styles.input}
-          value={bringEquipment}
-          onChangeText={setBringEquipment}
-          placeholder="Yes/No"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Bring Equipment</Text>
+          <TextInput
+            style={styles.input}
+            value={bringEquipment}
+            onChangeText={setBringEquipment}
+            placeholder="Yes/No"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Estimated Hours</Text>
-        <TextInput
-          style={styles.input}
-          value={estimatedHours}
-          onChangeText={setEstimatedHours}
-          keyboardType="numeric"
-          placeholder="Enter estimated hours"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Estimated Hours</Text>
+          <TextInput
+            style={styles.input}
+            value={estimatedHours}
+            onChangeText={setEstimatedHours}
+            keyboardType="numeric"
+            placeholder="Enter estimated hours"
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Schedule Mode</Text>
-        <TextInput
-          style={styles.input}
-          value={scheduleMode}
-          onChangeText={setScheduleMode}
-          placeholder="Enter schedule mode"
-        />
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Schedule Mode</Text>
+          <TextInput
+            style={styles.input}
+            value={scheduleMode}
+            onChangeText={setScheduleMode}
+            placeholder="Enter schedule mode"
+          />
+        </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.saveButton]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Save Changes</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.saveButton]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Save Changes</Text>
+            )}
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={handleDelete}
-          disabled={deleting}
-        >
-          {deleting ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Delete Task</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity
+            style={[styles.button, styles.deleteButton]}
+            onPress={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Delete Task</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

@@ -80,7 +80,8 @@ export const usePropertyViewModel = () => {
 
   const handleDeleteProperty = async (userId: string, propertyId?: string) => {
     // 检查当前用户是否是房源所有者
-    if (userId !== currentUserId) {
+    const user = await supabaseAuthClient.getUser();
+    if (userId !== user.id) {
       Alert.alert('Error', "You don't have permission to delete this property");
       return;
     }
@@ -99,19 +100,16 @@ export const usePropertyViewModel = () => {
           style: 'destructive',
           onPress: async () => {
             try {
-              setLoading(true);
-              console.log('propertyId:', propertyId);
-              console.log('userId:', userId);
               await supabaseDBClient.deleteUserProperty(propertyId, userId);
               Alert.alert('Success', 'Property deleted!');
-              await fetchUserAndProperties();
+              router.push('/(tabs)/propertyList');
             } catch (error) {
               Alert.alert(
                 'Error',
                 (error as Error).message || 'Failed to delete property',
               );
             } finally {
-              setLoading(false);
+              await fetchUserAndProperties();
             }
           },
         },
@@ -119,9 +117,10 @@ export const usePropertyViewModel = () => {
     );
   };
 
-  const handleEditProperty = (userId: string, propertyId?: string) => {
+  const handleEditProperty = async (userId: string, propertyId?: string) => {
     // 检查当前用户是否是房源所有者
-    if (userId !== currentUserId) {
+    const user = await supabaseAuthClient.getUser();
+    if (userId !== user.id) {
       Alert.alert('Error', "You don't have permission to edit this property");
       return;
     }
@@ -161,10 +160,11 @@ export const usePropertyViewModel = () => {
       });
 
       Alert.alert('Success', 'Property updated successfully!');
-      router.back();
+      router.push('/(tabs)/propertyList');
     } catch (error) {
       Alert.alert('Error', (error as Error).message);
     } finally {
+      await fetchUserAndProperties();
       setLoading(false);
     }
   };
