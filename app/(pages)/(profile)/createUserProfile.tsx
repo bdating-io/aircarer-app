@@ -36,8 +36,6 @@ export default function CreateProfile() {
     validateAndSubmitProfile,
   } = profileViewModel();
 
-  // 图片上传函数
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
@@ -214,11 +212,9 @@ export default function CreateProfile() {
           className={`rounded-full py-3 items-center ${
             firstName &&
             lastName &&
-            abn &&
-            selectedRole &&
-            (selectedRole !== 'Cleaner' ||
-              (selectedRole === 'Cleaner' && isBackgroundChecked)) &&
-            abnValid === true
+            selectedRole && 
+            ((selectedRole === 'Cleaner'  &&  abn.length>0  && abnValid) ||
+              (selectedRole === 'House Owner' && abn.length == 0 || ( abn && abnValid) ))
               ? 'bg-[#4A90E2]'
               : 'bg-gray-200'
           }`}
@@ -226,21 +222,17 @@ export default function CreateProfile() {
           disabled={
             !firstName ||
             !lastName ||
-            !abn ||
             !selectedRole ||
-            (selectedRole === 'Cleaner' && !isBackgroundChecked) ||
-            abnValid !== true
+            (selectedRole === 'Cleaner'  && (abn.length == 0|| abnValid !== true)) ||
+            ( abn.length>0 && abnValid !== true)
           }
         >
           <Text
             className={`font-medium ${
               firstName &&
               lastName &&
-              abn &&
-              selectedRole &&
-              (selectedRole !== 'Cleaner' ||
-                (selectedRole === 'Cleaner' && isBackgroundChecked)) &&
-              abnValid === true
+              selectedRole
+             /* && abn && (selectedRole !== 'Cleaner' || (selectedRole === 'Cleaner' && isBackgroundChecked)) && abnValid === true*/
                 ? 'text-white'
                 : 'text-gray-500'
             }`}

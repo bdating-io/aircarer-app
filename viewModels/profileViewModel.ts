@@ -250,22 +250,24 @@ export const profileViewModel = () => {
   };
 
   const validateAndSubmitProfile = async () => {
-    if (!firstName || !lastName || !abn || !selectedRole) {
+    if (!firstName || !lastName || !selectedRole || ( selectedRole === 'Cleaner' && !abn )) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
-    // 验证ABN
-    setValidatingAbn(true);
-    const isAbnValid = await validateABNOnline(abn);
-    setValidatingAbn(false);
+    if( selectedRole === 'Cleaner' || selectedRole === 'House Owner' && abn.length > 0) {
+      // 验证ABN
+      setValidatingAbn(true);
+      const isAbnValid = await validateABNOnline(abn);
+      setValidatingAbn(false);
 
-    if (!isAbnValid) {
-      Alert.alert(
-        'Invalid ABN',
-        'Please enter a valid Australian Business Number',
-      );
-      return;
+      if (!isAbnValid) {
+        Alert.alert(
+          'Invalid ABN',
+          'Please enter a valid Australian Business Number',
+        );
+        return;
+      }
     }
 
     try {
