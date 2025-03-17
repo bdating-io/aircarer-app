@@ -37,19 +37,19 @@ export interface AddressValidationError {
 
 // 地址类型枚举
 export enum AddressType {
-  Home = "Home",
-  Work = "Work",
-  Other = "Other",
+  Home = 'Home',
+  Work = 'Work',
+  Other = 'Other',
 }
 
 // 澳大利亚州份枚举
 export enum AustralianState {
-  NSW = "NSW",
-  VIC = "VIC",
-  QLD = "QLD",
-  WA = "WA",
-  SA = "SA",
-  TAS = "TAS",
-  ACT = "ACT",
-  NT = "NT",
+  NSW = 'NSW',
+  VIC = 'VIC',
+  QLD = 'QLD',
+  WA = 'WA',
+  SA = 'SA',
+  TAS = 'TAS',
+  ACT = 'ACT',
+  NT = 'NT',
 }

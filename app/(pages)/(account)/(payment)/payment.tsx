@@ -18,7 +18,7 @@
 // } from "@expo/vector-icons";
 // import { Camera, CameraType } from "expo-camera";
 // import * as ImageManipulator from "expo-image-manipulator";
-// import { supabase } from "@/lib/supabase";
+// import { supabase } from "@/clients/supabase";
 // import { SafeAreaView } from "react-native-safe-area-context";
 
 // type PaymentMethod = "bsb" | "credit" | null;
@@ -210,19 +210,19 @@
 
 //   const handleCardScanned = (data: { number?: string; expiry?: string; name?: string }) => {
 //     setIsScanning(false);
-    
+
 //     if (data.number) {
 //       handleCardNumberChange(data.number);
 //     }
-    
+
 //     if (data.expiry) {
 //       setCardInfo(prev => ({ ...prev, expiry: data.expiry }));
 //     }
-    
+
 //     if (data.name) {
 //       setCardInfo(prev => ({ ...prev, cardHolderName: data.name }));
 //     }
-    
+
 //     Alert.alert("Card Scanned", "Your card details have been filled automatically.");
 //   };
 
@@ -571,13 +571,13 @@
 //   const renderScanner = () => (
 //     <View className="flex-1">
 //       {hasPermission === true ? (
-//         <Camera 
+//         <Camera
 //           className="flex-1"
 //           type={CameraType.back}
 //           onBarCodeScanned={({data}) => {
 //             // 这里添加信用卡扫描逻辑
 //             console.log("Scanned data:", data);
-            
+
 //             // 模拟扫描到的信用卡数据
 //             handleCardScanned({
 //               number: "4111 1111 1111 1111",
@@ -593,7 +593,7 @@
 //               </TouchableOpacity>
 //               <Text className="text-lg font-semibold ml-4 text-white">Scan Card</Text>
 //             </View>
-            
+
 //             <View className="flex-1 justify-center items-center">
 //               <View className="border-2 border-white h-48 w-72 rounded-lg">
 //                 <Text className="text-white text-center mt-4">
@@ -601,7 +601,7 @@
 //                 </Text>
 //               </View>
 //             </View>
-            
+
 //             <TouchableOpacity
 //               className="bg-white rounded-lg p-4 mb-6"
 //               onPress={cancelScanning}

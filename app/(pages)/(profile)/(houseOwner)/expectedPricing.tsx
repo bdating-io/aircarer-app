@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   ScrollView,
   TextInput,
   Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { supabase } from '@/clients/supabase';
 
 interface PricingOption {
   type: string;
@@ -22,17 +22,17 @@ interface PricingOption {
 export default function ExpectedPricing() {
   const router = useRouter();
   const [pricingOptions, setPricingOptions] = useState<PricingOption[]>([
-    { type: "Studio", bedrooms: 0, bathrooms: 1, price: "30" },
-    { type: "1 Bedroom 1 Bathroom", bedrooms: 1, bathrooms: 1, price: "40" },
-    { type: "2 Bedrooms 1 Bathroom", bedrooms: 2, bathrooms: 1, price: "60" },
-    { type: "2 Bedrooms 2 Bathrooms", bedrooms: 2, bathrooms: 2, price: "80" },
-    { type: "3 Bedrooms 2 Bathrooms", bedrooms: 3, bathrooms: 2, price: "100" },
+    { type: 'Studio', bedrooms: 0, bathrooms: 1, price: '30' },
+    { type: '1 Bedroom 1 Bathroom', bedrooms: 1, bathrooms: 1, price: '40' },
+    { type: '2 Bedrooms 1 Bathroom', bedrooms: 2, bathrooms: 1, price: '60' },
+    { type: '2 Bedrooms 2 Bathrooms', bedrooms: 2, bathrooms: 2, price: '80' },
+    { type: '3 Bedrooms 2 Bathrooms', bedrooms: 3, bathrooms: 2, price: '100' },
   ]);
 
   const handlePriceChange = (index: number, newPrice: string) => {
     const updatedOptions = [...pricingOptions];
     // 只允许输入数字
-    const numericPrice = newPrice.replace(/[^0-9]/g, "");
+    const numericPrice = newPrice.replace(/[^0-9]/g, '');
     updatedOptions[index] = {
       ...updatedOptions[index],
       price: numericPrice,
@@ -47,25 +47,25 @@ export default function ExpectedPricing() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        Alert.alert("Error", "Please login first");
+        Alert.alert('Error', 'Please login first');
         return;
       }
 
       // 更新用户 profile 中的 pricing
       const { error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .update({
           pricing: pricingOptions,
         })
-        .eq("user_id", user.id);
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
-      Alert.alert("Success", "Pricing saved successfully");
+      Alert.alert('Success', 'Pricing saved successfully');
 
-      router.push("/(tabs)/home");
+      router.push('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert("Error", error?.message || "Failed to save pricing");
+      Alert.alert('Error', error?.message || 'Failed to save pricing');
     }
   };
 

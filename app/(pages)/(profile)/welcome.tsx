@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
-import { supabase } from '@/lib/supabase';
-import useStore from '../../../utils/store';
+import { supabase } from '@/clients/supabase';
+import useStore from '@/utils/store';
 
 export default function Welcome() {
   const router = useRouter();
@@ -19,7 +19,9 @@ export default function Welcome() {
   const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
 
   useEffect(() => {
-    myProfile && myProfile.first_name && setNickname(myProfile.first_name);
+    if (myProfile && myProfile.first_name) {
+      setNickname(myProfile.first_name);
+    }
   }, [myProfile]);
 
   const handleContinue = async () => {

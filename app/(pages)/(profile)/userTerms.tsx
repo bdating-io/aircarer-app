@@ -1,79 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
+  NativeScrollEvent,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { profileViewModel } from '@/viewModels/profileViewModel';
 
 export default function UserTerms() {
   const router = useRouter();
   const [isBottom, setIsBottom] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { loading, checkTermsAcceptance, handleAcceptTerms } =
+    profileViewModel();
 
   // 检查用户是否已同意条款
   useEffect(() => {
     checkTermsAcceptance();
   }, []);
 
-  const checkTermsAcceptance = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("terms_accepted")
-        .eq("user_id", user.id)
-        .single();
-
-      if (error) throw error;
-
-      if (data?.terms_accepted) {
-        // 如果已同意条款，直接跳转到创建档案
-        router.replace("/(pages)/(profile)/createUserProfile");
-      }
-    } catch (error) {
-      console.error("Error checking terms:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAcceptTerms = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase.from("profiles").upsert({
-        user_id: user.id,
-        terms_accepted: true,
-        terms_accepted_at: new Date().toISOString(),
-      });
-
-      if (error) throw error;
-
-      router.push("/(pages)/(profile)/createUserProfile");
-    } catch (error) {
-      console.error("Error accepting terms:", error);
-      Alert.alert("Error", "Failed to accept terms");
-    }
-  };
-
   const handleScroll = ({
     layoutMeasurement,
     contentOffset,
     contentSize,
-  }: any) => {
+  }: NativeScrollEvent) => {
     const paddingToBottom = 20;
     const isCloseToBottom =
       layoutMeasurement.height + contentOffset.y >=

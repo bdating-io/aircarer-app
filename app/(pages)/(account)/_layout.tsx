@@ -1,4 +1,5 @@
-import { Stack } from "expo-router";
+import React from 'react';
+import { Stack } from 'expo-router';
 
 export default function RootLayout() {
   return <RootLayoutNav />;
@@ -7,9 +8,9 @@ export default function RootLayout() {
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="notification" options={{ headerShown: false }} />
+      <Stack.Screen name="notifications" options={{ headerShown: false }} />
       <Stack.Screen name="settings" options={{ headerShown: false }} />
-      <Stack.Screen name="payment" options={{ headerShown: false }} />
+      <Stack.Screen name="(payment)" options={{ headerShown: false }} />
     </Stack>
   );
 }

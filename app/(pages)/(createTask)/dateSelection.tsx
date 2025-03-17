@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,12 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { Calendar } from "react-native-calendars";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import TimePickerModal from "../../../components/TimePickerModal/TimePickerModal";
-import { supabase } from "@/lib/supabase"; 
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Calendar } from 'react-native-calendars';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import TimePickerModal from '../../../components/TimePickerModal/TimePickerModal';
+import { supabase } from '@/clients/supabase';
 
 type DateObject = {
   dateString: string;
@@ -27,12 +27,12 @@ type DateObject = {
 
 // 把 "8:00 AM" => 480 (分钟)，"12:30 PM" => 750
 function parseTime12ToMinutes(timeString: string): number {
-  const [hhmm, ampm] = timeString.split(" ");
-  const [hh, mm] = hhmm.split(":");
+  const [hhmm, ampm] = timeString.split(' ');
+  const [hh, mm] = hhmm.split(':');
 
   const hours = parseInt(hh, 10);
   const minutes = parseInt(mm, 10);
-  const isAm = ampm.toUpperCase() === "AM";
+  const isAm = ampm.toUpperCase() === 'AM';
   if (isNaN(hours) || isNaN(minutes)) return 0;
 
   let hours24;
@@ -60,23 +60,25 @@ export default function DateSelection() {
   }>();
 
   // exact / before 两个模式
-  const [dateOption, setDateOption] = useState<"Exact" | "Before">("Exact");
+  const [dateOption, setDateOption] = useState<'Exact' | 'Before'>('Exact');
 
   // exact模式
-  const [exactDate, setExactDate] = useState("");
+  const [exactDate, setExactDate] = useState('');
   // before模式
-  const [beforeDate, setBeforeDate] = useState("");
+  const [beforeDate, setBeforeDate] = useState('');
 
   // 下方time picker
-  const [startTimeText, setStartTimeText] = useState("");
-  const [endTimeText, setEndTimeText] = useState("");
+  const [startTimeText, setStartTimeText] = useState('');
+  const [endTimeText, setEndTimeText] = useState('');
 
   // 自动计算出的时长(小时)，仅 exact 模式
-  const [calculatedHours, setCalculatedHours] = useState("");
+  const [calculatedHours, setCalculatedHours] = useState('');
 
   // before模式下: 上午/下午 + 预计时长
-  const [dayPeriod, setDayPeriod] = useState<"morning" | "afternoon">("morning");
-  const [estimatedHours, setEstimatedHours] = useState("");
+  const [dayPeriod, setDayPeriod] = useState<'morning' | 'afternoon'>(
+    'morning',
+  );
+  const [estimatedHours, setEstimatedHours] = useState('');
 
   // 控制 TimePickerModal 显示
   const [timePickerVisible, setTimePickerVisible] = useState(false);
@@ -85,18 +87,21 @@ export default function DateSelection() {
   const handleSubmit = async () => {
     // 1) 确保有 taskId
     if (!taskId) {
-      Alert.alert("Error", "No taskId provided in route params.");
+      Alert.alert('Error', 'No taskId provided in route params.');
       return;
     }
 
     // 2) 如果是 EXACT
-    if (dateOption === "Exact") {
+    if (dateOption === 'Exact') {
       if (!exactDate) {
-        Alert.alert("Error", "Please select a valid date.");
+        Alert.alert('Error', 'Please select a valid date.');
         return;
       }
       if (!startTimeText || !endTimeText || !calculatedHours) {
-        Alert.alert("Error", "Please select start/end time and ensure hours are calculated.");
+        Alert.alert(
+          'Error',
+          'Please select start/end time and ensure hours are calculated.',
+        );
         return;
       }
 
@@ -105,7 +110,7 @@ export default function DateSelection() {
       // 或者真正把 startTimeText 解析成小时分钟后加到 exactDate
       const startTimeMinutes = parseTime12ToMinutes(startTimeText);
       // 计算当日 0点 + startTimeMinutes
-      const [year, month, day] = exactDate.split("-").map(Number);
+      const [year, month, day] = exactDate.split('-').map(Number);
       const dateObj = new Date(year, month - 1, day, 0, 0);
       dateObj.setMinutes(startTimeMinutes);
       // 这就是 scheduled_start_time
@@ -115,40 +120,43 @@ export default function DateSelection() {
 
       try {
         // EXACT 模式更新：同时更新 scheduled_start_time 和 scheduled_start_date
-        const { data, error } = await supabase
-          .from("tasks")
+        const { error } = await supabase
+          .from('tasks')
           .update({
-            schedule_mode: "Exact",
+            schedule_mode: 'Exact',
             scheduled_start_time: dateObj.toISOString(),
             scheduled_start_date: exactDate, // 改为保存 exactDate
             scheduled_period: null,
             estimated_hours: hoursNum,
           })
-          .eq("task_id", taskId)
-          .select("*")
+          .eq('task_id', taskId)
+          .select('*')
           .single();
 
-
         if (error) throw error;
-        Alert.alert("Success", "Updated with EXACT schedule!");
+        Alert.alert('Success', 'Updated with EXACT schedule!');
 
         // 跳转到下一步 takePhotoPage
         router.push({
-          pathname: "/(pages)/(createTask)/takePhotoPage",
+          pathname: '/(pages)/(createTask)/takePhotoPage',
           params: { propertyId, taskId }, // 继续传给下个页面
         });
       } catch (err) {
         console.error(err);
-        Alert.alert("Error updating tasks", "Please try again.");
+        Alert.alert('Error updating tasks', 'Please try again.');
       }
     } else {
       // 3) 如果是 BEFORE
       if (!beforeDate) {
-        Alert.alert("Error", "Please select a valid date for 'before'.");
+        Alert.alert('Error', "Please select a valid date for 'before'.");
         return;
       }
-      if (!estimatedHours || isNaN(Number(estimatedHours)) || Number(estimatedHours) <= 0) {
-        Alert.alert("Error", "Please enter a valid estimated time in hours.");
+      if (
+        !estimatedHours ||
+        isNaN(Number(estimatedHours)) ||
+        Number(estimatedHours) <= 0
+      ) {
+        Alert.alert('Error', 'Please enter a valid estimated time in hours.');
         return;
       }
 
@@ -157,41 +165,43 @@ export default function DateSelection() {
       try {
         // BEFORE 模式更新：同时更新 scheduled_start_time 和 scheduled_start_date
         // scheduled_start_time 根据 dayPeriod 采用默认时间（morning 默认 "08:00:00"，afternoon 默认 "14:00:00"）
-        const { data, error } = await supabase
-          .from("tasks")
+        const { error } = await supabase
+          .from('tasks')
           .update({
-            schedule_mode: "Before",
+            schedule_mode: 'Before',
             scheduled_start_time: new Date(
               beforeDate +
-                "T" +
-                (dayPeriod === "morning" ? "08:00:00" : "14:00:00")
+                'T' +
+                (dayPeriod === 'morning' ? '08:00:00' : '14:00:00'),
             ).toISOString(),
             scheduled_start_date: beforeDate,
-            scheduled_period: dayPeriod === "morning" ? "Morning" : "Afternoon",
+            scheduled_period: dayPeriod === 'morning' ? 'Morning' : 'Afternoon',
             estimated_hours: hoursNum,
           })
-          .eq("task_id", taskId)
-          .select("*")
+          .eq('task_id', taskId)
+          .select('*')
           .single();
 
-
         if (error) throw error;
-        Alert.alert("Success", "Updated with BEFORE schedule!");
+        Alert.alert('Success', 'Updated with BEFORE schedule!');
 
         // 跳转下一页
         router.push({
-          pathname: "/(pages)/(createTask)/takePhotoPage",
+          pathname: '/(pages)/(createTask)/takePhotoPage',
           params: { propertyId, taskId },
         });
       } catch (err) {
         console.error(err);
-        Alert.alert("Error", "Failed to update tasks. Please try again.");
+        Alert.alert('Error', 'Failed to update tasks. Please try again.');
       }
     }
   };
 
   // TimePickerModal 点 OK 的回调
-  const handleTimePicked = (access_time_data: { start_time: string; end_time: string }) => {
+  const handleTimePicked = (access_time_data: {
+    start_time: string;
+    end_time: string;
+  }) => {
     const { start_time, end_time } = access_time_data;
     setStartTimeText(start_time);
     setEndTimeText(end_time);
@@ -206,49 +216,54 @@ export default function DateSelection() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView style={{ flex: 1, backgroundColor: "#F8F9FA" }}>
+        <ScrollView style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
           <View style={{ padding: 16 }}>
-            <Text style={{ fontSize: 19, fontWeight: "600", marginBottom: 12 }}>
+            <Text style={{ fontSize: 19, fontWeight: '600', marginBottom: 12 }}>
               Looking for an exact date?
             </Text>
 
             {/* exact / before 选项 */}
-            <View style={{ flexDirection: "row", marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', marginBottom: 16 }}>
               <TouchableOpacity
-                onPress={() => setDateOption("Exact")}
+                onPress={() => setDateOption('Exact')}
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: dateOption === "Exact" ? "#4E89CE" : "#ccc",
+                  backgroundColor: dateOption === 'Exact' ? '#4E89CE' : '#ccc',
                   marginRight: 4,
                   borderRadius: 8,
-                  alignItems: "center",
+                  alignItems: 'center',
                 }}
               >
-                <Text style={{ color: "#fff" }}>Exact date & time</Text>
+                <Text style={{ color: '#fff' }}>Exact date & time</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => setDateOption("Before")}
+                onPress={() => setDateOption('Before')}
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: dateOption === "Before" ? "#4E89CE" : "#ccc",
+                  backgroundColor: dateOption === 'Before' ? '#4E89CE' : '#ccc',
                   marginLeft: 4,
                   borderRadius: 8,
-                  alignItems: "center",
+                  alignItems: 'center',
                 }}
               >
-                <Text style={{ color: "#fff" }}>Before a date</Text>
+                <Text style={{ color: '#fff' }}>Before a date</Text>
               </TouchableOpacity>
             </View>
 
-            {dateOption === "Exact" ? (
+            {dateOption === 'Exact' ? (
               // ========== EXACT模式 ==========
               <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontWeight: "600", marginBottom: 8, fontSize: 18 }}>
+                <Text
+                  style={{ fontWeight: '600', marginBottom: 8, fontSize: 18 }}
+                >
                   Select Exact Date
                 </Text>
                 <Calendar
@@ -257,33 +272,39 @@ export default function DateSelection() {
                     [exactDate]: {
                       selected: true,
                       marked: true,
-                      selectedColor: "#4E89CE",
+                      selectedColor: '#4E89CE',
                     },
                   }}
-                  minDate={new Date().toISOString().split("T")[0]}
+                  minDate={new Date().toISOString().split('T')[0]}
                   theme={{
-                    todayTextColor: "#FF7E7E",
-                    arrowColor: "#4E89CE",
+                    todayTextColor: '#FF7E7E',
+                    arrowColor: '#4E89CE',
                   }}
                 />
                 <Text style={{ marginTop: 16, fontSize: 15 }}>
-                  Selected Date: {exactDate || "None"}
+                  Selected Date: {exactDate || 'None'}
                 </Text>
 
                 {/* Time Range按钮 */}
                 <View style={{ marginTop: 16 }}>
-                  <Text style={{ fontWeight: "600", marginBottom: 10, fontSize: 18 }}>
+                  <Text
+                    style={{
+                      fontWeight: '600',
+                      marginBottom: 10,
+                      fontSize: 18,
+                    }}
+                  >
                     Select Time Range
                   </Text>
                   <TouchableOpacity
                     onPress={() => setTimePickerVisible(true)}
                     style={{
-                      backgroundColor: "#4E89CE",
+                      backgroundColor: '#4E89CE',
                       padding: 12,
                       borderRadius: 6,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexDirection: "row",
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'row',
                     }}
                   >
                     <Ionicons
@@ -292,7 +313,9 @@ export default function DateSelection() {
                       color="#fff"
                       style={{ marginRight: 8 }}
                     />
-                    <Text style={{ color: "#fff" }}>Select Start & End Time</Text>
+                    <Text style={{ color: '#fff' }}>
+                      Select Start & End Time
+                    </Text>
                   </TouchableOpacity>
 
                   {(startTimeText || endTimeText) && (
@@ -302,8 +325,11 @@ export default function DateSelection() {
                       </Text>
                       {calculatedHours && (
                         <Text style={{ fontSize: 15 }}>
-                          The cleaning is expected to take{" "}
-                          <Text style={{ fontWeight: "bold" }}>{calculatedHours} hours</Text>.
+                          The cleaning is expected to take{' '}
+                          <Text style={{ fontWeight: 'bold' }}>
+                            {calculatedHours} hours
+                          </Text>
+                          .
                         </Text>
                       )}
                     </View>
@@ -313,58 +339,66 @@ export default function DateSelection() {
             ) : (
               // ========== BEFORE模式 ==========
               <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontWeight: "600", marginBottom: 8, fontSize: 18 }}>
+                <Text
+                  style={{ fontWeight: '600', marginBottom: 8, fontSize: 18 }}
+                >
                   Select Before Date
                 </Text>
                 <Calendar
-                  onDayPress={(day: DateObject) => setBeforeDate(day.dateString)}
+                  onDayPress={(day: DateObject) =>
+                    setBeforeDate(day.dateString)
+                  }
                   markedDates={{
                     [beforeDate]: {
                       selected: true,
                       marked: true,
-                      selectedColor: "#4E89CE",
+                      selectedColor: '#4E89CE',
                     },
                   }}
-                  minDate={new Date().toISOString().split("T")[0]}
+                  minDate={new Date().toISOString().split('T')[0]}
                   theme={{
-                    todayTextColor: "#4E89CE",
-                    arrowColor: "#4E89CE",
+                    todayTextColor: '#4E89CE',
+                    arrowColor: '#4E89CE',
                   }}
                 />
                 <Text style={{ marginTop: 16, fontSize: 15 }}>
-                  Selected Date: {beforeDate || "None"}
+                  Selected Date: {beforeDate || 'None'}
                 </Text>
 
-                <Text style={{ fontWeight: "600", marginTop: 16, fontSize: 18 }}>
+                <Text
+                  style={{ fontWeight: '600', marginTop: 16, fontSize: 18 }}
+                >
                   Morning or Afternoon?
                 </Text>
-                <View style={{ flexDirection: "row", marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', marginTop: 8 }}>
                   <TouchableOpacity
-                    onPress={() => setDayPeriod("morning")}
+                    onPress={() => setDayPeriod('morning')}
                     style={{
                       flex: 1,
                       padding: 12,
-                      backgroundColor: dayPeriod === "morning" ? "#4E89CE" : "#ccc",
+                      backgroundColor:
+                        dayPeriod === 'morning' ? '#4E89CE' : '#ccc',
                       marginRight: 4,
                       borderRadius: 6,
-                      alignItems: "center",
+                      alignItems: 'center',
                     }}
                   >
-                    <Text style={{ color: "#fff" }}>Morning</Text>
+                    <Text style={{ color: '#fff' }}>Morning</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => setDayPeriod("afternoon")}
+                    onPress={() => setDayPeriod('afternoon')}
                     style={{
                       flex: 1,
                       padding: 12,
-                      backgroundColor: dayPeriod === "afternoon" ? "#4E89CE" : "#ccc",
+                      backgroundColor:
+                        dayPeriod === 'afternoon' ? '#4E89CE' : '#ccc',
                       marginLeft: 4,
                       borderRadius: 6,
-                      alignItems: "center",
+                      alignItems: 'center',
                     }}
                   >
-                    <Text style={{ color: "#fff" }}>Afternoon</Text>
+                    <Text style={{ color: '#fff' }}>Afternoon</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -378,7 +412,7 @@ export default function DateSelection() {
                   onChangeText={setEstimatedHours}
                   style={{
                     borderWidth: 1,
-                    borderColor: "#ccc",
+                    borderColor: '#ccc',
                     padding: 8,
                     borderRadius: 6,
                     marginVertical: 8,
@@ -392,14 +426,14 @@ export default function DateSelection() {
             <TouchableOpacity
               onPress={handleSubmit}
               style={{
-                backgroundColor: "#4E89CE",
+                backgroundColor: '#4E89CE',
                 padding: 16,
                 borderRadius: 8,
-                alignItems: "center",
+                alignItems: 'center',
                 marginTop: 16,
               }}
             >
-              <Text style={{ color: "#fff", fontWeight: "bold" }}>Next</Text>
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Next</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -408,14 +442,14 @@ export default function DateSelection() {
       {timePickerVisible && (
         <TimePickerModal
           start_time_separation_data={{
-            hours: "",
-            minutes: "",
+            hours: '',
+            minutes: '',
             is_am: true,
             is_pm: false,
           }}
           end_time_separation_data={{
-            hours: "",
-            minutes: "",
+            hours: '',
+            minutes: '',
             is_am: true,
             is_pm: false,
           }}
@@ -424,11 +458,11 @@ export default function DateSelection() {
             agent_access_end_ts: null,
           }}
           time_modal_localization={{
-            app_access_time_title: "Select Time Range",
-            start_time_title: "Start Time",
-            end_time_title: "End Time",
-            cancelButtonTxt: "Cancel",
-            okButtonText: "OK",
+            app_access_time_title: 'Select Time Range',
+            start_time_title: 'Start Time',
+            end_time_title: 'End Time',
+            cancelButtonTxt: 'Cancel',
+            okButtonText: 'OK',
           }}
           onPressOkFn={handleTimePicked}
           onPressCancelFn={() => setTimePickerVisible(false)}

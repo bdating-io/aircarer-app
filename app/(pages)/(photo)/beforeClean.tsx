@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,14 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "expo-router";
-import * as FileSystem from "expo-file-system";
-import { Ionicons } from "@expo/vector-icons";
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { supabase } from '@/clients/supabase';
+import { useRouter } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
+import { Ionicons } from '@expo/vector-icons';
 
-type RoomType = "living_room" | "bedroom" | "kitchen" | "bathroom" | "other";
+type RoomType = 'living_room' | 'bedroom' | 'kitchen' | 'bathroom' | 'other';
 
 interface RoomPhotos {
   [key: string]: string[];
@@ -33,36 +33,36 @@ export default function BeforeCleaning() {
 
   const rooms = [
     {
-      id: "living_room" as RoomType,
-      label: "Living Room",
-      description: "Living room area",
+      id: 'living_room' as RoomType,
+      label: 'Living Room',
+      description: 'Living room area',
     },
     {
-      id: "bedroom" as RoomType,
-      label: "Bedroom",
-      description: "Bedroom area",
+      id: 'bedroom' as RoomType,
+      label: 'Bedroom',
+      description: 'Bedroom area',
     },
     {
-      id: "kitchen" as RoomType,
-      label: "Kitchen",
-      description: "Kitchen area",
+      id: 'kitchen' as RoomType,
+      label: 'Kitchen',
+      description: 'Kitchen area',
     },
     {
-      id: "bathroom" as RoomType,
-      label: "Bathroom",
-      description: "Bathroom area",
+      id: 'bathroom' as RoomType,
+      label: 'Bathroom',
+      description: 'Bathroom area',
     },
-    { id: "other" as RoomType, label: "Other", description: "Other areas" },
+    { id: 'other' as RoomType, label: 'Other', description: 'Other areas' },
   ];
 
   const handleSelectImage = async (roomId: RoomType) => {
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
+      if (status !== 'granted') {
         Alert.alert(
-          "Permission needed",
-          "Please grant camera roll permissions"
+          'Permission needed',
+          'Please grant camera roll permissions',
         );
         return;
       }
@@ -81,16 +81,16 @@ export default function BeforeCleaning() {
         }));
       }
     } catch (error) {
-      console.error("Error selecting image:", error);
-      Alert.alert("Error", "Failed to select image");
+      console.error('Error selecting image:', error);
+      Alert.alert('Error', 'Failed to select image');
     }
   };
 
   const handleTakePhoto = async (roomId: RoomType) => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission needed", "Please grant camera permissions");
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera permissions');
         return;
       }
 
@@ -108,8 +108,8 @@ export default function BeforeCleaning() {
         }));
       }
     } catch (error) {
-      console.error("Error taking photo:", error);
-      Alert.alert("Error", "Failed to take photo");
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo');
     }
   };
 
@@ -122,10 +122,10 @@ export default function BeforeCleaning() {
 
   const handleSave = async () => {
     const hasAnyImage = Object.values(uploadedImages).some(
-      (urls) => urls.length > 0
+      (urls) => urls.length > 0,
     );
     if (!hasAnyImage) {
-      Alert.alert("Required", "Please select at least one photo");
+      Alert.alert('Required', 'Please select at least one photo');
       return;
     }
 
@@ -134,15 +134,15 @@ export default function BeforeCleaning() {
     try {
       // 获取当前进行中的任务
       const { data: tasks, error: taskError } = await supabase
-        .from("tasks")
-        .select("task_id")
-        .eq("status", "In Progress")
-        .order("scheduled_start_time", { ascending: false })
+        .from('tasks')
+        .select('task_id')
+        .eq('status', 'In Progress')
+        .order('scheduled_start_time', { ascending: false })
         .limit(1);
 
       if (taskError) throw taskError;
       if (!tasks || tasks.length === 0) {
-        Alert.alert("Error", "No active task found");
+        Alert.alert('Error', 'No active task found');
         return;
       }
 
@@ -166,10 +166,10 @@ export default function BeforeCleaning() {
 
             // 上传到 Supabase Storage
             const { error: uploadError } = await supabase.storage
-              .from("cleaning-photos")
+              .from('cleaning-photos')
               .upload(fileName, decode(base64), {
-                contentType: "image/jpeg",
-                cacheControl: "3600",
+                contentType: 'image/jpeg',
+                cacheControl: '3600',
               });
 
             if (uploadError) throw uploadError;
@@ -177,36 +177,36 @@ export default function BeforeCleaning() {
             // 获取公共 URL
             const {
               data: { publicUrl },
-            } = supabase.storage.from("cleaning-photos").getPublicUrl(fileName);
+            } = supabase.storage.from('cleaning-photos').getPublicUrl(fileName);
 
             // 保存照片记录
-            await supabase.from("room_photos").insert([
+            await supabase.from('room_photos').insert([
               {
                 task_id: taskId,
                 room_type: roomId,
-                photo_type: "before",
+                photo_type: 'before',
                 photo_url: publicUrl,
               },
             ]);
           } catch (uploadError) {
-            console.error("Upload error:", uploadError);
+            console.error('Upload error:', uploadError);
             continue; // 继续处理其他照片
           }
         }
       }
 
-      Alert.alert("Success", "Before cleaning photos uploaded successfully", [
+      Alert.alert('Success', 'Before cleaning photos uploaded successfully', [
         {
-          text: "OK",
+          text: 'OK',
           onPress: () => {
             // 导航到任务详情页面
-            router.push("/taskDetail");
+            router.push('/taskDetail');
           },
         },
       ]);
     } catch (error) {
-      console.error("Error:", error);
-      Alert.alert("Error", "Failed to save photos");
+      console.error('Error:', error);
+      Alert.alert('Error', 'Failed to save photos');
     } finally {
       setIsUploading(false);
     }
@@ -281,9 +281,9 @@ export default function BeforeCleaning() {
                     width: 120,
                     height: 120,
                     borderRadius: 8,
-                    backgroundColor: "#f3f4f6",
-                    justifyContent: "center",
-                    alignItems: "center",
+                    backgroundColor: '#f3f4f6',
+                    justifyContent: 'center',
+                    alignItems: 'center',
                   }}
                 >
                   <Text className="text-gray-400">No photos</Text>
@@ -298,10 +298,10 @@ export default function BeforeCleaning() {
           <TouchableOpacity
             className={`py-4 rounded-lg items-center ${
               isUploading
-                ? "bg-gray-400"
+                ? 'bg-gray-400'
                 : Object.values(uploadedImages).some((urls) => urls.length > 0)
-                ? "bg-blue-500"
-                : "bg-gray-300"
+                  ? 'bg-blue-500'
+                  : 'bg-gray-300'
             }`}
             onPress={handleSave}
             disabled={isUploading}

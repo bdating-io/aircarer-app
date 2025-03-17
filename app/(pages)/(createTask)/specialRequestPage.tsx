@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,32 +9,32 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { supabase } from "@/lib/supabase";
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { supabase } from '@/clients/supabase';
 
 export default function SpecialRequestPage() {
   const router = useRouter();
   const { taskId } = useLocalSearchParams() as { taskId?: string };
 
   const requests = [
-    "Pet fur cleaning",
-    "Carpet steaming",
-    "Range hood cleaning",
-    "Oven cleaning",
-    "Outdoor cleaning",
+    'Pet fur cleaning',
+    'Carpet steaming',
+    'Range hood cleaning',
+    'Oven cleaning',
+    'Outdoor cleaning',
   ];
 
   const requestColumns: Record<string, string> = {
-    "Pet fur cleaning": "pet_cleaning",
-    "Carpet steaming": "carpet_steaming",
-    "Range hood cleaning": "rangehood_cleaning",
-    "Oven cleaning": "oven_cleaning",
-    "Outdoor cleaning": "outdoor_cleaning",
+    'Pet fur cleaning': 'pet_cleaning',
+    'Carpet steaming': 'carpet_steaming',
+    'Range hood cleaning': 'rangehood_cleaning',
+    'Oven cleaning': 'oven_cleaning',
+    'Outdoor cleaning': 'outdoor_cleaning',
   };
 
   const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
-  const [customRequest, setCustomRequest] = useState("");
+  const [customRequest, setCustomRequest] = useState('');
 
   const toggleRequest = (request: string) => {
     if (selectedRequests.includes(request)) {
@@ -46,12 +46,15 @@ export default function SpecialRequestPage() {
 
   const handleNext = async () => {
     if (!taskId) {
-      Alert.alert("Error", "No taskId provided in route params.");
+      Alert.alert('Error', 'No taskId provided in route params.');
       return;
     }
 
     if (selectedRequests.length === 0 && !customRequest.trim()) {
-      Alert.alert("Error", "Please select at least one special request or enter a custom request.");
+      Alert.alert(
+        'Error',
+        'Please select at least one special request or enter a custom request.',
+      );
       return;
     }
 
@@ -72,20 +75,23 @@ export default function SpecialRequestPage() {
         }
       });
 
-      const { error } = await supabase.from("tasks").update(updateObj).eq("task_id", taskId);
+      const { error } = await supabase
+        .from('tasks')
+        .update(updateObj)
+        .eq('task_id', taskId);
 
       if (error) throw error;
 
-      Alert.alert("Success", "Your special requests have been saved!");
+      Alert.alert('Success', 'Your special requests have been saved!');
       router.push(`/(pages)/(createTask)/budgetPage?taskId=${taskId}`);
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      Alert.alert('Error', err.message);
     }
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -98,14 +104,19 @@ export default function SpecialRequestPage() {
             <TouchableOpacity
               key={request}
               onPress={() => toggleRequest(request)}
-              style={[styles.requestButton, { backgroundColor: selected ? "#4E89CE" : "#ccc" }]}
+              style={[
+                styles.requestButton,
+                { backgroundColor: selected ? '#4E89CE' : '#ccc' },
+              ]}
             >
               <Text style={styles.requestText}>{request}</Text>
             </TouchableOpacity>
           );
         })}
 
-        <Text style={styles.customLabel}>Please specify any other special requirements (maximum 250 words)</Text>
+        <Text style={styles.customLabel}>
+          Please specify any other special requirements (maximum 250 words)
+        </Text>
         <TextInput
           placeholder="Enter your custom request here..."
           value={customRequest}
@@ -117,7 +128,7 @@ export default function SpecialRequestPage() {
         />
 
         <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
-          <Text style={{ color: "#fff", fontWeight: "bold" }}>Next</Text>
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Next</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -127,46 +138,46 @@ export default function SpecialRequestPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: '#F8F9FA',
     padding: 16,
   },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 12,
   },
   subtitle: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   requestButton: {
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
   requestText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: '#fff',
+    fontWeight: 'bold',
   },
   customLabel: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginTop: 16,
     marginBottom: 4,
   },
   customInput: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     padding: 12,
     borderRadius: 8,
-    backgroundColor: "#fff",
-    textAlignVertical: "top",
+    backgroundColor: '#fff',
+    textAlignVertical: 'top',
     marginBottom: 16,
   },
   nextButton: {
-    backgroundColor: "#4E89CE",
+    backgroundColor: '#4E89CE',
     padding: 16,
     borderRadius: 8,
-    alignItems: "center",
+    alignItems: 'center',
   },
 });

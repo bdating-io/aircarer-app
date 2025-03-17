@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,19 +6,19 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import {
   AntDesign,
   Ionicons,
   MaterialCommunityIcons,
-} from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from '@expo/vector-icons';
+import { supabase } from '@/clients/supabase';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PaymentMethod {
   id: string;
-  type: "credit" | "bsb";
+  type: 'credit' | 'bsb';
   card_last4?: string;
   card_expiry?: string;
   bsb?: string;
@@ -43,19 +43,19 @@ export default function PaymentMethods() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) throw new Error("User not authenticated");
+      if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from("payment_methods")
-        .select("*")
-        .eq("user_id", user.id);
+        .from('payment_methods')
+        .select('*')
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
       setPaymentMethods(data || []);
     } catch (error) {
-      console.error("Error fetching payment methods:", error);
-      Alert.alert("Error", "Failed to load payment methods");
+      console.error('Error fetching payment methods:', error);
+      Alert.alert('Error', 'Failed to load payment methods');
     } finally {
       setIsLoading(false);
     }
@@ -66,21 +66,21 @@ export default function PaymentMethods() {
       setIsDeleting(true);
 
       const { error } = await supabase
-        .from("payment_methods")
+        .from('payment_methods')
         .delete()
-        .eq("id", id);
+        .eq('id', id);
 
       if (error) throw error;
 
       // 更新本地列表
       setPaymentMethods((prevMethods) =>
-        prevMethods.filter((method) => method.id !== id)
+        prevMethods.filter((method) => method.id !== id),
       );
 
-      Alert.alert("Success", "Payment method deleted successfully");
+      Alert.alert('Success', 'Payment method deleted successfully');
     } catch (error) {
-      console.error("Error deleting payment method:", error);
-      Alert.alert("Error", "Failed to delete payment method");
+      console.error('Error deleting payment method:', error);
+      Alert.alert('Error', 'Failed to delete payment method');
     } finally {
       setIsDeleting(false);
     }
@@ -104,7 +104,7 @@ export default function PaymentMethods() {
               key={method.id}
               className="flex-row items-center border border-gray-200 rounded-lg p-4 mb-4"
             >
-              {method.type === "credit" ? (
+              {method.type === 'credit' ? (
                 <View className="flex-row items-center flex-1">
                   <MaterialCommunityIcons
                     name="credit-card"
@@ -145,16 +145,16 @@ export default function PaymentMethods() {
                 className="ml-2"
                 onPress={() => {
                   Alert.alert(
-                    "Delete Payment Method",
-                    "Are you sure you want to delete this payment method?",
+                    'Delete Payment Method',
+                    'Are you sure you want to delete this payment method?',
                     [
-                      { text: "Cancel", style: "cancel" },
+                      { text: 'Cancel', style: 'cancel' },
                       {
-                        text: "Delete",
-                        style: "destructive",
+                        text: 'Delete',
+                        style: 'destructive',
                         onPress: () => deletePaymentMethod(method.id),
                       },
-                    ]
+                    ],
                   );
                 }}
                 disabled={isDeleting}
@@ -176,7 +176,7 @@ export default function PaymentMethods() {
         <TouchableOpacity
           className="border border-gray-300 rounded-lg p-4 mb-4 flex-row items-center justify-center"
           onPress={() =>
-            router.push("/(pages)/(account)/(payment)/select-method")
+            router.push('/(pages)/(account)/(payment)/select-method')
           }
         >
           <AntDesign name="plus" size={20} color="#4A90E2" />
@@ -187,10 +187,10 @@ export default function PaymentMethods() {
           className="bg-blue-500 rounded-lg p-4 mb-4"
           onPress={() =>
             router.push({
-              pathname: "/(pages)/(account)/(payment)/stripe-payment",
+              pathname: '/(pages)/(account)/(payment)/stripe-payment',
               params: {
                 amount: 2500, // $25.00，以分为单位
-                description: "Premium Subscription",
+                description: 'Premium Subscription',
               },
             })
           }
@@ -200,7 +200,7 @@ export default function PaymentMethods() {
 
         <TouchableOpacity
           className="bg-blue-500 rounded-lg p-4"
-          onPress={() => router.push("/(tabs)/home")}
+          onPress={() => router.push('/(tabs)/home')}
         >
           <Text className="text-white text-center">Done</Text>
         </TouchableOpacity>

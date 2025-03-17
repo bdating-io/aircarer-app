@@ -1,35 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   Modal,
   Platform,
   Alert,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import MapView, { Marker } from "react-native-maps";
-import * as Linking from "expo-linking";
-import * as Location from "expo-location";
-import { supabase } from "../../../lib/supabase";
-import { format, differenceInHours } from "date-fns";
-import { z } from "zod";
-
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import MapView, { Marker } from 'react-native-maps';
+import * as Linking from 'expo-linking';
+import * as Location from 'expo-location';
+import { format, differenceInHours } from 'date-fns';
+import { z } from 'zod';
+import { supabase } from '@/clients/supabase';
 
 const getOrdinalSuffix = (day: number) => {
-  if (day > 3 && day < 21) return "th";
+  if (day > 3 && day < 21) return 'th';
   switch (day % 10) {
     case 1:
-      return "st";
+      return 'st';
     case 2:
-      return "nd";
+      return 'nd';
     case 3:
-      return "rd";
+      return 'rd';
     default:
-      return "th";
+      return 'th';
   }
 };
 
@@ -57,15 +55,17 @@ const getRandomLocation = () => ({
 
 const TaskSchema = z.object({
   task_id: z.string(),
-  task_type: z.enum(["Quick Cleaning", "Regular Cleaning", "Deep Cleaning"]).nullable(),
+  task_type: z
+    .enum(['Quick Cleaning', 'Regular Cleaning', 'Deep Cleaning'])
+    .nullable(),
   estimated_price: z.number().nullable(),
   confirmed_price: z.number().nullable(),
-  status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
-  payment_status: z.enum(["Not Paid", "Paid"]).nullable(),
+  status: z.enum(['Pending', 'In Progress', 'Completed', 'Cancelled']),
+  payment_status: z.enum(['Not Paid', 'Paid']).nullable(),
   scheduled_start_time: z.string(),
   actual_start_time: z.string().nullable(),
   completion_time: z.string().nullable(),
-  approval_status: z.enum(["Pending", "Approved", "Rejected"]).nullable(),
+  approval_status: z.enum(['Pending', 'Approved', 'Rejected']).nullable(),
   address: z.string(),
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
@@ -80,11 +80,12 @@ type Task = z.infer<typeof TaskSchema>;
 const isTask = (data: any): data is Task => {
   const result = TaskSchema.safeParse(data);
   if (!result.success) {
-    throw new Error(`Validation failed: ${JSON.stringify(result.error.issues)}`);
+    throw new Error(
+      `Validation failed: ${JSON.stringify(result.error.issues)}`,
+    );
   }
   return true;
 };
-
 
 export default function Task() {
   const router = useRouter();
@@ -109,17 +110,17 @@ export default function Task() {
     const fetchTask = async () => {
       try {
         const { data, error } = await supabase
-          .from("tasks")
-          .select("*")
-          .eq("task_id", id)
+          .from('tasks')
+          .select('*')
+          .eq('task_id', id)
           .single();
 
         if (error) throw error;
         if (data /* && isTask(data)*/) {
-          data.payment_status = 'Not Paid'
+          data.payment_status = 'Not Paid';
           setTask(data);
         } else {
-          throw new Error("Fetched data does not match Task type");
+          throw new Error('Fetched data does not match Task type');
         }
 
         // 检查是否已签到
@@ -130,8 +131,8 @@ export default function Task() {
         // 检查任务状态
         updateTaskStatus(data);
       } catch (error) {
-        console.error("Error fetching task:", error);
-        Alert.alert("Error", "Failed to load task details");
+        console.error('Error fetching task:', error);
+        Alert.alert('Error', 'Failed to load task details');
       } finally {
         setLoading(false);
       }
@@ -161,12 +162,12 @@ export default function Task() {
 
     // 设置是否可以确认任务
     setCanConfirm(
-      !taskData.is_confirmed && hoursUntilTask <= 24 && hoursUntilTask >= 4
+      !taskData.is_confirmed && hoursUntilTask <= 24 && hoursUntilTask >= 4,
     );
 
     // 设置是否可以签到
     setCanCheckIn(
-      taskData.is_confirmed && hoursUntilTask < 4 && hoursUntilTask >= 0
+      taskData.is_confirmed && hoursUntilTask < 4 && hoursUntilTask >= 0,
     );
   };
 
@@ -176,27 +177,27 @@ export default function Task() {
 
     try {
       const { error } = await supabase
-        .from("tasks")
+        .from('tasks')
         .update({ is_confirmed: true })
-        .eq("task_id", task.task_id);
+        .eq('task_id', task.task_id);
 
       if (error) throw error;
 
-      Alert.alert("Success", "Task confirmed successfully!");
+      Alert.alert('Success', 'Task confirmed successfully!');
 
       // 刷新任务数据
       const { data, error: fetchError } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("task_id", id)
+        .from('tasks')
+        .select('*')
+        .eq('task_id', id)
         .single();
 
       if (fetchError) throw fetchError;
       setTask(data);
       updateTaskStatus(data);
     } catch (error) {
-      console.error("Error confirming task:", error);
-      Alert.alert("Error", "Failed to confirm task");
+      console.error('Error confirming task:', error);
+      Alert.alert('Error', 'Failed to confirm task');
     }
   };
 
@@ -207,10 +208,10 @@ export default function Task() {
     try {
       // 请求位置权限
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
+      if (status !== 'granted') {
         Alert.alert(
-          "Permission denied",
-          "Location permission is required for check-in"
+          'Permission denied',
+          'Location permission is required for check-in',
         );
         return;
       }
@@ -224,7 +225,7 @@ export default function Task() {
         latitude,
         longitude,
         task.latitude,
-        task.longitude
+        task.longitude,
       );
 
       setDistanceToTask(distance);
@@ -232,10 +233,10 @@ export default function Task() {
       // 检查距离是否在10公里以内
       if (distance > 40) {
         Alert.alert(
-          "Location Check Failed",
+          'Location Check Failed',
           `You are too far from the task location (${distance.toFixed(
-            2
-          )} km). Please check in when you are within 10km of the location.`
+            2,
+          )} km). Please check in when you are within 10km of the location.`,
         );
         return;
       }
@@ -243,30 +244,30 @@ export default function Task() {
       // 更新任务状态
       const now = new Date();
       const { error } = await supabase
-        .from("tasks")
+        .from('tasks')
         .update({
           check_in_time: now.toISOString(),
-          status: "In Progress",
+          status: 'In Progress',
         })
-        .eq("task_id", task.task_id);
+        .eq('task_id', task.task_id);
 
       if (error) throw error;
 
       setHasCheckedIn(true);
-      Alert.alert("Success", "Check-in successful!");
+      Alert.alert('Success', 'Check-in successful!');
 
       // 刷新任务数据
       const { data, error: fetchError } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("task_id", id)
+        .from('tasks')
+        .select('*')
+        .eq('task_id', id)
         .single();
 
       if (fetchError) throw fetchError;
       setTask(data);
     } catch (error) {
-      console.error("Error during check-in:", error);
-      Alert.alert("Error", "Failed to check in");
+      console.error('Error during check-in:', error);
+      Alert.alert('Error', 'Failed to check in');
     }
   };
 
@@ -275,7 +276,7 @@ export default function Task() {
     lat1: number,
     lon1: number,
     lat2: number,
-    lon2: number
+    lon2: number,
   ) => {
     const R = 6371; // 地球半径（公里）
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -314,30 +315,30 @@ export default function Task() {
   const handleCancelTask = async () => {
     if (!task) return;
 
-    Alert.alert("Cancel Task", "Are you sure you want to cancel this task?", [
-      { text: "No", style: "cancel" },
+    Alert.alert('Cancel Task', 'Are you sure you want to cancel this task?', [
+      { text: 'No', style: 'cancel' },
       {
-        text: "Yes",
-        style: "destructive",
+        text: 'Yes',
+        style: 'destructive',
         onPress: async () => {
           try {
             const { error } = await supabase
-              .from("tasks")
+              .from('tasks')
               .update({
                 cleaner_id: null,
-                status: "Pending",
+                status: 'Pending',
                 is_confirmed: false,
                 check_in_time: null,
               })
-              .eq("task_id", task.task_id);
+              .eq('task_id', task.task_id);
 
             if (error) throw error;
 
-            Alert.alert("Success", "Task cancelled successfully");
+            Alert.alert('Success', 'Task cancelled successfully');
             router.back();
           } catch (error) {
-            console.error("Error cancelling task:", error);
-            Alert.alert("Error", "Failed to cancel task");
+            console.error('Error cancelling task:', error);
+            Alert.alert('Error', 'Failed to cancel task');
           }
         },
       },
@@ -357,10 +358,10 @@ export default function Task() {
     try {
       // 获取当前位置
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
+      if (status !== 'granted') {
         Alert.alert(
-          "Permission denied",
-          "Location permission is required to confirm arrival"
+          'Permission denied',
+          'Location permission is required to confirm arrival',
         );
         return;
       }
@@ -373,16 +374,16 @@ export default function Task() {
         latitude,
         longitude,
         task.latitude,
-        task.longitude
+        task.longitude,
       );
 
       // 检查距离是否在10公里以内
       if (distance > 40) {
         Alert.alert(
-          "Location Check Failed",
+          'Location Check Failed',
           `You are too far from the task location (${distance.toFixed(
-            2
-          )} km). Please confirm arrival when you are within 10km of the location.`
+            2,
+          )} km). Please confirm arrival when you are within 10km of the location.`,
         );
         return;
       }
@@ -390,23 +391,23 @@ export default function Task() {
       // 更新任务状态
       const now = new Date();
       const { error } = await supabase
-        .from("tasks")
+        .from('tasks')
         .update({
           actual_start_time: now.toISOString(),
-          status: "In Progress",
+          status: 'In Progress',
         })
-        .eq("task_id", task.task_id);
+        .eq('task_id', task.task_id);
 
       if (error) throw error;
 
       setHasArrived(true);
-      Alert.alert("Success", "Arrival confirmed successfully!");
+      Alert.alert('Success', 'Arrival confirmed successfully!');
 
       // 导航到 beforeClean 页面
-      router.push("/beforeClean");
+      router.push('/beforeClean');
     } catch (error) {
-      console.error("Error confirming arrival:", error);
-      Alert.alert("Error", "Failed to confirm arrival");
+      console.error('Error confirming arrival:', error);
+      Alert.alert('Error', 'Failed to confirm arrival');
     }
   };
 
@@ -496,7 +497,7 @@ export default function Task() {
           {hasArrived && !hasBeforePhotos && (
             <TouchableOpacity
               className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
-              onPress={() => router.push("/beforeClean")}
+              onPress={() => router.push('/beforeClean')}
             >
               <Text className="text-white font-bold">Take Before Photos</Text>
             </TouchableOpacity>
@@ -506,7 +507,7 @@ export default function Task() {
           {hasArrived && hasBeforePhotos && (
             <TouchableOpacity
               className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
-              onPress={() => router.push("/taskDetail")}
+              onPress={() => router.push('/taskDetail')}
             >
               <Text className="text-white font-bold">View Cleaning Guide</Text>
             </TouchableOpacity>
@@ -551,7 +552,7 @@ export default function Task() {
 
   const date = new Date(task.scheduled_start_time);
   const day = date.getDate();
-  const month = date.toLocaleDateString("en-US", { month: "short" });
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
 
   return (
     <View className="flex-1 bg-white">
@@ -569,32 +570,33 @@ export default function Task() {
 
       <ScrollView className="flex-1">
         {/* Map */}
-       { task.latitude && task.longitude && <View className="h-48">
-          <MapView
-            style={{ flex: 1 }}
-            initialRegion={{
-              latitude: task.latitude,
-              longitude: task.longitude,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-          >
-            <Marker
-              coordinate={{
+        {task.latitude && task.longitude && (
+          <View className="h-48">
+            <MapView
+              style={{ flex: 1 }}
+              initialRegion={{
                 latitude: task.latitude,
                 longitude: task.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
               }}
-              title={task.address}
-            />
-          </MapView>
-        </View>
-      }
+            >
+              <Marker
+                coordinate={{
+                  latitude: task.latitude,
+                  longitude: task.longitude,
+                }}
+                title={task.address}
+              />
+            </MapView>
+          </View>
+        )}
         {/* Task Info */}
         <View className="p-4">
           <Text className="text-xl font-bold">{task.task_type}</Text>
           <Text className="text-gray-600 mt-2">{task.address}</Text>
           <Text className="text-gray-600 mt-1">
-            {format(new Date(task.scheduled_start_time), "PPP p")}
+            {format(new Date(task.scheduled_start_time), 'PPP p')}
           </Text>
           <View className="flex-row justify-between mt-4">
             <View>

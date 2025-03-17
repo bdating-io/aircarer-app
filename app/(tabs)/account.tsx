@@ -4,13 +4,12 @@ import {
   Text,
   SafeAreaView,
   TouchableOpacity,
-  Image,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/supabase';
-import useStore from '../../utils/store';
+import { supabase } from '@/clients/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import useStore from '@/utils/store';
 
 export default function Account() {
   const router = useRouter();

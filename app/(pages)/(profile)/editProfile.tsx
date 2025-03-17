@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,9 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/supabase';
-import useStore from '../../../utils/store';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '@/clients/supabase';
+import useStore from '@/utils/store';
 
 export default function EditProfile() {
   const router = useRouter();
