@@ -1,0 +1,287 @@
+{
+	"info": {
+		"_postman_id": "c571e898-6fc8-4726-9dbb-d133ae55396b",
+		"name": "AirCarer-Supabase",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "671741",
+		"_collection_link": "https://gold-station-238374.postman.co/workspace/New-Team-Workspace~41656fd8-95ae-4406-bca2-9744d1f0e124/collection/671741-c571e898-6fc8-4726-9dbb-d133ae55396b?action=share&source=collection_link&creator=671741"
+	},
+	"item": [
+		{
+			"name": "example",
+			"item": [
+				{
+					"name": "helloworld",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{SUPABASE_ANON_KEY}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"some name\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SUPABASE_SERVER}}/functions/v1/helloworld",
+							"host": [
+								"{{SUPABASE_SERVER}}"
+							],
+							"path": [
+								"functions",
+								"v1",
+								"helloworld"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "user_login",
+			"item": [
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"// Test to read the value of the response field",
+									"pm.test(\"Response field value is read\", function () {",
+									"    var responseValue = pm.response.json().access_token;",
+									"    console.log(\"Response field value: \" + responseValue);",
+									"    pm.environment.set(\"supabase_access_token\", responseValue);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "apikey",
+								"value": "{{SUPABASE_ANON_KEY}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@user.com\",\n    \"password\": \"test1234\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SUPABASE_SERVER}}/auth/v1/token?grant_type=password",
+							"host": [
+								"{{SUPABASE_SERVER}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "password"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "supabase built-in API, no need to deploy"
+		},
+		{
+			"name": "user_signup",
+			"item": [
+				{
+					"name": "signup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{SUPABASE_ANON_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@testmail.com\",\n    \"password\": \"test1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SUPABASE_SERVER}}/auth/v1/signup",
+							"host": [
+								"{{SUPABASE_SERVER}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "supabase built-in API, no need to deploy"
+		},
+		{
+			"name": "geodecode (deployed)",
+			"item": [
+				{
+					"name": "geodecode",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{supabase_access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"address\": \"32 Argyle Way, Wantirna South, VIC, 3152, Australia\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SUPABASE_SERVER}}/functions/v1/geodecode",
+							"host": [
+								"{{SUPABASE_SERVER}}"
+							],
+							"path": [
+								"functions",
+								"v1",
+								"geodecode"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "requests in this folder requires logging in first (user_login/login)\n\nthis has been deployed to supabase (test)\n\n`supabase functions deploy geodecode --project-ref qfnaeliuqkgylkbtufuv`"
+		},
+		{
+			"name": "notifications",
+			"item": [
+				{
+					"name": "notifications",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{supabase_access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \n    \"channel\": \"EMAIL\", \n    \"recpient\": \"test@test.com\", \n    \"type\": \"NEW_TASKS_AVAILABLE\", \n    \"payload\": {\n        \"price\": 100.00,\n        \"name\": \"John\"\n    } \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SUPABASE_SERVER}}/functions/v1/notifications",
+							"host": [
+								"{{SUPABASE_SERVER}}"
+							],
+							"path": [
+								"functions",
+								"v1",
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "requests in this folder requires logging in first (user_login/login)\n\nthis has been deployed to supabase (test)\n\n`supabase functions deploy geodecode --project-ref qfnaeliuqkgylkbtufuv`"
+		},
+		{
+			"name": "user_profile (deployed)",
+			"item": [
+				{
+					"name": "myprofile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{supabase_access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_SERVER}}/functions/v1/myprofile",
+							"host": [
+								"{{SUPABASE_SERVER}}"
+							],
+							"path": [
+								"functions",
+								"v1",
+								"myprofile"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "requests in this folder requires logging in first (user_login/login)\n\nthis has been deployed to supabase (test)\n\n`supabase functions deploy myprofile --project-ref qfnaeliuqkgylkbtufuv`"
+		}
+	]
+}

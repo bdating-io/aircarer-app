@@ -1,9 +1,10 @@
-import { Text } from "react-native";
+import React from 'react';
+import { Text } from 'react-native';
 
 export default function NotFoundScreen() {
   return (
     <>
-      <Text>This screen doesn't exist.</Text>
+      <Text>{"This screen doesn't exist."}</Text>
     </>
   );
 }
