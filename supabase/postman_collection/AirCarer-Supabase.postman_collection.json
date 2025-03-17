@@ -207,6 +207,52 @@
 			"description": "requests in this folder requires logging in first (user_login/login)\n\nthis has been deployed to supabase (test)\n\n`supabase functions deploy geodecode --project-ref qfnaeliuqkgylkbtufuv`"
 		},
 		{
+			"name": "notifications",
+			"item": [
+				{
+					"name": "notifications",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{supabase_access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \n    \"channel\": \"EMAIL\", \n    \"recpient\": \"test@test.com\", \n    \"type\": \"NEW_TASKS_AVAILABLE\", \n    \"payload\": {\n        \"price\": 100.00,\n        \"name\": \"John\"\n    } \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SUPABASE_SERVER}}/functions/v1/notifications",
+							"host": [
+								"{{SUPABASE_SERVER}}"
+							],
+							"path": [
+								"functions",
+								"v1",
+								"notifications"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "requests in this folder requires logging in first (user_login/login)\n\nthis has been deployed to supabase (test)\n\n`supabase functions deploy geodecode --project-ref qfnaeliuqkgylkbtufuv`"
+		},
+		{
 			"name": "user_profile (deployed)",
 			"item": [
 				{
