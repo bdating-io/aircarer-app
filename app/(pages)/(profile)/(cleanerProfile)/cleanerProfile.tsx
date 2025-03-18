@@ -1,112 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   SafeAreaView,
   TextInput,
   TouchableOpacity,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '@/clients/supabase';
-import { AddressFormData, AustralianState } from '@/types/address';
-import useStore from '@/utils/store';
+import { supabaseAuthClient } from '@/clients/supabase/auth';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
 
 export default function AddressForm() {
   const router = useRouter();
-  const [formData, setFormData] = useState<AddressFormData>({
-    type: 'USER_ADDRESS',
-    street_number: '',
-    street_name: '',
-    city: '',
-    state: '',
-    postal_code: '',
-    country: 'Australia', // 默认值
-    latitude: '',
-    longitude: '',
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const { setMyAddress } = useStore();
-
+  const { address, getAddress, setAddress, updateUserAddress, isLoading } =
+    useProfileViewModel();
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabaseAuthClient.getSession().then((session) => {
       if (session?.user) {
         getAddress(session.user.id);
       }
     });
   }, []);
-
-  const getAddress = async (userId: string) => {
-    const { data: address, error } = await supabase
-      .from('addresses')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('type', 'USER_ADDRESS')
-      .single();
-
-    if (error) {
-      console.error('Error checking address:', error);
-      return;
-    }
-
-    setFormData({
-      type: 'USER_ADDRESS',
-      street_number: address.street_number,
-      street_name: address.street_name,
-      city: address.city,
-      state: address.state,
-      postal_code: address.postal_code,
-      country: 'Australia', // 默认值
-      latitude: address.latitude,
-      longitude: address.longitude,
-    });
-  };
-
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error('User not found');
-
-      const { data, error } = await supabase
-        .from('addresses')
-        .upsert(
-          {
-            user_id: user.id,
-            type: 'USER_ADDRESS',
-            street_number: formData.street_number,
-            street_name: formData.street_name,
-            city: formData.city,
-            state: formData.state,
-            postal_code: formData.postal_code,
-            country: formData.country,
-            latitude: formData.latitude || null,
-            longitude: formData.longitude || null,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id,type' },
-        )
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      Alert.alert('Success', 'Address saved successfully!');
-
-      setMyAddress(formData);
-      router.push('/(pages)/(profile)/(cleanerProfile)/workingArea');
-    } catch (error: any) {
-      console.error('Error saving address:', error.message);
-      Alert.alert('Error', error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#4A90E2]">
@@ -130,9 +46,9 @@ export default function AddressForm() {
                 className="text-white text-lg"
                 placeholder="123"
                 placeholderTextColor="rgba(255,255,255,0.7)"
-                value={formData.street_number}
+                value={address.street_number}
                 onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, street_number: text }))
+                  setAddress((prev) => ({ ...prev, street_number: text }))
                 }
               />
             </View>
@@ -146,9 +62,9 @@ export default function AddressForm() {
                 className="text-white text-lg"
                 placeholder="Main Street"
                 placeholderTextColor="rgba(255,255,255,0.7)"
-                value={formData.street_name}
+                value={address.street_name}
                 onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, street_name: text }))
+                  setAddress((prev) => ({ ...prev, street_name: text }))
                 }
               />
             </View>
@@ -162,9 +78,9 @@ export default function AddressForm() {
                 className="text-white text-lg"
                 placeholder="Melbourne"
                 placeholderTextColor="rgba(255,255,255,0.7)"
-                value={formData.city}
+                value={address.city}
                 onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, city: text }))
+                  setAddress((prev) => ({ ...prev, city: text }))
                 }
               />
             </View>
@@ -178,9 +94,9 @@ export default function AddressForm() {
                 className="text-white text-lg"
                 placeholder="VIC"
                 placeholderTextColor="rgba(255,255,255,0.7)"
-                value={formData.state}
+                value={address.state}
                 onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, state: text }))
+                  setAddress((prev) => ({ ...prev, state: text }))
                 }
               />
             </View>
@@ -194,10 +110,10 @@ export default function AddressForm() {
                 className="text-white text-lg"
                 placeholder="3000"
                 placeholderTextColor="rgba(255,255,255,0.7)"
-                value={formData.postal_code}
+                value={address.postal_code}
                 keyboardType="number-pad"
                 onChangeText={(text) =>
-                  setFormData((prev) => ({ ...prev, postal_code: text }))
+                  setAddress((prev) => ({ ...prev, postal_code: text }))
                 }
               />
             </View>
@@ -208,7 +124,7 @@ export default function AddressForm() {
         <View className="py-4">
           <TouchableOpacity
             className="bg-[#FF6B6B] rounded-xl p-4"
-            onPress={handleSubmit}
+            onPress={updateUserAddress}
             disabled={isLoading}
           >
             <Text className="text-white text-center text-lg font-semibold">

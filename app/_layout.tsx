@@ -5,7 +5,7 @@ import { useRouter, useSegments } from 'expo-router';
 import { supabase } from '@/clients/supabase';
 
 import '../global.css';
-import StripeProvider from '../clients/supabase/stripe';
+import StripeProvider from '@/clients/stripe';
 
 export default function RootLayout() {
   const router = useRouter();

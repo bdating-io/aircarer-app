@@ -1,3 +1,5 @@
+import { AddressFormData } from '@/types/address';
+import { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
 interface Profile {
@@ -13,11 +15,11 @@ interface Store {
   myProfile: Profile | null;
   setMyProfile: (profile: Profile | null) => void;
 
-  mySession: any;
-  setMySession: (newSession: any) => void;
+  mySession: Session;
+  setMySession: (newSession: Session) => void;
 
-  myAddress: any;
-  setMyAddress: (newAddress: any) => void;
+  myAddress: AddressFormData;
+  setMyAddress: (newAddress: AddressFormData) => void;
 
   myWorkPreference: any;
   setMyWorkPreference: (newWorkPreference: any) => void;
@@ -26,12 +28,44 @@ interface Store {
 const useStore = create<Store>((set) => ({
   myProfile: null,
   setMyProfile: (profile) => set({ myProfile: profile }),
-  mySession: {}, 
-  setMySession: (newSession: any) => set({ mySession: newSession }),  
+  mySession: {
+    access_token: '',
+    refresh_token: '',
+    expires_in: 0,
+    token_type: '',
+    user: {
+      id: '',
+      aud: '',
+      email: '',
+      created_at: '',
+      confirmed_at: '',
+      last_sign_in_at: '',
+      role: '',
+      app_metadata: {
+        provider: '',
+        provider_id: '',
+      },
+      user_metadata: {
+        full_name: '',
+        phone_number: '',
+      },
+    },
+  },
+  setMySession: (newSession: Session) => set({ mySession: newSession }),
   myWorkPreference: {},
-  setMyAddress: (newAddress: any) => set({ myAddress: newAddress }),
-  myAddress: {},
-  setMyWorkPreference: (newPreference: any) => set({ myWorkPreference: newPreference }),
+  setMyAddress: (newAddress: AddressFormData) => set({ myAddress: newAddress }),
+  myAddress: {
+    user_id: '',
+    type: 'USER_ADDRESS',
+    street_number: '',
+    street_name: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    country: 'Australia',
+  },
+  setMyWorkPreference: (newPreference: any) =>
+    set({ myWorkPreference: newPreference }),
 }));
 
-export default useStore; 
+export default useStore;

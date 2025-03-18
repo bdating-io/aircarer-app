@@ -12,7 +12,10 @@ export default function Home() {
 
   // If no profile => show create profile
   if (!hasProfile) {
-    <NoProfileScreen name={myProfile?.first_name} email={userEmail} />;
+    <NoProfileScreen
+      name={myProfile?.first_name || ''}
+      email={userEmail || ''}
+    />;
   } else
     // Main view
     return (

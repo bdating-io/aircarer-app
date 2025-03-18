@@ -1,4 +1,8 @@
-import { UserAttributes } from '@supabase/supabase-js';
+import {
+  AuthChangeEvent,
+  Session,
+  UserAttributes,
+} from '@supabase/supabase-js';
 import { supabase } from '.';
 
 export const supabaseAuthClient = {
@@ -36,11 +40,20 @@ export const supabaseAuthClient = {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('User not authenticated');
+      }
       return session;
     } catch (error) {
       console.error(error);
       throw error;
     }
+  },
+
+  onAuthStateChange: (
+    callback: (event: AuthChangeEvent, session: Session | null) => void,
+  ) => {
+    return supabase.auth.onAuthStateChange(callback); // returns a function to unsubscribe
   },
 
   signUp: async (phone: string, password: string) => {

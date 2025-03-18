@@ -4,9 +4,9 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Modal,
   Platform,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
@@ -555,64 +555,66 @@ export default function Task() {
   const month = date.toLocaleDateString('en-US', { month: 'short' });
 
   return (
-    <View className="flex-1 bg-white">
-      {/* Header */}
-      <View className="bg-blue-500 p-4">
-        <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()}>
-            <AntDesign name="arrowleft" size={24} color="white" />
-          </TouchableOpacity>
-          <Text className="text-white text-lg font-bold ml-4">
-            Task Details
-          </Text>
+    <SafeAreaView className="flex-1 bg-blue-500 p-4">
+      <View className="flex-1 bg-white">
+        {/* Header */}
+        <View className="bg-blue-500 p-4">
+          <View className="flex-row items-center">
+            <TouchableOpacity onPress={() => router.back()}>
+              <AntDesign name="arrowleft" size={24} color="white" />
+            </TouchableOpacity>
+            <Text className="text-white text-lg font-bold ml-4">
+              Task Details
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <ScrollView className="flex-1">
-        {/* Map */}
-        {task.latitude && task.longitude && (
-          <View className="h-48">
-            <MapView
-              style={{ flex: 1 }}
-              initialRegion={{
-                latitude: task.latitude,
-                longitude: task.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-            >
-              <Marker
-                coordinate={{
+        <ScrollView className="flex-1">
+          {/* Map */}
+          {task.latitude && task.longitude && (
+            <View className="h-48">
+              <MapView
+                style={{ flex: 1 }}
+                initialRegion={{
                   latitude: task.latitude,
                   longitude: task.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
                 }}
-                title={task.address}
-              />
-            </MapView>
-          </View>
-        )}
-        {/* Task Info */}
-        <View className="p-4">
-          <Text className="text-xl font-bold">{task.task_type}</Text>
-          <Text className="text-gray-600 mt-2">{task.address}</Text>
-          <Text className="text-gray-600 mt-1">
-            {format(new Date(task.scheduled_start_time), 'PPP p')}
-          </Text>
-          <View className="flex-row justify-between mt-4">
-            <View>
-              <Text className="text-gray-500">Status</Text>
-              <Text className="font-semibold">{task.status}</Text>
+              >
+                <Marker
+                  coordinate={{
+                    latitude: task.latitude,
+                    longitude: task.longitude,
+                  }}
+                  title={task.address}
+                />
+              </MapView>
             </View>
-            <View>
-              <Text className="text-gray-500">Price</Text>
-              <Text className="font-semibold">${task.estimated_price}</Text>
+          )}
+          {/* Task Info */}
+          <View className="p-4">
+            <Text className="text-xl font-bold">{task.task_type}</Text>
+            <Text className="text-gray-600 mt-2">{task.address}</Text>
+            <Text className="text-gray-600 mt-1">
+              {format(new Date(task.scheduled_start_time), 'PPP p')}
+            </Text>
+            <View className="flex-row justify-between mt-4">
+              <View>
+                <Text className="text-gray-500">Status</Text>
+                <Text className="font-semibold">{task.status}</Text>
+              </View>
+              <View>
+                <Text className="text-gray-500">Price</Text>
+                <Text className="font-semibold">${task.estimated_price}</Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Action Buttons */}
-        <View className="p-4">{renderButtons()}</View>
-      </ScrollView>
-    </View>
+          {/* Action Buttons */}
+          <View className="p-4">{renderButtons()}</View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }

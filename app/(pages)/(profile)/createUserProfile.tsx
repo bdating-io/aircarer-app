@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import { ProfileData } from '@/types/type';
-import { profileViewModel } from '@/viewModels/profileViewModel';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
 
 export default function CreateProfile() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function CreateProfile() {
     pickBackgroundCheckImage,
     handleAbnChange,
     validateAndSubmitProfile,
-  } = profileViewModel();
+  } = useProfileViewModel();
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -212,9 +212,10 @@ export default function CreateProfile() {
           className={`rounded-full py-3 items-center ${
             firstName &&
             lastName &&
-            selectedRole && 
-            ((selectedRole === 'Cleaner'  &&  abn.length>0  && abnValid) ||
-              (selectedRole === 'House Owner' && abn.length == 0 || ( abn && abnValid) ))
+            selectedRole &&
+            ((selectedRole === 'Cleaner' && abn.length > 0 && abnValid) ||
+              (selectedRole === 'House Owner' && abn.length == 0) ||
+              (abn && abnValid))
               ? 'bg-[#4A90E2]'
               : 'bg-gray-200'
           }`}
@@ -223,17 +224,17 @@ export default function CreateProfile() {
             !firstName ||
             !lastName ||
             !selectedRole ||
-            (selectedRole === 'Cleaner'  && (abn.length == 0|| abnValid !== true)) ||
-            ( abn.length>0 && abnValid !== true)
+            (selectedRole === 'Cleaner' &&
+              (abn.length == 0 || abnValid !== true)) ||
+            (abn.length > 0 && abnValid !== true) ||
+            (selectedRole === 'Cleaner' && !isBackgroundChecked)
           }
         >
           <Text
             className={`font-medium ${
-              firstName &&
-              lastName &&
-              selectedRole
-             /* && abn && (selectedRole !== 'Cleaner' || (selectedRole === 'Cleaner' && isBackgroundChecked)) && abnValid === true*/
-                ? 'text-white'
+              firstName && lastName && selectedRole
+                ? /* && abn && (selectedRole !== 'Cleaner' || (selectedRole === 'Cleaner' && isBackgroundChecked)) && abnValid === true*/
+                  'text-white'
                 : 'text-gray-500'
             }`}
           >
