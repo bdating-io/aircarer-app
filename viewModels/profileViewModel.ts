@@ -7,10 +7,10 @@ import { imagePicker } from '@/utils/imagePicker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
+import { AddressFormData } from '@/types/address';
 
-export const profileViewModel = () => {
+export const useProfileViewModel = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [abnValid, setAbnValid] = useState<boolean | null>(null);
@@ -21,20 +21,31 @@ export const profileViewModel = () => {
     string | null
   >(null);
   const [abn, setAbn] = useState('');
-  const { myProfile, setMyProfile } = useStore();
+  const { myProfile, setMyProfile, setMyAddress } = useStore();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
-  const [selectedRole, setSelectedRole] = useState<ProfileData['role'] | null>(
-    null,
-  );
+  const [selectedRole, setSelectedRole] =
+    useState<ProfileData['role']>('Cleaner');
+
+  const [address, setAddress] = useState<AddressFormData>({
+    type: 'USER_ADDRESS',
+    street_number: '',
+    street_name: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    country: 'Australia', // 默认值
+    latitude: '',
+    longitude: '',
+  });
 
   useEffect(() => {
     if (myProfile) {
       setFirstName(myProfile.first_name || '');
       setLastName(myProfile.last_name || '');
       setAbn(myProfile.abn || '');
-      setSelectedRole(myProfile.role || null);
+      setSelectedRole((myProfile.role as ProfileData['role']) || 'Cleaner');
     }
   }, [myProfile]);
 
@@ -61,7 +72,7 @@ export const profileViewModel = () => {
     } catch (error) {
       console.error('Error checking terms:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -250,12 +261,20 @@ export const profileViewModel = () => {
   };
 
   const validateAndSubmitProfile = async () => {
-    if (!firstName || !lastName || !selectedRole || ( selectedRole === 'Cleaner' && !abn )) {
+    if (
+      !firstName ||
+      !lastName ||
+      !selectedRole ||
+      (selectedRole === 'Cleaner' && !abn)
+    ) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
-    if( selectedRole === 'Cleaner' || selectedRole === 'House Owner' && abn.length > 0) {
+    if (
+      selectedRole === 'Cleaner' ||
+      (selectedRole === 'House Owner' && abn.length > 0)
+    ) {
       // 验证ABN
       setValidatingAbn(true);
       const isAbnValid = await validateABNOnline(abn);
@@ -286,13 +305,11 @@ export const profileViewModel = () => {
         case 'Cleaner':
           router.push({
             pathname: '/(pages)/(profile)/(cleanerProfile)/cleanerProfile',
-            params: { profileData: JSON.stringify(profileData) },
           });
           break;
         case 'House Owner':
           router.push({
             pathname: '/(pages)/(profile)/(houseOwner)/createProperty',
-            params: { profileData: JSON.stringify(profileData) },
           });
           break;
         default:
@@ -302,8 +319,39 @@ export const profileViewModel = () => {
       console.error('Navigation error:', error);
     }
   };
+
+  const getAddress = async (userId: string) => {
+    try {
+      const address = await supabaseDBClient.getUserAddressById(userId);
+
+      setAddress(address);
+    } catch (error) {
+      console.error('Error fetching address:', (error as Error).message);
+      Alert.alert('Error', (error as Error).message);
+    }
+  };
+
+  const updateUserAddress = async () => {
+    setIsLoading(true);
+    try {
+      const user = await supabaseAuthClient.getUser();
+
+      await supabaseDBClient.updateUserAddress(user.id, address);
+
+      Alert.alert('Success', 'Address saved successfully!');
+
+      setMyAddress(address);
+      router.push('/(pages)/(profile)/(cleanerProfile)/workingArea');
+    } catch (error) {
+      console.error('Error saving address:', (error as Error).message);
+      Alert.alert('Error', (error as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
-    loading,
+    address,
     uploadingImage,
     isLoading,
     abnValid,
@@ -329,5 +377,8 @@ export const profileViewModel = () => {
     setSelectedRole,
     setBackgroundCheckImage,
     setIsBackgroundChecked,
+    updateUserAddress,
+    getAddress,
+    setAddress,
   };
 };

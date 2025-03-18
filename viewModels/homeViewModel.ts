@@ -17,7 +17,7 @@ export const useHomeViewModel = () => {
   const [taskTitle, setTaskTitle] = useState<string>('');
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabaseAuthClient.getSession().then((session) => {
       setMySession(session);
       if (session?.user) {
         checkProfile(session.user.id);
@@ -27,9 +27,9 @@ export const useHomeViewModel = () => {
     });
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setMySession(session);
-      if (session?.user) {
+    supabaseAuthClient.onAuthStateChange((_event, session) => {
+      if (session && session.user) {
+        setMySession(session);
         checkProfile(session.user.id);
         checkAddress(session.user.id);
         setUserEmail(session.user.email || '');
