@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { AddressFormData } from '@/types/address';
 import { SUPABASE_URL } from '@/clients/supabase';
+import { WorkPreference } from '@/types/workPreferences';
 
 export const useProfileViewModel = () => {
   const router = useRouter();
@@ -71,6 +72,8 @@ export const useProfileViewModel = () => {
     evening: false,
   }));
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(initialTimeSlots);
+
+  const [hourlyRate, setHourlyRate] = useState('');
 
   const checkTermsAcceptance = async () => {
     try {
@@ -473,8 +476,57 @@ export const useProfileViewModel = () => {
     });
   };
 
+  const updateWorkPreferences = async (profileData: WorkPreference) => {
+    setIsLoading(true);
+    try {
+      const user = await supabaseAuthClient.getUser();
+
+      const workPref = {
+        user_id: user.id,
+        areas: JSON.stringify({
+          distance: workDistance,
+          latitude: coordinates?.latitude,
+          longitude: coordinates?.longitude,
+        }),
+        time: JSON.stringify(timeSlots),
+        experience: JSON.stringify(profileData.experience),
+        pricing: JSON.stringify(profileData.pricing),
+      };
+
+      await supabaseDBClient.updateUserWorkPreference(workPref);
+
+      Alert.alert('Success', 'work preferences saved successfully!');
+      router.push('/account');
+    } catch (error) {
+      console.error('Error saving work preferences:', (error as Error).message);
+      Alert.alert('Error', (error as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const completeProfileSetting = () => {
+    if (!hourlyRate) return;
+
+    const previousData = params.profileData
+      ? JSON.parse(params.profileData as string)
+      : {};
+
+    const profileData = {
+      ...previousData,
+      pricing: {
+        hourlyRate: parseFloat(hourlyRate),
+      },
+    };
+
+    updateWorkPreferences(profileData);
+
+    // 完成注册，跳转到主页或成功页面
+  };
+
   return {
     address,
+    hourlyRate,
     timeSlots,
     uploadingImage,
     isLoading,
@@ -515,5 +567,7 @@ export const useProfileViewModel = () => {
     navigateToExperience,
     toggleTimeSlot,
     navigateToPricing,
+    setHourlyRate,
+    completeProfileSetting,
   };
 };
