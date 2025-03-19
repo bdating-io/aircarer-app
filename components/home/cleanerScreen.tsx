@@ -10,7 +10,7 @@ export const CleanerScreen: React.FC = () => {
         Ready to work? Find tasks nearby.
       </Text>
       <TouchableOpacity
-        className="bg-[#FF6B6B] rounded-lg p-4"
+        className="bg-[#FF6B6B] rounded-lg p-4 mt-6"
         onPress={() => router.push('/opportunity')}
       >
         <Text className="text-white text-center text-lg font-semibold">

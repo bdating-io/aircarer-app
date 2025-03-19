@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,47 +6,28 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
 
 export default function Experience() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const [yearsExperience, setYearsExperience] = useState("");
+  const [yearsExperience, setYearsExperience] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
+  const { navigateToPricing } = useProfileViewModel();
+
   const skills = [
-    "Deep Cleaning",
-    "Window Cleaning",
-    "Carpet Cleaning",
-    "Oven Cleaning",
-    "Pet Friendly",
-    "Move In/Out",
-    "Laundry",
-    "Ironing",
+    'Deep Cleaning',
+    'Window Cleaning',
+    'Carpet Cleaning',
+    'Oven Cleaning',
+    'Pet Friendly',
+    'Move In/Out',
+    'Laundry',
+    'Ironing',
   ];
-
-  const handleNext = () => {
-    if (!yearsExperience) return;
-
-    const previousData = params.profileData
-      ? JSON.parse(params.profileData as string)
-      : {};
-
-    const profileData = {
-      ...previousData,
-      experience: {
-        years: yearsExperience,
-        skills: selectedSkills,
-      },
-    };
-
-    router.push({
-      pathname: "/pricing",
-      params: { profileData: JSON.stringify(profileData) },
-    });
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -85,22 +66,22 @@ export default function Experience() {
                 key={skill}
                 className={`m-1 px-4 py-2 rounded-full border ${
                   selectedSkills.includes(skill)
-                    ? "bg-blue-500 border-blue-500"
-                    : "border-gray-300"
+                    ? 'bg-blue-500 border-blue-500'
+                    : 'border-gray-300'
                 }`}
                 onPress={() => {
                   setSelectedSkills((prev) =>
                     prev.includes(skill)
                       ? prev.filter((s) => s !== skill)
-                      : [...prev, skill]
+                      : [...prev, skill],
                   );
                 }}
               >
                 <Text
                   className={
                     selectedSkills.includes(skill)
-                      ? "text-white"
-                      : "text-gray-600"
+                      ? 'text-white'
+                      : 'text-gray-600'
                   }
                 >
                   {skill}
@@ -114,14 +95,14 @@ export default function Experience() {
       <View className="px-4 py-4 border-t border-gray-200">
         <TouchableOpacity
           className={`rounded-lg py-4 items-center ${
-            yearsExperience ? "bg-[#4A90E2]" : "bg-gray-200"
+            yearsExperience ? 'bg-[#4A90E2]' : 'bg-gray-200'
           }`}
-          onPress={handleNext}
+          onPress={() => navigateToPricing(yearsExperience, selectedSkills)}
           disabled={!yearsExperience}
         >
           <Text
             className={`font-medium ${
-              yearsExperience ? "text-white" : "text-gray-500"
+              yearsExperience ? 'text-white' : 'text-gray-500'
             }`}
           >
             Next

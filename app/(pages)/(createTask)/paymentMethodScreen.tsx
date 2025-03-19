@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,31 +8,110 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useStripe, PaymentSheetError } from "@stripe/stripe-react-native";
+import useStore from '@/utils/store';
+import { SUPABASE_URL } from '@/clients/supabase';
 
 // 示例支付方式
 const paymentMethods = [
-  { id: "1", label: "Add New Card (Stripe Placeholder)" },
-  { id: "2", label: "BSB and Account Number" },
+  { id: "1", label: "Credit Card" },
+  { id: "2", label: "Direct Deposit" },
   { id: "3", label: "PayPal" },
 ];
+
+const PAYMENT_API_URL = `${SUPABASE_URL}/functions/v1/payments`;
 
 export default function PaymentMethodScreen() {
   const router = useRouter();
 
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("Add new payment method");
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { mySession } = useStore();
+
+  const initializePaymentSheet = async () => {
+    const { error } = await initPaymentSheet({
+      merchantDisplayName: "Aircarer",
+      defaultBillingDetails: {
+        address: {
+          country: 'AU',
+        },
+      },
+      returnURL: 'aircarer://stripe-redirect',
+      intentConfiguration: {
+        mode: {
+          amount: 1099,
+          currencyCode: 'AUD',
+          captureMethod: 'Automatic'
+        },
+        confirmHandler: confirmHandler
+      }
+    });
+    if (error) {
+      console.error("Error initializing PaymentSheet:", error);
+    }
+  };
+
+  const confirmHandler = async (paymentMethod, shouldSavePaymentMethod, intentCreationCallback) => {
+    console.log('confirmHandler', paymentMethod, shouldSavePaymentMethod);
+    const response = await fetch(`${PAYMENT_API_URL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${mySession.access_token}`
+      },
+      body: JSON.stringify(
+        {
+          action: 'create-payment-intent',
+          paymentMethod,
+          amount: 1099,
+          currency: 'AUD',
+          paymentMethodType: 'card',
+          paymentMethodOptions: {}
+        }
+      )
+    });
+    // Call the `intentCreationCallback` with your server response's client secret or error
+    const { clientSecret, error } = await response.json();
+    // console.error('client_secret', clientSecret);
+    if(error) console.error('error', error);
+    if (clientSecret) {
+      intentCreationCallback({ clientSecret: clientSecret });
+    } else {
+      intentCreationCallback({ error });
+    }
+  }
+
+  useEffect(() => {
+    initializePaymentSheet();
+  }, []);
 
   const handleSelectMethod = (method: string) => {
     setSelectedMethod(method);
     setDropdownOpen(false);
   };
 
-  const handleNextPress = () => {
+  const handleNextPress = async () => {
     // 这里可以将 selectedMethod 上传到数据库或执行别的逻辑
     // 未来可以在这里插入 Stripe 相关的处理，比如 createPaymentMethod, confirmPaymentIntent 等
 
     // 暂时先跳转回首页
-    router.push("/(tabs)/home");
+    //router.push("/(tabs)/home");
+    if (selectedMethod === "Credit Card") {
+      const { error } = await presentPaymentSheet();
+
+      if (error) {
+        console.error("Error:", error);
+        if (error.code === PaymentSheetError.Canceled) {
+          // Customer canceled - you should probably do nothing.
+        } else {
+          // PaymentSheet encountered an unrecoverable error. You can display the error to the user, log it, etc.
+        }
+      } else {
+        // Payment completed - show a confirmation screen.
+      }
+
+    }
   };
 
   return (
@@ -70,8 +149,8 @@ export default function PaymentMethodScreen() {
 
       {/* 在这留个位置给以后接入 Stripe */}
       <Text style={styles.infoText}>
-        In the future, we can integrate Stripe checkout or PaymentIntents here 
-        to handle card details and confirm the payment securely.
+        {/* In the future, we can integrate Stripe checkout or PaymentIntents here
+        to handle card details and confirm the payment securely. */}
       </Text>
 
       {/* Next button => push to homepage */}

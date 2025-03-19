@@ -9,13 +9,13 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { profileViewModel } from '@/viewModels/profileViewModel';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
 
 export default function UserTerms() {
   const router = useRouter();
   const [isBottom, setIsBottom] = useState(false);
-  const { loading, checkTermsAcceptance, handleAcceptTerms } =
-    profileViewModel();
+  const { isLoading, checkTermsAcceptance, handleAcceptTerms } =
+    useProfileViewModel();
 
   // 检查用户是否已同意条款
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function UserTerms() {
     setIsBottom(isCloseToBottom);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 justify-center items-center">

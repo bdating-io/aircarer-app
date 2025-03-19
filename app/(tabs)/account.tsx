@@ -37,7 +37,17 @@ export default function Account() {
     }
   };
 
-  const menuItems = [
+  type MenuItem = {
+    title: string;
+    icon:
+      | 'card-outline'
+      | 'notifications-outline'
+      | 'settings-outline'
+      | 'home-outline';
+    onPress: () => void;
+  };
+
+  const menuItems: MenuItem[] = [
     {
       title: 'Payment Options',
       icon: 'card-outline',
@@ -53,12 +63,15 @@ export default function Account() {
       icon: 'settings-outline',
       onPress: () => router.push('/(pages)/(account)/settings'),
     },
-    {
+  ];
+
+  if (myProfile?.role) {
+    menuItems.push({
       title: 'Property List',
       icon: 'home-outline',
       onPress: () => router.push('/(tabs)/propertyList'),
-    },
-  ];
+    });
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-[#4A90E2]">
@@ -101,7 +114,7 @@ export default function Account() {
               className="flex-row items-center py-3"
               onPress={item.onPress}
             >
-              <Ionicons name={item.icon as any} size={24} color="#4A90E2" />
+              <Ionicons name={item.icon} size={24} color="#4A90E2" />
               <Text className="flex-1 ml-4 text-lg">{item.title}</Text>
               <Ionicons name="chevron-forward" size={24} color="#666" />
             </TouchableOpacity>

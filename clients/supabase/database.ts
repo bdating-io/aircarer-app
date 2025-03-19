@@ -1,7 +1,9 @@
-import { ProfileData } from '@/types/type';
+import { ProfileData } from '@/types/profile';
 import { supabase } from '.';
 import { Property } from '@/types/property';
 import { User } from '@supabase/auth-js';
+import { AddressFormData } from '@/types/address';
+import { WorkPreference } from '@/types/workPreferences';
 
 export const supabaseDBClient = {
   getUserById: async (userId: string): Promise<User> => {
@@ -9,6 +11,19 @@ export const supabaseDBClient = {
       .from('users')
       .select('*')
       .eq('id', userId)
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
+  getUserAddressById: async (userId: string): Promise<AddressFormData> => {
+    const { data, error } = await supabase
+      .from('addresses')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', 'USER_ADDRESS')
       .single();
     if (error) {
       throw new Error(error.message);
@@ -26,6 +41,23 @@ export const supabaseDBClient = {
       throw new Error(error.message);
     }
     return data;
+  },
+
+  updateUserAddress: async (userId: string, addressData: AddressFormData) => {
+    const { error } = await supabase
+      .from('addresses')
+      .upsert([
+        {
+          user_id: userId,
+          ...addressData,
+          updated_at: new Date().toISOString(),
+        },
+      ])
+      .select()
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
   },
 
   getUserProfileById: async (userId: string) => {
@@ -138,6 +170,31 @@ export const supabaseDBClient = {
         updated_at: new Date().toISOString(),
       })
       .eq('property_id', propertyId);
+    if (error) {
+      throw new Error(error.message);
+    }
+  },
+
+  getUserWorkPreferenceById: async (userId: string) => {
+    const { data, error } = await supabase
+      .from('work_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
+  updateUserWorkPreference: async (workPreference: WorkPreference) => {
+    const { error } = await supabase.from('work_preferences').upsert([
+      {
+        ...workPreference,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ]);
     if (error) {
       throw new Error(error.message);
     }

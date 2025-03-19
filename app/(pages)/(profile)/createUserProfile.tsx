@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,22 +11,25 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
-import { ProfileData } from '@/types/type';
-import { profileViewModel } from '@/viewModels/profileViewModel';
+import { ProfileData } from '@/types/profile';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
+import { imagePicker } from '@/utils/imagePicker';
 
 export default function CreateProfile() {
   const router = useRouter();
   const {
+    myProfile,
     firstName,
     setFirstName,
     lastName,
     setLastName,
     abn,
+    setAbn,
     abnValid,
     validatingAbn,
     selectedRole,
     setSelectedRole,
-    isBackgroundChecked,
+    // isBackgroundChecked,
     setIsBackgroundChecked,
     backgroundCheckImage,
     setBackgroundCheckImage,
@@ -34,7 +37,23 @@ export default function CreateProfile() {
     pickBackgroundCheckImage,
     handleAbnChange,
     validateAndSubmitProfile,
-  } = profileViewModel();
+  } = useProfileViewModel();
+
+  useEffect(() => {
+    if (myProfile) {
+      setFirstName(myProfile.first_name || '');
+      setLastName(myProfile.last_name || '');
+      setAbn(myProfile.abn || '');
+      setSelectedRole((myProfile.role as ProfileData['role']) || 'Cleaner');
+    }
+  }, [myProfile]);
+
+  // 请求相机权限
+  useEffect(() => {
+    (async () => {
+      await imagePicker.requestImagePermission();
+    })();
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -212,9 +231,10 @@ export default function CreateProfile() {
           className={`rounded-full py-3 items-center ${
             firstName &&
             lastName &&
-            selectedRole && 
-            ((selectedRole === 'Cleaner'  &&  abn.length>0  && abnValid) ||
-              (selectedRole === 'House Owner' && abn.length == 0 || ( abn && abnValid) ))
+            selectedRole &&
+            ((selectedRole === 'Cleaner' && abn.length > 0 && abnValid) ||
+              (selectedRole === 'House Owner' && abn.length == 0) ||
+              (abn && abnValid))
               ? 'bg-[#4A90E2]'
               : 'bg-gray-200'
           }`}
@@ -223,17 +243,17 @@ export default function CreateProfile() {
             !firstName ||
             !lastName ||
             !selectedRole ||
-            (selectedRole === 'Cleaner'  && (abn.length == 0|| abnValid !== true)) ||
-            ( abn.length>0 && abnValid !== true)
+            (selectedRole === 'Cleaner' &&
+              (abn.length == 0 || abnValid !== true)) ||
+            (abn.length > 0 && abnValid !== true)
+            // || (selectedRole === 'Cleaner' && !isBackgroundChecked)
           }
         >
           <Text
             className={`font-medium ${
-              firstName &&
-              lastName &&
-              selectedRole
-             /* && abn && (selectedRole !== 'Cleaner' || (selectedRole === 'Cleaner' && isBackgroundChecked)) && abnValid === true*/
-                ? 'text-white'
+              firstName && lastName && selectedRole
+                ? /* && abn && (selectedRole !== 'Cleaner' || (selectedRole === 'Cleaner' && isBackgroundChecked)) && abnValid === true*/
+                  'text-white'
                 : 'text-gray-500'
             }`}
           >

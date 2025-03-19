@@ -1,119 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useEffect } from 'react';
+import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import MapView, { Marker, Circle } from 'react-native-maps';
-import useStore from '@/utils/store';
-import { supabase } from '@/clients/supabase';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
 
 export default function WorkingArea() {
   const router = useRouter();
-  const { myAddress, mySession, setMyWorkPreference } = useStore();
-  const params = useLocalSearchParams();
-  const [workDistance, setWorkDistance] = useState(10);
-  const [coordinates, setCoordinates] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
-  const [zoomDelta, setZoomDelta] = useState(0.2);
-  // const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
-
-  const geocodeAddress = async (
-    address: string,
-  ): Promise<{ latitude: number; longitude: number }> => {
-    const response = await fetch(
-      `${process.env.SUPABASE_URL}/functions/v1/geodecode`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${mySession.access_token}`,
-        },
-        body: JSON.stringify({ address: address }),
-      },
-    );
-    const data = await response.json();
-    return data;
-  };
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#fff',
-    },
-    map: {
-      width: '100%',
-      height: '70%',
-    },
-    slider: {
-      marginLeft: '14',
-    },
-  });
-
-  const fetchCoordinatesFromMyAddress = async () => {
-    try {
-      const coords = await geocodeAddress(
-        `${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.post_code}, ${myAddress.country}`,
-      );
-      setCoordinates(coords);
-    } catch (error) {
-      setCoordinates({ longitude: 0, latitude: 0 });
-      console.error('Error geocoding address:', error);
-    }
-  };
-
-  const getDBWorkPref = async (userId: string) => {
-    const { data: workPref, error } = await supabase
-      .from('work_preferences')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    setMyWorkPreference(workPref);
-    setWorkDistance(workPref.areas.distance);
-    setZoomDelta(workPref.areas.distance / 50);
-  };
+  const {
+    coordinates,
+    fetchCoordinatesFromMyAddress,
+    workDistance,
+    zoomDelta,
+    getDBWorkPref,
+    setWorkDistance,
+    setZoomDelta,
+    navigateToWorkingTime,
+  } = useProfileViewModel();
 
   useEffect(() => {
-    // For getting users current location
-    /* (async () => {
-       let { status } = await Location.requestForegroundPermissionsAsync();
-       if (status !== 'granted') {
-         console.error('Permission to access location was denied');
-       }
-       let location = await Location.getCurrentPositionAsync({});
-       // setCurrentLocation(location); TODO: give option to use current or arbitrary location on map as center
-     })();
-   // */
-
-    //   console.error("----myProfile="+ JSON.stringify(myProfile));
-    getDBWorkPref(mySession.user.id);
+    getDBWorkPref();
     fetchCoordinatesFromMyAddress();
   }, []);
-
-  const handleNext = () => {
-    if (!workDistance) return;
-
-    const previousData = params.profileData
-      ? JSON.parse(params.profileData as string)
-      : {};
-
-    const profileData = {
-      ...previousData,
-      workDistance: workDistance,
-    };
-
-    router.push({
-      pathname: '/workingTime',
-      params: { profileData: JSON.stringify(profileData) },
-    });
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -136,7 +45,7 @@ export default function WorkingArea() {
         <View>
           {coordinates && (
             <MapView
-              style={styles.map}
+              style={{ width: '100%', height: '70%' }} // MaoView only works with style not tailwind css classes
               region={{
                 latitude: coordinates.latitude,
                 longitude: coordinates.longitude,
@@ -157,13 +66,13 @@ export default function WorkingArea() {
                   longitude: coordinates.longitude,
                 }}
                 radius={workDistance * 1000}
-                strokeColor="rgba(0,0,255,0.5)" // Red border
-                fillColor="rgba(0,0,255,0.2)" // Semi-transparent red fill
+                strokeColor="rgba(0,0,255,0.5)"
+                fillColor="rgba(0,0,255,0.2)"
               />
             </MapView>
           )}
 
-          <View style={styles.slider}>
+          <View className="ml-4">
             <MultiSlider
               min={3}
               max={100}
@@ -187,7 +96,7 @@ export default function WorkingArea() {
           className={`rounded-lg py-4 items-center ${
             workDistance > 0 ? 'bg-[#4A90E2]' : 'bg-gray-200'
           }`}
-          onPress={handleNext}
+          onPress={navigateToWorkingTime}
           disabled={workDistance < 0}
         >
           <Text

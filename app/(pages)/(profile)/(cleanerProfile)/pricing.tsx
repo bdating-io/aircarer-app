@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,74 +6,15 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
-import { supabase } from '@/clients/supabase';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
 
 export default function Pricing() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const [hourlyRate, setHourlyRate] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const updateWorkPreferences = async (profileData: any) => {
-    setIsLoading(true);
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error('User not found');
-
-      const { data, error } = await supabase
-        .from('work_preferences')
-        .upsert(
-          {
-            user_id: user.id,
-            areas: { distance: profileData.workDistance },
-            time: profileData.workingTime,
-            experience: profileData.experience,
-            pricing: profileData.pricing,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id' },
-        )
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      Alert.alert('Success', 'work preferences saved successfully!');
-      router.push('/account');
-    } catch (error: any) {
-      console.error('Error saving work preferences:', error.message);
-      Alert.alert('Error', error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleComplete = () => {
-    if (!hourlyRate) return;
-
-    const previousData = params.profileData
-      ? JSON.parse(params.profileData as string)
-      : {};
-
-    const profileData = {
-      ...previousData,
-      pricing: {
-        hourlyRate: parseFloat(hourlyRate),
-      },
-    };
-
-    updateWorkPreferences(profileData);
-
-    // 完成注册，跳转到主页或成功页面
-  };
+  const { hourlyRate, setHourlyRate, completeProfileSetting } =
+    useProfileViewModel();
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -109,7 +50,7 @@ export default function Pricing() {
           className={`rounded-lg py-4 items-center ${
             hourlyRate ? 'bg-[#4A90E2]' : 'bg-gray-200'
           }`}
-          onPress={handleComplete}
+          onPress={completeProfileSetting}
           disabled={!hourlyRate}
         >
           <Text
