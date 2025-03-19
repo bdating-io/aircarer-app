@@ -72,8 +72,8 @@ export default function PaymentMethodScreen() {
     });
     // Call the `intentCreationCallback` with your server response's client secret or error
     const { clientSecret, error } = await response.json();
-    console.error('client_secret', clientSecret);
-    console.error('error', error);
+    // console.error('client_secret', clientSecret);
+    // console.error('error', error);
     if (clientSecret) {
       intentCreationCallback({ clientSecret: clientSecret });
     } else {
