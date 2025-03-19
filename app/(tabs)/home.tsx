@@ -7,10 +7,10 @@ import { CleanerScreen } from '@/components/home/cleanerScreen';
 import { HouseOwnerScreen } from '@/components/home/houseOwnerScreen';
 
 export default function Home() {
-  const { hasProfile, hasAddress, myProfile, userEmail, handleSignOut } =
+  const { hasAddress, myProfile, userEmail, handleSignOut } =
     useHomeViewModel();
   // If no profile => show create profile
-  if (!hasProfile || !myProfile?.role) {
+  if (!myProfile?.role) {
     return (
       <NoProfileScreen
         name={myProfile?.first_name || ''}
