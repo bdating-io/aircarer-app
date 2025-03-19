@@ -1,61 +1,20 @@
-import React, { useState } from "react";
+import React from 'react';
 import {
   View,
   Text,
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-
-type TimeSlot = {
-  day: string;
-  morning: boolean;
-  afternoon: boolean;
-  evening: boolean;
-};
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
 
 export default function WorkingTime() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
-    { day: "Monday", morning: false, afternoon: false, evening: false },
-    { day: "Tuesday", morning: false, afternoon: false, evening: false },
-    { day: "Wednesday", morning: false, afternoon: false, evening: false },
-    { day: "Thursday", morning: false, afternoon: false, evening: false },
-    { day: "Friday", morning: false, afternoon: false, evening: false },
-    { day: "Saturday", morning: false, afternoon: false, evening: false },
-    { day: "Sunday", morning: false, afternoon: false, evening: false },
-  ]);
 
-  const handleNext = () => {
-    const previousData = params.profileData
-      ? JSON.parse(params.profileData as string)
-      : {};
-
-    const profileData = {
-      ...previousData,
-      workingTime: timeSlots,
-    };
-
-    router.push({
-      pathname: "/(pages)/(profile)/(cleanerProfile)/experience",
-      params: { profileData: JSON.stringify(profileData) },
-    });
-  };
-
-  const toggleTimeSlot = (
-    dayIndex: number,
-    slot: "morning" | "afternoon" | "evening"
-  ) => {
-    const newTimeSlots = [...timeSlots];
-    newTimeSlots[dayIndex] = {
-      ...newTimeSlots[dayIndex],
-      [slot]: !newTimeSlots[dayIndex][slot],
-    };
-    setTimeSlots(newTimeSlots);
-  };
+  const { timeSlots, toggleTimeSlot, navigateToExperience } =
+    useProfileViewModel();
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -77,26 +36,26 @@ export default function WorkingTime() {
           <View key={slot.day} className="mb-6">
             <Text className="text-lg font-medium mb-2">{slot.day}</Text>
             <View className="flex-row space-x-2">
-              {["morning", "afternoon", "evening"].map((time) => (
+              {['morning', 'afternoon', 'evening'].map((time) => (
                 <TouchableOpacity
                   key={time}
                   className={`flex-1 py-2 rounded-full border ${
                     slot[time as keyof typeof slot]
-                      ? "bg-blue-500 border-blue-500"
-                      : "border-gray-300"
+                      ? 'bg-blue-500 border-blue-500'
+                      : 'border-gray-300'
                   }`}
                   onPress={() =>
                     toggleTimeSlot(
                       index,
-                      time as "morning" | "afternoon" | "evening"
+                      time as 'morning' | 'afternoon' | 'evening',
                     )
                   }
                 >
                   <Text
                     className={`text-center ${
                       slot[time as keyof typeof slot]
-                        ? "text-white"
-                        : "text-gray-600"
+                        ? 'text-white'
+                        : 'text-gray-600'
                     }`}
                   >
                     {time.charAt(0).toUpperCase() + time.slice(1)}
@@ -111,7 +70,7 @@ export default function WorkingTime() {
       <View className="px-4 py-4 border-t border-gray-200">
         <TouchableOpacity
           className="rounded-lg py-4 items-center bg-[#4A90E2]"
-          onPress={handleNext}
+          onPress={navigateToExperience}
         >
           <Text className="text-white font-medium">Next</Text>
         </TouchableOpacity>

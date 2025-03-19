@@ -15,8 +15,8 @@ interface Store {
   myProfile: Profile | null;
   setMyProfile: (profile: Profile | null) => void;
 
-  mySession: Session;
-  setMySession: (newSession: Session) => void;
+  mySession: Session | null;
+  setMySession: (newSession: Session | null) => void;
 
   myAddress: AddressFormData;
   setMyAddress: (newAddress: AddressFormData) => void;
@@ -51,7 +51,7 @@ const useStore = create<Store>((set) => ({
       },
     },
   },
-  setMySession: (newSession: Session) => set({ mySession: newSession }),
+  setMySession: (newSession: Session | null) => set({ mySession: newSession }),
   myWorkPreference: {},
   setMyAddress: (newAddress: AddressFormData) => set({ myAddress: newAddress }),
   myAddress: {

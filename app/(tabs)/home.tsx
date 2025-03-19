@@ -9,13 +9,14 @@ import { HouseOwnerScreen } from '@/components/home/houseOwnerScreen';
 export default function Home() {
   const { hasProfile, hasAddress, myProfile, userEmail, handleSignOut } =
     useHomeViewModel();
-
   // If no profile => show create profile
-  if (!hasProfile) {
-    <NoProfileScreen
-      name={myProfile?.first_name || ''}
-      email={userEmail || ''}
-    />;
+  if (!hasProfile || !myProfile?.role) {
+    return (
+      <NoProfileScreen
+        name={myProfile?.first_name || ''}
+        email={userEmail || ''}
+      />
+    );
   } else
     // Main view
     return (
@@ -56,12 +57,7 @@ export default function Home() {
           ) : myProfile?.role === 'House Owner' ? (
             // House Owner
             <HouseOwnerScreen />
-          ) : (
-            // Default / Loading
-            <View className="mt-8">
-              <Text className="text-white text-lg">Loading...</Text>
-            </View>
-          )}
+          ) : null}
         </View>
       </SafeAreaView>
     );

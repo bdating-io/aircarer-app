@@ -1,80 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import MapView, { Marker, Circle } from 'react-native-maps';
-import useStore from '@/utils/store';
-import { supabaseDBClient } from '@/clients/supabase/database';
-import { SUPABASE_URL } from '@/clients/supabase';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
 
 export default function WorkingArea() {
   const router = useRouter();
-  const { myAddress, mySession, setMyWorkPreference } = useStore();
-  const params = useLocalSearchParams();
-  const [workDistance, setWorkDistance] = useState(10);
-  const [coordinates, setCoordinates] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
-  const [zoomDelta, setZoomDelta] = useState(0.2);
-
-  const geocodeAddress = async (
-    address: string,
-  ): Promise<{ latitude: number; longitude: number }> => {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/geodecode`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${mySession.access_token}`,
-      },
-      body: JSON.stringify({ address: address }),
-    });
-    const data = await response.json();
-    return data;
-  };
-
-  const fetchCoordinatesFromMyAddress = async () => {
-    try {
-      const coords = await geocodeAddress(
-        `${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.post_code}, ${myAddress.country}`,
-      );
-      setCoordinates(coords);
-    } catch (error) {
-      setCoordinates({ longitude: 0, latitude: 0 });
-      console.error('Error geocoding address:', error);
-    }
-  };
-
-  const getDBWorkPref = async (userId: string) => {
-    const workPref = await supabaseDBClient.getUserWorkPreferenceById(userId);
-    setMyWorkPreference(workPref);
-    setWorkDistance(workPref.areas.distance);
-    setZoomDelta(workPref.areas.distance / 50);
-  };
+  const {
+    coordinates,
+    fetchCoordinatesFromMyAddress,
+    workDistance,
+    zoomDelta,
+    getDBWorkPref,
+    setWorkDistance,
+    setZoomDelta,
+    navigateToWorkingTime,
+  } = useProfileViewModel();
 
   useEffect(() => {
-    getDBWorkPref(mySession.user.id);
+    getDBWorkPref();
     fetchCoordinatesFromMyAddress();
   }, []);
-
-  const handleNext = () => {
-    if (!workDistance) return;
-
-    const previousData = params.profileData
-      ? JSON.parse(params.profileData as string)
-      : {};
-
-    const profileData = {
-      ...previousData,
-      workDistance: workDistance,
-    };
-
-    router.push({
-      pathname: '/workingTime',
-      params: { profileData: JSON.stringify(profileData) },
-    });
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -148,7 +96,7 @@ export default function WorkingArea() {
           className={`rounded-lg py-4 items-center ${
             workDistance > 0 ? 'bg-[#4A90E2]' : 'bg-gray-200'
           }`}
-          onPress={handleNext}
+          onPress={navigateToWorkingTime}
           disabled={workDistance < 0}
         >
           <Text

@@ -73,7 +73,7 @@ export const useAuthViewModel = () => {
         router.replace('/(tabs)/home');
       }
     } catch (error) {
-      Alert.alert('Error', (error as AuthError).message);
+      console.log('Error', (error as AuthError).message);
     }
   };
 

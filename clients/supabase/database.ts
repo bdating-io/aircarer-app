@@ -1,4 +1,4 @@
-import { ProfileData } from '@/types/type';
+import { ProfileData } from '@/types/profile';
 import { supabase } from '.';
 import { Property } from '@/types/property';
 import { User } from '@supabase/auth-js';
