@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,22 +11,25 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
-import { ProfileData } from '@/types/type';
+import { ProfileData } from '@/types/profile';
 import { useProfileViewModel } from '@/viewModels/profileViewModel';
+import { imagePicker } from '@/utils/imagePicker';
 
 export default function CreateProfile() {
   const router = useRouter();
   const {
+    myProfile,
     firstName,
     setFirstName,
     lastName,
     setLastName,
     abn,
+    setAbn,
     abnValid,
     validatingAbn,
     selectedRole,
     setSelectedRole,
-    isBackgroundChecked,
+    // isBackgroundChecked,
     setIsBackgroundChecked,
     backgroundCheckImage,
     setBackgroundCheckImage,
@@ -35,6 +38,22 @@ export default function CreateProfile() {
     handleAbnChange,
     validateAndSubmitProfile,
   } = useProfileViewModel();
+
+  useEffect(() => {
+    if (myProfile) {
+      setFirstName(myProfile.first_name || '');
+      setLastName(myProfile.last_name || '');
+      setAbn(myProfile.abn || '');
+      setSelectedRole((myProfile.role as ProfileData['role']) || 'Cleaner');
+    }
+  }, [myProfile]);
+
+  // 请求相机权限
+  useEffect(() => {
+    (async () => {
+      await imagePicker.requestImagePermission();
+    })();
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -226,8 +245,8 @@ export default function CreateProfile() {
             !selectedRole ||
             (selectedRole === 'Cleaner' &&
               (abn.length == 0 || abnValid !== true)) ||
-            (abn.length > 0 && abnValid !== true) ||
-            (selectedRole === 'Cleaner' && !isBackgroundChecked)
+            (abn.length > 0 && abnValid !== true)
+            // || (selectedRole === 'Cleaner' && !isBackgroundChecked)
           }
         >
           <Text

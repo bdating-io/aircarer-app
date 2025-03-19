@@ -6,7 +6,7 @@ export type ProfileData = {
   isBackgroundChecked: boolean;
 };
 
-export interface Profile {
+export type Profile = {
   id: string;
   first_name: string;
   last_name: string;
@@ -17,4 +17,11 @@ export interface Profile {
   terms_accepted_at?: string;
   created_at: string;
   updated_at: string;
-}
+};
+
+export type TimeSlot = {
+  day: string;
+  morning: boolean;
+  afternoon: boolean;
+  evening: boolean;
+};

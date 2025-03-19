@@ -8,7 +8,6 @@ import { Alert } from 'react-native';
 
 export const useHomeViewModel = () => {
   const router = useRouter();
-  const [hasProfile, setHasProfile] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
   const { myProfile, setMyProfile, mySession, setMySession } = useStore();
   const [userEmail, setUserEmail] = useState<string>('');
@@ -41,7 +40,6 @@ export const useHomeViewModel = () => {
     try {
       const profile = await supabaseDBClient.getUserProfileById(userId);
       setMyProfile(profile);
-      setHasProfile(!!profile?.first_name);
     } catch (error) {
       Alert.alert('Error checking profile', (error as Error).message);
     }
@@ -62,7 +60,6 @@ export const useHomeViewModel = () => {
       await supabaseAuthClient.signOut();
       setMyProfile(null);
       setMySession(null);
-      setHasProfile(false);
     } catch (error) {
       Alert.alert('Error signing out', (error as Error).message);
     }
@@ -112,7 +109,6 @@ export const useHomeViewModel = () => {
   };
 
   return {
-    hasProfile,
     hasAddress,
     myProfile,
     mySession,

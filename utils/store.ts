@@ -1,4 +1,5 @@
 import { AddressFormData } from '@/types/address';
+import { WorkPreference } from '@/types/workPreferences';
 import { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
@@ -15,14 +16,14 @@ interface Store {
   myProfile: Profile | null;
   setMyProfile: (profile: Profile | null) => void;
 
-  mySession: Session;
-  setMySession: (newSession: Session) => void;
+  mySession: Session | null;
+  setMySession: (newSession: Session | null) => void;
 
   myAddress: AddressFormData;
   setMyAddress: (newAddress: AddressFormData) => void;
 
-  myWorkPreference: any;
-  setMyWorkPreference: (newWorkPreference: any) => void;
+  myWorkPreference: WorkPreference;
+  setMyWorkPreference: (newWorkPreference: WorkPreference) => void;
 }
 
 const useStore = create<Store>((set) => ({
@@ -51,8 +52,17 @@ const useStore = create<Store>((set) => ({
       },
     },
   },
-  setMySession: (newSession: Session) => set({ mySession: newSession }),
-  myWorkPreference: {},
+  setMySession: (newSession: Session | null) => set({ mySession: newSession }),
+  myWorkPreference: {
+    id: '',
+    user_id: '',
+    areas: '',
+    time: '',
+    experience: '',
+    pricing: '',
+    created_at: '',
+    updated_at: '',
+  },
   setMyAddress: (newAddress: AddressFormData) => set({ myAddress: newAddress }),
   myAddress: {
     user_id: '',
@@ -64,7 +74,7 @@ const useStore = create<Store>((set) => ({
     postal_code: '',
     country: 'Australia',
   },
-  setMyWorkPreference: (newPreference: any) =>
+  setMyWorkPreference: (newPreference: WorkPreference) =>
     set({ myWorkPreference: newPreference }),
 }));
 

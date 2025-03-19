@@ -1,15 +1,15 @@
 {
   "expo": {
     "scheme": "aircarer",
-    "name": "aircarer",
+    "name": "Aircarer",
     "slug": "aircarer",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icons/icon.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/icons/icon.jpg",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,14 +18,29 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aircarer.app"
+      "bundleIdentifier": "com.aircarer.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to provide you with the best service.",
+        "NSLocationAlwaysUsageDescription": "This app uses your location to provide you with the best service.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app uses your location to provide you with the best service.",
+        "NSCameraUsageDescription": "This app uses your camera to provide you with the best service.",
+        "NSPhotoLibraryUsageDescription": "This app uses your photo library to provide you with the best service."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icons/icon.jpg",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.aircarer.app"
+      "package": "com.aircarer.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +52,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "40a07018-fb62-4bf4-89e6-9adbde841c80"
+      }
     }
   }
 }

@@ -2,12 +2,14 @@ import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
 import { supabaseStorageClient } from '@/clients/supabase/storage';
 import useStore from '@/utils/store';
-import { ProfileData } from '@/types/type';
+import { ProfileData, TimeSlot } from '@/types/profile';
 import { imagePicker } from '@/utils/imagePicker';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Alert } from 'react-native';
 import { AddressFormData } from '@/types/address';
+import { SUPABASE_URL } from '@/clients/supabase';
+import { WorkPreference } from '@/types/workPreferences';
 
 export const useProfileViewModel = () => {
   const router = useRouter();
@@ -21,10 +23,24 @@ export const useProfileViewModel = () => {
     string | null
   >(null);
   const [abn, setAbn] = useState('');
-  const { myProfile, setMyProfile, setMyAddress } = useStore();
+  const {
+    myAddress,
+    mySession,
+    myProfile,
+    setMyProfile,
+    setMyAddress,
+    setMyWorkPreference,
+  } = useStore();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
+  const [workDistance, setWorkDistance] = useState(10);
+  const [coordinates, setCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [zoomDelta, setZoomDelta] = useState(0.2);
+  const params = useLocalSearchParams();
   const [selectedRole, setSelectedRole] =
     useState<ProfileData['role']>('Cleaner');
 
@@ -40,21 +56,24 @@ export const useProfileViewModel = () => {
     longitude: '',
   });
 
-  useEffect(() => {
-    if (myProfile) {
-      setFirstName(myProfile.first_name || '');
-      setLastName(myProfile.last_name || '');
-      setAbn(myProfile.abn || '');
-      setSelectedRole((myProfile.role as ProfileData['role']) || 'Cleaner');
-    }
-  }, [myProfile]);
+  const daysOfWeek = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+  const initialTimeSlots = daysOfWeek.map((day) => ({
+    day,
+    morning: false,
+    afternoon: false,
+    evening: false,
+  }));
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(initialTimeSlots);
 
-  // 请求相机权限
-  useEffect(() => {
-    (async () => {
-      await imagePicker.requestImagePermission();
-    })();
-  }, []);
+  const [hourlyRate, setHourlyRate] = useState('');
 
   const checkTermsAcceptance = async () => {
     try {
@@ -144,7 +163,6 @@ export const useProfileViewModel = () => {
           background_check_url: documentUrl,
         },
       });
-      console.log(selectedRole);
       console.log('User metadata updated with background check URL');
     } catch (error) {
       console.error('Error updating user metadata:', error);
@@ -350,8 +368,166 @@ export const useProfileViewModel = () => {
     }
   };
 
+  const geocodeAddress = async (
+    address: string,
+  ): Promise<{ latitude: number; longitude: number }> => {
+    if (!mySession) {
+      throw new Error('User not authenticated');
+    }
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/geodecode`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${mySession.access_token}`,
+      },
+      body: JSON.stringify({ address: address }),
+    });
+    const data = await response.json();
+    return data;
+  };
+
+  const fetchCoordinatesFromMyAddress = async () => {
+    try {
+      const coords = await geocodeAddress(
+        `${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.post_code}, ${myAddress.country}`,
+      );
+      setCoordinates(coords);
+    } catch (error) {
+      setCoordinates({ longitude: 0, latitude: 0 });
+      console.error('Error geocoding address:', error);
+    }
+  };
+
+  const getDBWorkPref = async () => {
+    if (!mySession) throw new Error('User not authenticated');
+    const workPref = await supabaseDBClient.getUserWorkPreferenceById(
+      mySession.user.id,
+    );
+    setMyWorkPreference(workPref);
+    setWorkDistance(workPref.areas.distance);
+    setZoomDelta(workPref.areas.distance / 50);
+  };
+
+  const navigateToWorkingTime = () => {
+    if (!workDistance) return;
+
+    const previousData = params.profileData
+      ? JSON.parse(params.profileData as string)
+      : {};
+
+    const profileData = {
+      ...previousData,
+      workDistance: workDistance,
+    };
+
+    router.push({
+      pathname: '/workingTime',
+      params: { profileData: JSON.stringify(profileData) },
+    });
+  };
+
+  const navigateToExperience = () => {
+    const previousData = params.profileData
+      ? JSON.parse(params.profileData as string)
+      : {};
+
+    const profileData = {
+      ...previousData,
+      workingTime: timeSlots,
+    };
+
+    router.push({
+      pathname: '/(pages)/(profile)/(cleanerProfile)/experience',
+      params: { profileData: JSON.stringify(profileData) },
+    });
+  };
+
+  const toggleTimeSlot = (
+    dayIndex: number,
+    slot: 'morning' | 'afternoon' | 'evening',
+  ) => {
+    const newTimeSlots = [...timeSlots];
+    newTimeSlots[dayIndex] = {
+      ...newTimeSlots[dayIndex],
+      [slot]: !newTimeSlots[dayIndex][slot],
+    };
+    setTimeSlots(newTimeSlots);
+  };
+
+  const navigateToPricing = (
+    yearsExperience: string,
+    selectedSkills: string[],
+  ) => {
+    const previousData = params.profileData
+      ? JSON.parse(params.profileData as string)
+      : {};
+
+    const profileData = {
+      ...previousData,
+      experience: {
+        years: yearsExperience,
+        skills: selectedSkills,
+      },
+    };
+
+    router.push({
+      pathname: '/pricing',
+      params: { profileData: JSON.stringify(profileData) },
+    });
+  };
+
+  const updateWorkPreferences = async (profileData: WorkPreference) => {
+    setIsLoading(true);
+    try {
+      const user = await supabaseAuthClient.getUser();
+
+      const workPref = {
+        user_id: user.id,
+        areas: JSON.stringify({
+          distance: workDistance,
+          latitude: coordinates?.latitude,
+          longitude: coordinates?.longitude,
+        }),
+        time: JSON.stringify(timeSlots),
+        experience: JSON.stringify(profileData.experience),
+        pricing: JSON.stringify(profileData.pricing),
+      };
+
+      await supabaseDBClient.updateUserWorkPreference(workPref);
+
+      Alert.alert('Success', 'work preferences saved successfully!');
+      router.push('/account');
+    } catch (error) {
+      console.error('Error saving work preferences:', (error as Error).message);
+      Alert.alert('Error', (error as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const completeProfileSetting = () => {
+    if (!hourlyRate) return;
+
+    const previousData = params.profileData
+      ? JSON.parse(params.profileData as string)
+      : {};
+
+    const profileData = {
+      ...previousData,
+      pricing: {
+        hourlyRate: parseFloat(hourlyRate),
+      },
+    };
+
+    updateWorkPreferences(profileData);
+
+    // 完成注册，跳转到主页或成功页面
+  };
+
   return {
     address,
+    hourlyRate,
+    timeSlots,
     uploadingImage,
     isLoading,
     abnValid,
@@ -363,6 +539,9 @@ export const useProfileViewModel = () => {
     firstName,
     lastName,
     selectedRole,
+    workDistance,
+    coordinates,
+    zoomDelta,
     checkTermsAcceptance,
     handleAcceptTerms,
     pickBackgroundCheckImage,
@@ -380,5 +559,15 @@ export const useProfileViewModel = () => {
     updateUserAddress,
     getAddress,
     setAddress,
+    fetchCoordinatesFromMyAddress,
+    getDBWorkPref,
+    navigateToWorkingTime,
+    setWorkDistance,
+    setZoomDelta,
+    navigateToExperience,
+    toggleTimeSlot,
+    navigateToPricing,
+    setHourlyRate,
+    completeProfileSetting,
   };
 };

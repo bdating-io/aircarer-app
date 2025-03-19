@@ -1,8 +1,9 @@
-import { ProfileData } from '@/types/type';
+import { ProfileData } from '@/types/profile';
 import { supabase } from '.';
 import { Property } from '@/types/property';
 import { User } from '@supabase/auth-js';
 import { AddressFormData } from '@/types/address';
+import { WorkPreference } from '@/types/workPreferences';
 
 export const supabaseDBClient = {
   getUserById: async (userId: string): Promise<User> => {
@@ -184,5 +185,18 @@ export const supabaseDBClient = {
       throw new Error(error.message);
     }
     return data;
+  },
+
+  updateUserWorkPreference: async (workPreference: WorkPreference) => {
+    const { error } = await supabase.from('work_preferences').upsert([
+      {
+        ...workPreference,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ]);
+    if (error) {
+      throw new Error(error.message);
+    }
   },
 };
