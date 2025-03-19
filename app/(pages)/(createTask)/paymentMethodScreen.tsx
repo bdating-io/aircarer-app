@@ -10,15 +10,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useStripe, PaymentSheetError } from "@stripe/stripe-react-native";
 import useStore from '@/utils/store';
+import { SUPABASE_URL } from '@/clients/supabase';
 
 // 示例支付方式
 const paymentMethods = [
-  { id: "1", label: "Add New Card (Stripe Placeholder)" },
-  { id: "2", label: "BSB and Account Number" },
+  { id: "1", label: "Credit Card" },
+  { id: "2", label: "Direct Deposit" },
   { id: "3", label: "PayPal" },
 ];
 
-const API_URL = "https://qfnaeliuqkgylkbtufuv.supabase.co/functions/v1";
+const PAYMENT_API_URL = `${SUPABASE_URL}/functions/v1/payments`;
 
 export default function PaymentMethodScreen() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function PaymentMethodScreen() {
 
   const confirmHandler = async (paymentMethod, shouldSavePaymentMethod, intentCreationCallback) => {
     console.log('confirmHandler', paymentMethod, shouldSavePaymentMethod);
-    const response = await fetch(`${API_URL}/payments`, {
+    const response = await fetch(`${PAYMENT_API_URL}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +74,7 @@ export default function PaymentMethodScreen() {
     // Call the `intentCreationCallback` with your server response's client secret or error
     const { clientSecret, error } = await response.json();
     // console.error('client_secret', clientSecret);
-    // console.error('error', error);
+    if(error) console.error('error', error);
     if (clientSecret) {
       intentCreationCallback({ clientSecret: clientSecret });
     } else {
@@ -96,7 +97,7 @@ export default function PaymentMethodScreen() {
 
     // 暂时先跳转回首页
     //router.push("/(tabs)/home");
-    if (selectedMethod === "Add New Card (Stripe Placeholder)") {
+    if (selectedMethod === "Credit Card") {
       const { error } = await presentPaymentSheet();
 
       if (error) {
@@ -148,8 +149,8 @@ export default function PaymentMethodScreen() {
 
       {/* 在这留个位置给以后接入 Stripe */}
       <Text style={styles.infoText}>
-        In the future, we can integrate Stripe checkout or PaymentIntents here
-        to handle card details and confirm the payment securely.
+        {/* In the future, we can integrate Stripe checkout or PaymentIntents here
+        to handle card details and confirm the payment securely. */}
       </Text>
 
       {/* Next button => push to homepage */}
