@@ -1,4 +1,3 @@
-import { supabase } from '@/clients/supabase';
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
 import useStore from '@/utils/store';
@@ -11,9 +10,6 @@ export const useHomeViewModel = () => {
   const [hasAddress, setHasAddress] = useState<boolean>(false);
   const { myProfile, setMyProfile, mySession, setMySession } = useStore();
   const [userEmail, setUserEmail] = useState<string>('');
-
-  // Store the task title
-  const [taskTitle, setTaskTitle] = useState<string>('');
 
   useEffect(() => {
     supabaseAuthClient.getSession().then((session) => {
@@ -67,13 +63,7 @@ export const useHomeViewModel = () => {
   };
 
   // Create Task => Insert row => if successful, navigate
-  const handleCreateTask = async () => {
-    // 1) check if user typed a non-empty taskTitle
-    if (!taskTitle.trim()) {
-      Alert.alert('Missing title', 'Please enter a task title first.');
-      return;
-    }
-
+  const handleCreateTask = async (cleaningType: string) => {
     // 2) check if user is logged in
     if (!mySession?.user) {
       Alert.alert('Not logged in', 'Please log in first.');
@@ -82,26 +72,19 @@ export const useHomeViewModel = () => {
 
     try {
       // 2) Instead of .insert(), call the Postgres function
-      const { data, error } = await supabase.rpc('create_task', {
-        p_customer_id: mySession.user.id,
-        p_task_title: taskTitle.trim(),
-      });
-      if (error) throw error;
+      const task = await supabaseDBClient.createTask(
+        mySession.user.id,
+        cleaningType,
+      );
 
-      // data will be an array of inserted rows (should be length 1)
-      if (!data || data.length === 0) {
-        Alert.alert('Error', 'No task returned from create_task RPC.');
+      // data will be an array of inserted rows
+      if (!task) {
+        Alert.alert('Error', 'Failed to create task via RPC');
         return;
       }
 
-      // The newly created task is data[0]
-      const newTask = data[0];
-      Alert.alert('Task Created!', `Task ID = ${newTask.task_id}`);
-
       // Navigate
-      router.push(
-        `/(pages)/(createTask)/placeDetails?taskId=${newTask.task_id}`,
-      );
+      router.push(`/(pages)/(createTask)/placeDetails?taskId=${task.task_id}`);
     } catch (err) {
       console.error('RPC error:', err);
       Alert.alert('Error', 'Failed to create task via RPC');
@@ -113,8 +96,6 @@ export const useHomeViewModel = () => {
     myProfile,
     mySession,
     userEmail,
-    taskTitle,
-    setTaskTitle,
     handleCreateTask,
     handleSignOut,
   };

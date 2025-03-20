@@ -17,7 +17,7 @@ function RootLayoutNav() {
         <Stack.Screen
           name="placeDetails"
           options={{
-            headerTitle: 'Property Detailsy',
+            headerTitle: 'Property Details',
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => router.navigate('/(tabs)/houseOwnerTasks')}

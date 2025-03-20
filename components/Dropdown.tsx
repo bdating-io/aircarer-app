@@ -1,50 +1,60 @@
-import React from 'react';
-import RNPickerSelect from 'react-native-picker-select';
-import { View, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-export function Dropdown({ selectedValue, onValueChange, items, placeholder }) {
-  const pickerItems = items.map((item) => ({ label: item, value: item })); // 确保格式正确
-
-  return (
-    <View style={styles.container}>
-      <RNPickerSelect
-        onValueChange={onValueChange}
-        items={pickerItems}
-        value={selectedValue}
-        placeholder={{ label: placeholder, value: null }}
-        style={pickerSelectStyles}
-        useNativeAndroidPickerStyle={false} // 避免 Android 上原生样式问题
-      />
-    </View>
-  );
+interface DropdownProps {
+  title: string;
+  placeholder: string;
+  options: string[];
+  selectedOption: string;
+  titleStyle?: string;
+  onSelect: (option: string) => void;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 16,
-    backgroundColor: '#fff',
-  },
-});
+const Dropdown = ({
+  title,
+  options,
+  selectedOption,
+  placeholder,
+  titleStyle,
+  onSelect,
+}: DropdownProps) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-const pickerSelectStyles = {
-  inputIOS: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    color: 'black',
-    backgroundColor: '#fff',
-    borderRadius: 4,
-  },
-  inputAndroid: {
-    fontSize: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    color: 'black',
-    backgroundColor: '#fff',
-    borderRadius: 4,
-  },
+  return (
+    <View className="mb-4">
+      <Text className={`font-bold mb-2 ${titleStyle ?? ''}`}>{title}</Text>
+      <TouchableOpacity
+        className="flex-row justify-between items-center bg-white border border-blue-600 rounded px-3 py-3.5"
+        onPress={() => setIsOpen(!isOpen)}
+      >
+        <Text className="text-lg text-black">
+          {selectedOption || placeholder}
+        </Text>
+        <Ionicons
+          name={isOpen ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color="#000"
+        />
+      </TouchableOpacity>
+      {isOpen && (
+        <View className="bg-white border border-gray-300 border-t-0 rounded mt-[-1px]">
+          {options.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              className="px-3 py-3.5 border-b border-gray-200"
+              onPress={() => {
+                onSelect(option);
+                setIsOpen(false);
+              }}
+            >
+              <Text className="text-lg text-black">{option}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
 };
 
+export default Dropdown;

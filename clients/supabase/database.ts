@@ -4,6 +4,7 @@ import { Property } from '@/types/property';
 import { User } from '@supabase/auth-js';
 import { AddressFormData } from '@/types/address';
 import { WorkPreference } from '@/types/workPreferences';
+import { HouseOwnerTask } from '@/types/task';
 
 export const supabaseDBClient = {
   getUserById: async (userId: string): Promise<User> => {
@@ -198,5 +199,33 @@ export const supabaseDBClient = {
     if (error) {
       throw new Error(error.message);
     }
+  },
+
+  createTask: async (
+    customerId: string,
+    cleaningType: string,
+  ): Promise<HouseOwnerTask> => {
+    const { data, error } = await supabase.rpc('create_task', {
+      p_customer_id: customerId,
+      p_cleaning_type: cleaningType,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
+  updateTask: async (taskId: string, taskData: Partial<HouseOwnerTask>) => {
+    const { data, error } = await supabase
+      .from('tasks')
+      .update(taskData)
+      .eq('task_id', taskId)
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
   },
 };
