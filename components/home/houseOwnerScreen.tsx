@@ -1,25 +1,27 @@
 import { useHomeViewModel } from '@/viewModels/homeViewModel';
-import React from 'react';
-import { View, TextInput, TouchableOpacity, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, Text } from 'react-native';
+import Dropdown from '../Dropdown';
 
 export const HouseOwnerScreen: React.FC = () => {
-  const { taskTitle, setTaskTitle, handleCreateTask } = useHomeViewModel();
+  const cleaningTypes = ['AirBnB', 'End-of-Lease/Sale'];
+  const [cleaningType, setCleaningType] = useState('');
+  const { handleCreateTask } = useHomeViewModel();
   return (
-    <View className="mt-8 space-y-4">
-      <Text className="text-2xl text-white font-semibold">
-        Need cleaning service? Post a task now.
-      </Text>
+    <View className="space-y-4">
       {/* Input + Button */}
-      <View className="bg-[#4A90E2] p-4 rounded-lg">
-        <TextInput
-          className="bg-gray-100 px-3 py-2 rounded"
-          placeholder="Enter your task title"
-          value={taskTitle}
-          onChangeText={setTaskTitle}
+      <View className="bg-[#4A90E2] p-4 rounded-lg py-40">
+        <Dropdown
+          title="Select a cleaning type to start"
+          titleStyle="text-white text-center"
+          options={cleaningTypes}
+          selectedOption={cleaningType}
+          onSelect={setCleaningType}
+          placeholder={'Select cleaning type'}
         />
         <TouchableOpacity
           className="bg-[#FF6B6B] rounded-lg p-4 mt-4"
-          onPress={handleCreateTask}
+          onPress={() => handleCreateTask(cleaningType)}
         >
           <Text className="text-white text-center text-lg font-semibold">
             Create Task

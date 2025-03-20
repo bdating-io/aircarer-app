@@ -1,15 +1,27 @@
+type TaskStatus =
+  | 'New'
+  | 'Pending'
+  | 'Booked'
+  | 'In Progress'
+  | 'Completed'
+  | 'Cancelled';
+
+type TaskType = 'Quick Cleaning' | 'Regular Cleaning' | 'Deep Cleaning';
+type TaskPaymentStatus = 'Not Paid' | 'Paid' | 'Completed';
+type TaskApprovalStatus = 'Pending' | 'Approved' | 'Rejected';
+
 export type HouseOwnerTask = {
   task_id?: number;
   customer_id: string;
-  task_title: string; // shown as the card's main title
-  task_type: string; // new row with icon
+  status: TaskStatus;
+  task_type: TaskType; // new row with icon
   scheduled_start_time: string | null;
   estimated_price: number;
   budget: number;
   confirmed_price: number | null;
-  payment_status: string;
+  payment_status: TaskPaymentStatus;
   date_updated: string;
-  approval_status: string;
+  approval_status: TaskApprovalStatus;
   address: string;
   latitude: number | null;
   longitude: number | null;
@@ -27,15 +39,15 @@ export type HouseOwnerTask = {
 
 export type CleanerTask = {
   task_id?: number;
-  task_type: 'Quick Cleaning' | 'Regular Cleaning' | 'Deep Cleaning';
+  task_type: TaskType;
   task_title: string;
   estimated_price: number;
   confirmed_price: number | null;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
-  payment_status: 'Not Paid' | 'Paid';
+  status: TaskStatus;
+  payment_status: TaskPaymentStatus;
   scheduled_start_time: string;
   actual_start_time: string | null;
   completion_time: string | null;
-  approval_status: 'Pending' | 'Approved' | 'Rejected';
+  approval_status: TaskApprovalStatus;
   budget: number;
 };
