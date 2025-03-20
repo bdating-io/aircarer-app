@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,12 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { AntDesign } from '@expo/vector-icons';
-import { ProfileData } from '@/types/profile';
-import { useProfileViewModel } from '@/viewModels/profileViewModel';
-import { imagePicker } from '@/utils/imagePicker';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { AntDesign } from "@expo/vector-icons";
+import { ProfileData } from "@/types/profile";
+import { useProfileViewModel } from "@/viewModels/profileViewModel";
+import { imagePicker } from "@/utils/imagePicker";
 
 export default function CreateProfile() {
   const router = useRouter();
@@ -41,10 +41,10 @@ export default function CreateProfile() {
 
   useEffect(() => {
     if (myProfile) {
-      setFirstName(myProfile.first_name || '');
-      setLastName(myProfile.last_name || '');
-      setAbn(myProfile.abn || '');
-      setSelectedRole((myProfile.role as ProfileData['role']) || 'Cleaner');
+      setFirstName(myProfile.first_name || "");
+      setLastName(myProfile.last_name || "");
+      setAbn(myProfile.abn || "");
+      setSelectedRole((myProfile.role as ProfileData["role"]) || "Cleaner");
     }
   }, [myProfile]);
 
@@ -96,10 +96,10 @@ export default function CreateProfile() {
           <TextInput
             className={`border rounded-lg p-3 ${
               abnValid === true
-                ? 'border-green-500'
+                ? "border-green-500"
                 : abnValid === false
-                  ? 'border-red-500'
-                  : 'border-gray-300'
+                  ? "border-red-500"
+                  : "border-gray-300"
             }`}
             placeholder="e.g. 51 824 753 556"
             value={abn}
@@ -135,19 +135,19 @@ export default function CreateProfile() {
               <Text
                 className={`text-sm ${
                   abnValid === true
-                    ? 'text-green-600'
+                    ? "text-green-600"
                     : abnValid === false
-                      ? 'text-red-600'
-                      : 'text-gray-500'
+                      ? "text-red-600"
+                      : "text-gray-500"
                 }`}
               >
                 {validatingAbn
-                  ? 'Validating ABN...'
+                  ? "Validating ABN..."
                   : abnValid === true
-                    ? 'Valid ABN'
+                    ? "Valid ABN"
                     : abnValid === false
-                      ? 'Invalid ABN format'
-                      : 'Enter your 11-digit ABN'}
+                      ? "Invalid ABN format"
+                      : "Enter your 11-digit ABN"}
               </Text>
             </View>
           )}
@@ -161,15 +161,15 @@ export default function CreateProfile() {
           {[
             // { id: 'Laundry Partner', icon: '🧺', color: 'bg-blue-100' },
             // { id: 'Supervisor', icon: '👥', color: 'bg-green-100' },
-            { id: 'Cleaner', icon: '🧹', color: 'bg-yellow-100' },
-            { id: 'House Owner', icon: '🏠', color: 'bg-purple-100' },
+            { id: "Cleaner", icon: "🧹", color: "bg-yellow-100" },
+            { id: "House Owner", icon: "🏠", color: "bg-purple-100" },
           ].map((role) => (
             <TouchableOpacity
               key={role.id}
               className={`w-[48%] p-4 rounded-lg mb-4 ${role.color} ${
-                selectedRole === role.id ? 'border-2 border-blue-500' : ''
+                selectedRole === role.id ? "border-2 border-blue-500" : ""
               }`}
-              onPress={() => setSelectedRole(role.id as ProfileData['role'])}
+              onPress={() => setSelectedRole(role.id as ProfileData["role"])}
             >
               <Text className="text-center text-2xl mb-2">{role.icon}</Text>
               <Text className="text-center">{role.id}</Text>
@@ -178,7 +178,7 @@ export default function CreateProfile() {
         </View>
 
         {/* Background Check Upload - 仅当角色为"Cleaner"时显示 */}
-        {selectedRole === 'Cleaner' && (
+        {selectedRole === "Cleaner" && (
           <>
             <Text className="text-gray-600 mb-2">Background Check</Text>
             <Text className="text-xs text-gray-500 mb-3">
@@ -192,8 +192,8 @@ export default function CreateProfile() {
             >
               <Text className="text-gray-500">
                 {uploadingImage
-                  ? 'Uploading...'
-                  : 'Upload background check document'}
+                  ? "Uploading..."
+                  : "Upload background check document"}
               </Text>
               {uploadingImage ? (
                 <ActivityIndicator color="#4A90E2" size="small" />
@@ -229,35 +229,28 @@ export default function CreateProfile() {
       <View className="px-4 py-4 border-t border-gray-200">
         <TouchableOpacity
           className={`rounded-full py-3 items-center ${
-            firstName &&
-            lastName &&
-            selectedRole &&
-            ((selectedRole === 'Cleaner' && abn.length > 0 && abnValid) ||
-              (selectedRole === 'House Owner' && abn.length == 0) ||
-              (abn && abnValid))
-              ? 'bg-[#4A90E2]'
-              : 'bg-gray-200'
+            firstName && lastName && selectedRole
+              ? "bg-[#4A90E2]"
+              : "bg-gray-200"
           }`}
           onPress={validateAndSubmitProfile}
           disabled={
-            !firstName ||
-            !lastName ||
-            !selectedRole ||
-            (selectedRole === 'Cleaner' &&
-              (abn.length == 0 || abnValid !== true)) ||
-            (abn.length > 0 && abnValid !== true)
-            // || (selectedRole === 'Cleaner' && !isBackgroundChecked)
+            !firstName || !lastName || !selectedRole
+            // 暂时注释掉其他条件
+            // (selectedRole === 'Cleaner' &&
+            //   (abn.length == 0 || abnValid !== true)) ||
+            // (abn.length > 0 && abnValid !== true)
           }
         >
           <Text
             className={`font-medium ${
               firstName && lastName && selectedRole
                 ? /* && abn && (selectedRole !== 'Cleaner' || (selectedRole === 'Cleaner' && isBackgroundChecked)) && abnValid === true*/
-                  'text-white'
-                : 'text-gray-500'
+                  "text-white"
+                : "text-gray-500"
             }`}
           >
-            {validatingAbn ? 'Validating...' : 'Next'}
+            {validatingAbn ? "Validating..." : "Next"}
           </Text>
         </TouchableOpacity>
       </View>

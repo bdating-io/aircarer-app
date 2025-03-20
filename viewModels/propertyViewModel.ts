@@ -26,6 +26,7 @@ export const usePropertyViewModel = () => {
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [bedrooms, setBedrooms] = useState(1);
   const [bathrooms, setBathrooms] = useState(1);
+  const [livingrooms, setLivingrooms] = useState(1);
   const [petCleaning, setPetCleaning] = useState(false);
   const [carpetCleaning, setCarpetCleaning] = useState(false);
   const [rangeHoodCleaning, setRangeHoodCleaning] = useState(false);
@@ -294,6 +295,7 @@ export const usePropertyViewModel = () => {
         longitude,
         bedrooms,
         bathrooms,
+        livingrooms,
         pet_cleaning: petCleaning,
         carpet_cleaning: carpetCleaning,
         range_hood_cleaning: rangeHoodCleaning,
@@ -337,6 +339,7 @@ export const usePropertyViewModel = () => {
     longitude,
     bedrooms,
     bathrooms,
+    livingrooms,
     petCleaning,
     carpetCleaning,
     rangeHoodCleaning,
@@ -355,6 +358,7 @@ export const usePropertyViewModel = () => {
     setLongitude,
     setBedrooms,
     setBathrooms,
+    setLivingrooms,
     setPetCleaning,
     setCarpetCleaning,
     setRangeHoodCleaning,
