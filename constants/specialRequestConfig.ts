@@ -80,13 +80,13 @@ export const SPECIAL_REQUEST_CONFIG = [
     {
       id: "garbagePackaging",
       label: "Garbage Packaging",
-      priceType: "perHour",
+      priceType: "perItem",
       price: 50, 
     },
     {
       id: "garbageDisposal",
       label: "Garbage Disposal",
-      priceType: "perCubicMeter",
+      priceType: "perItem",
       price: 150, 
     },
   ];
