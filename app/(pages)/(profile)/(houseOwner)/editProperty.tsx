@@ -125,7 +125,7 @@ export default function EditProperty() {
               </View>
             )}
 
-          {/* Bedrooms & Bathrooms */}
+          {/* Bedrooms, Bathrooms and Living Rooms */}
           <BedroomsBathroomsForm
             bedrooms={property.bedrooms}
             setBedrooms={(value) =>
@@ -134,6 +134,10 @@ export default function EditProperty() {
             bathrooms={property.bathrooms}
             setBathrooms={(value) =>
               setProperty({ ...property, bathrooms: value })
+            }
+            livingrooms={property.livingrooms}
+            setLivingrooms={(value) =>
+              setProperty({ ...property, livingrooms: value })
             }
           />
 
