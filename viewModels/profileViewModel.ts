@@ -11,6 +11,9 @@ import { AddressFormData } from '@/types/address';
 import { SUPABASE_URL } from '@env';
 import { WorkPreference } from '@/types/workPreferences';
 
+const DEFAULT_WORK_DISTANCE = 10;
+const DEFAULT_ZOOM_DELTA = 0.2;
+
 export const useProfileViewModel = () => {
   const router = useRouter();
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -34,12 +37,12 @@ export const useProfileViewModel = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
-  const [workDistance, setWorkDistance] = useState(10);
+  const [workDistance, setWorkDistance] = useState(DEFAULT_WORK_DISTANCE);
   const [coordinates, setCoordinates] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
-  const [zoomDelta, setZoomDelta] = useState(0.2);
+  const [zoomDelta, setZoomDelta] = useState(DEFAULT_ZOOM_DELTA);
   const params = useLocalSearchParams();
   const [selectedRole, setSelectedRole] =
     useState<ProfileData['role']>('Cleaner');
@@ -404,8 +407,8 @@ export const useProfileViewModel = () => {
       mySession.user.id,
     );
     setMyWorkPreference(workPref);
-    setWorkDistance(workPref.areas.distance);
-    setZoomDelta(workPref.areas.distance / 50);
+    setWorkDistance(workPref.areas.distance || DEFAULT_WORK_DISTANCE);
+    setZoomDelta(workDistance / 50);
   };
 
   const navigateToWorkingTime = () => {
@@ -483,16 +486,15 @@ export const useProfileViewModel = () => {
 
       const workPref = {
         user_id: user.id,
-        areas: JSON.stringify({
-          distance: workDistance,
+        areas:  {
+          distance: profileData.workDistance,
           latitude: coordinates?.latitude,
           longitude: coordinates?.longitude,
-        }),
-        time: JSON.stringify(timeSlots),
-        experience: JSON.stringify(profileData.experience),
-        pricing: JSON.stringify(profileData.pricing),
+        },
+        time:  timeSlots,
+        experience: profileData.experience,
+        pricing: profileData.pricing,
       };
-
       await supabaseDBClient.updateUserWorkPreference(workPref);
 
       Alert.alert('Success', 'work preferences saved successfully!');
