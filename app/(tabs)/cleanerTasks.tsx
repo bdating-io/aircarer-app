@@ -33,8 +33,6 @@ export default function CleanerTasksScreen() {
         return;
       }
 
-      console.log('Current user ID:', user.id);
-
       // 获取当前用户接受的任务 (cleaner_id = user.id)
       const { data, error } = await supabase
         .from('tasks')
@@ -59,7 +57,6 @@ export default function CleanerTasksScreen() {
           // 计算时间差（小时）
           const taskTime = new Date(task.scheduled_start_time);
           const hoursDifference = differenceInHours(now, taskTime);
-
           // 如果时间差小于等于 4 小时，保留该任务
           return hoursDifference <= 4;
         }) || [];
@@ -262,9 +259,11 @@ export default function CleanerTasksScreen() {
 
   return (
     <View className="flex-1 bg-gray-100">
-      <View className="bg-white p-4 border-b border-gray-200">
-        <Text className="text-xl font-bold">My Accepted Tasks</Text>
-        <Text className="text-gray-500 mt-1">
+      <View className="bg-blue-500 p-4 pt-16">
+        <Text className="text-white text-xl font-semibold">
+          My Accepted Tasks
+        </Text>
+        <Text className="text-white text-lg font-normal">
           Tasks you have accepted to complete
         </Text>
       </View>

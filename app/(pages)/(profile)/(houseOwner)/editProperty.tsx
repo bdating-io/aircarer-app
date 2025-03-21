@@ -32,7 +32,7 @@ export default function EditProperty() {
 
   useEffect(() => {
     if (propertyId) {
-      fetchProperty(propertyId as string);
+      fetchProperty(Number(propertyId));
     }
   }, [propertyId]);
 
@@ -135,9 +135,9 @@ export default function EditProperty() {
             setBathrooms={(value) =>
               setProperty({ ...property, bathrooms: value })
             }
-            livingrooms={property.livingrooms}
-            setLivingrooms={(value) =>
-              setProperty({ ...property, livingrooms: value })
+            livingRooms={property.living_rooms}
+            setLivingRooms={(value) =>
+              setProperty({ ...property, living_rooms: value })
             }
           />
 

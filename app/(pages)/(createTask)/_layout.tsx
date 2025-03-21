@@ -15,9 +15,9 @@ function RootLayoutNav() {
       {/* Any screens/routes inside here can access useBookingContext */}
       <Stack>
         <Stack.Screen
-          name="placeDetails"
+          name="selectProperty"
           options={{
-            headerTitle: 'Property Details',
+            headerTitle: 'Select Property',
             headerLeft: () => (
               <TouchableOpacity
                 onPress={() => router.navigate('/(tabs)/houseOwnerTasks')}

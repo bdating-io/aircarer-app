@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  SafeAreaView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { useHomeViewModel } from '@/viewModels/homeViewModel';
 import { NoProfileScreen } from '@/components/home/noProfileScreen';
 import { NoAddressScreen } from '@/components/home/noAddressScreen';
@@ -7,17 +13,23 @@ import { CleanerScreen } from '@/components/home/cleanerScreen';
 import { HouseOwnerScreen } from '@/components/home/houseOwnerScreen';
 
 export default function Home() {
-  const { hasAddress, myProfile, userEmail, handleSignOut } =
-    useHomeViewModel();
-  // If no profile => show create profile
-  if (!myProfile?.role) {
+  const {
+    userDetailFetched,
+    loading,
+    hasAddress,
+    myProfile,
+    userEmail,
+    handleSignOut,
+  } = useHomeViewModel();
+
+  if (loading || !userDetailFetched) {
     return (
-      <NoProfileScreen
-        name={myProfile?.first_name || ''}
-        email={userEmail || ''}
-      />
+      <View className="flex-1 justify-center items-center bg-gray-100 p-4">
+        <ActivityIndicator size="large" />
+        <Text>Loading...</Text>
+      </View>
     );
-  } else
+  } else {
     // Main view
     return (
       <SafeAreaView className="flex-1 bg-[#4A90E2]">
@@ -42,6 +54,7 @@ export default function Home() {
         </View>
 
         {/* Body */}
+
         <View className="px-6 mt-4">
           <Text className="text-xl text-white">
             Good day, {myProfile?.first_name}!
@@ -57,8 +70,12 @@ export default function Home() {
           ) : myProfile?.role === 'House Owner' ? (
             // House Owner
             <HouseOwnerScreen />
-          ) : null}
+          ) : (
+            // If no profile => show create profile
+            <NoProfileScreen />
+          )}
         </View>
       </SafeAreaView>
     );
+  }
 }

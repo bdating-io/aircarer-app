@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  StyleSheet,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -150,47 +149,48 @@ export default function Opportunity() {
   };
 
   const renderTask = ({ item }: { item: Task }) => (
-    <View style={styles.taskCard}>
-      <View style={styles.taskHeader}>
-        <Text style={styles.taskType}>{item.task_type}</Text>
-        <Text style={styles.price}>${item.estimated_price}</Text>
+    <View className="bg-white rounded-lg p-4 mb-3 shadow-md">
+      <View className="flex-row justify-between items-center mb-3">
+        <Text className="text-lg font-semibold">{item.task_type}</Text>
+        <Text className="text-lg text-blue-500 font-semibold">
+          ${item.estimated_price}
+        </Text>
       </View>
 
-      <View style={styles.taskInfo}>
+      <View className="flex-row items-center mb-2">
         <AntDesign name="calendar" size={16} color="gray" />
-        <Text style={styles.infoText}>
+        <Text className="ml-2 text-gray-600 flex-1">
           {format(new Date(item.scheduled_start_time), 'MMM dd, yyyy HH:mm')}
         </Text>
       </View>
 
-      <View style={styles.taskInfo}>
+      <View className="flex-row items-center mb-2">
         <AntDesign name="enviromento" size={16} color="gray" />
-        <Text style={styles.infoText} numberOfLines={1}>
+        <Text className="ml-2 text-gray-600 flex-1" numberOfLines={1}>
           {item.address}
         </Text>
       </View>
 
-      <View style={styles.taskInfo}>
+      <View className="flex-row items-center mb-2">
         <AntDesign name="tag" size={16} color="gray" />
-        <Text style={styles.statusText}>Status: {item.status}</Text>
+        <Text className="ml-2 text-gray-600">Status: {item.status}</Text>
       </View>
 
-      {/* 添加接受任务按钮 */}
-      <View style={styles.buttonContainer}>
+      <View className="flex-row justify-between mt-3">
         <TouchableOpacity
-          style={styles.viewButton}
+          className="bg-gray-200 py-2 px-3 rounded flex-1 mr-2 items-center"
           onPress={() =>
             router.push(`/(pages)/(tasks)/task?id=${item.task_id}`)
           }
         >
-          <Text style={styles.viewButtonText}>View Details</Text>
+          <Text className="text-gray-800 font-medium">View Details</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.acceptButton}
+          className="bg-blue-500 py-2 px-3 rounded flex-1 ml-2 items-center"
           onPress={() => handleAcceptTask(item.task_id)}
         >
-          <Text style={styles.acceptButtonText}>Accept Task</Text>
+          <Text className="text-white font-medium">Accept Task</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -198,23 +198,25 @@ export default function Opportunity() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 justify-center items-center">
         <Text>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Available Tasks</Text>
-        <Text style={styles.subHeaderText}>
+    <View className="flex-1 bg-gray-100">
+      <View className="bg-blue-500 p-4 pt-16">
+        <Text className="text-white text-xl font-semibold">
+          Available Tasks
+        </Text>
+        <Text className="text-white text-lg font-normal">
           All unassigned tasks you can accept
         </Text>
       </View>
 
       <FlatList
-        style={styles.list}
+        className="p-4"
         data={tasks}
         renderItem={renderTask}
         keyExtractor={(item) => item.task_id.toString()}
@@ -222,8 +224,8 @@ export default function Opportunity() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
+          <View className="p-6 items-center">
+            <Text className="text-gray-600 text-lg">
               No available tasks at the moment
             </Text>
           </View>
@@ -232,113 +234,3 @@ export default function Opportunity() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#4A90E2',
-    padding: 16,
-    paddingTop: 60,
-  },
-  headerText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  subHeaderText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  list: {
-    padding: 16,
-  },
-  taskCard: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  taskHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  taskType: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  price: {
-    fontSize: 18,
-    color: '#4A90E2',
-    fontWeight: '600',
-  },
-  taskInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoText: {
-    marginLeft: 8,
-    color: '#666',
-    flex: 1,
-  },
-  statusText: {
-    marginLeft: 8,
-    color: '#666',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: '#666',
-    fontSize: 16,
-  },
-  // 新增样式
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-  },
-  viewButton: {
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-    flex: 1,
-    marginRight: 8,
-    alignItems: 'center',
-  },
-  viewButtonText: {
-    color: '#333',
-    fontWeight: '500',
-  },
-  acceptButton: {
-    backgroundColor: '#4A90E2',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-    flex: 1,
-    marginLeft: 8,
-    alignItems: 'center',
-  },
-  acceptButtonText: {
-    color: 'white',
-    fontWeight: '500',
-  },
-});

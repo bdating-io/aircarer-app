@@ -8,7 +8,7 @@ import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { Property } from '@/types/property';
 import { supabaseDBClient } from '@/clients/supabase/database';
 
-export default function PlaceDetails() {
+export default function SelectProperty() {
   const router = useRouter();
   const { taskId } = useLocalSearchParams() as { taskId?: string };
 
@@ -89,11 +89,9 @@ export default function PlaceDetails() {
 
   return (
     <ScrollView className="flex-1 bg-gray-100 p-4">
-      <Text className="text-xl font-bold mb-4">Task Detail</Text>
-
       {/* Select Property */}
       <Dropdown
-        title="Select your property"
+        title="Which property do you want to clean?"
         options={properties.map((prop) => prop.address || 'No address')}
         selectedOption={selectedProperty?.address || ''}
         onSelect={(address) => {

@@ -123,7 +123,7 @@ export default function BudgetPage() {
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Budget set successfully!');
+      console.debug('budget updated successfully');
       router.push('/(pages)/(createTask)/paymentMethodScreen');
     } catch (err: any) {
       Alert.alert('Error', err.message);

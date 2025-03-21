@@ -10,13 +10,21 @@ export const useHomeViewModel = () => {
   const [hasAddress, setHasAddress] = useState<boolean>(false);
   const { myProfile, setMyProfile, mySession, setMySession } = useStore();
   const [userEmail, setUserEmail] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [userDetailFetched, setUserDetailFetched] = useState<boolean>(false);
 
   useEffect(() => {
+    setLoading(true);
     supabaseAuthClient.getSession().then((session) => {
       setMySession(session);
       if (session?.user) {
-        checkProfile(session.user.id);
-        checkAddress(session.user.id);
+        checkUserDetails(session.user.id)
+          .then(() => {
+            setUserDetailFetched(true);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
         setUserEmail(session.user.email || '');
       }
     });
@@ -25,29 +33,29 @@ export const useHomeViewModel = () => {
     supabaseAuthClient.onAuthStateChange((_event, session) => {
       if (session && session.user) {
         setMySession(session);
-        checkProfile(session.user.id);
-        checkAddress(session.user.id);
+        checkUserDetails(session.user.id)
+          .then(() => {
+            setUserDetailFetched(true);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
         setUserEmail(session.user.email || '');
       }
     });
+    setLoading(false);
   }, []);
 
-  const checkProfile = async (userId: string) => {
+  const checkUserDetails = async (userId: string) => {
     try {
-      const profile = await supabaseDBClient.getUserProfileById(userId);
+      const [profile, addresses] = await Promise.all([
+        supabaseDBClient.getUserProfileById(userId),
+        supabaseDBClient.getUserAddressesById(userId),
+      ]);
       setMyProfile(profile);
-    } catch (error) {
-      Alert.alert('Error checking profile', (error as Error).message);
-    }
-  };
-
-  // Check address
-  const checkAddress = async (userId: string) => {
-    try {
-      const addresses = await supabaseDBClient.getUserAddressesById(userId);
       setHasAddress(!!addresses);
     } catch (error) {
-      Alert.alert('Error checking address', (error as Error).message);
+      Alert.alert('Error checking user details', (error as Error).message);
     }
   };
 
@@ -84,7 +92,9 @@ export const useHomeViewModel = () => {
       }
 
       // Navigate
-      router.push(`/(pages)/(createTask)/placeDetails?taskId=${task.task_id}`);
+      router.push(
+        `/(pages)/(createTask)/selectProperty?taskId=${task.task_id}`,
+      );
     } catch (err) {
       console.error('RPC error:', err);
       Alert.alert('Error', 'Failed to create task via RPC');
@@ -92,6 +102,8 @@ export const useHomeViewModel = () => {
   };
 
   return {
+    userDetailFetched,
+    loading,
     hasAddress,
     myProfile,
     mySession,

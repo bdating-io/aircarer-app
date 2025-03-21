@@ -27,8 +27,8 @@ export default function CreateProperty() {
     setBedrooms,
     bathrooms,
     setBathrooms,
-    livingrooms,
-    setLivingrooms,
+    livingRooms,
+    setLivingRooms,
     petCleaning,
     setPetCleaning,
     carpetCleaning,
@@ -97,8 +97,8 @@ export default function CreateProperty() {
             setBedrooms={setBedrooms}
             bathrooms={bathrooms}
             setBathrooms={setBathrooms}
-            livingrooms={livingrooms}
-            setLivingrooms={setLivingrooms}
+            livingRooms={livingRooms}
+            setLivingRooms={setLivingRooms}
           />
 
           {/* Special Requirements */}
