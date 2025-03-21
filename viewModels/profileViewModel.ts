@@ -8,7 +8,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { AddressFormData } from '@/types/address';
-import { SUPABASE_URL } from '@/clients/supabase';
+import { SUPABASE_URL } from '@env';
 import { WorkPreference } from '@/types/workPreferences';
 
 export const useProfileViewModel = () => {
