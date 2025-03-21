@@ -10,15 +10,18 @@ export const useHomeViewModel = () => {
   const [hasAddress, setHasAddress] = useState<boolean>(false);
   const { myProfile, setMyProfile, mySession, setMySession } = useStore();
   const [userEmail, setUserEmail] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     supabaseAuthClient.getSession().then((session) => {
+      setLoading(true);
       setMySession(session);
       if (session?.user) {
         checkProfile(session.user.id);
         checkAddress(session.user.id);
         setUserEmail(session.user.email || '');
       }
+      setLoading(false);
     });
 
     // Listen for auth changes
@@ -84,7 +87,9 @@ export const useHomeViewModel = () => {
       }
 
       // Navigate
-      router.push(`/(pages)/(createTask)/placeDetails?taskId=${task.task_id}`);
+      router.push(
+        `/(pages)/(createTask)/selectProperty?taskId=${task.task_id}`,
+      );
     } catch (err) {
       console.error('RPC error:', err);
       Alert.alert('Error', 'Failed to create task via RPC');
@@ -92,6 +97,7 @@ export const useHomeViewModel = () => {
   };
 
   return {
+    loading,
     hasAddress,
     myProfile,
     mySession,

@@ -183,7 +183,7 @@ export default function DateSelection() {
           .single();
 
         if (error) throw error;
-        Alert.alert('Success', 'Updated with BEFORE schedule!');
+        console.debug('Updated with BEFORE schedule!');
 
         // 跳转下一页
         router.push({

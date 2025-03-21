@@ -33,8 +33,6 @@ export default function CleanerTasksScreen() {
         return;
       }
 
-      console.log('Current user ID:', user.id);
-
       // 获取当前用户接受的任务 (cleaner_id = user.id)
       const { data, error } = await supabase
         .from('tasks')

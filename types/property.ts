@@ -4,6 +4,7 @@ export type Property = {
   address: string;
   bedrooms: number;
   bathrooms: number;
+  living_rooms: number;
   pet_cleaning: boolean;
   carpet_cleaning: boolean;
   range_hood_cleaning: boolean;

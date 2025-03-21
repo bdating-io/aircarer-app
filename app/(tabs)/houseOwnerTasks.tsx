@@ -40,7 +40,6 @@ export default function HouseOwnerTasksScreen() {
   const fetchTasksByUserId = async (uid: string) => {
     try {
       setLoading(true);
-      console.log('Fetching tasks for user ID:', uid);
 
       const { data, error } = await supabase
         .from('tasks')
@@ -106,7 +105,7 @@ export default function HouseOwnerTasksScreen() {
         {/* Title row */}
         <View className="flex-row justify-between items-center mb-3">
           <Text className="text-lg font-semibold">
-            {item.task_title || 'Unnamed Task'}
+            {`${item.cleaning_type} - ${item.status}`}
           </Text>
           <Text className="text-lg text-blue-500 font-semibold">
             ${item.budget}
@@ -114,12 +113,12 @@ export default function HouseOwnerTasksScreen() {
         </View>
 
         {/* Task Type row */}
-        <View className="flex-row items-center mb-2">
+        {/* <View className="flex-row items-center mb-2">
           <AntDesign name="tool" size={16} color="gray" />
           <Text className="ml-2 text-gray-600 flex-1">
-            {item.task_type || 'No type'}
+            {item.cleaning_type || 'No type'}
           </Text>
-        </View>
+        </View> */}
 
         {/* Date row */}
         <View className="flex-row items-center mb-2">
@@ -131,7 +130,7 @@ export default function HouseOwnerTasksScreen() {
         <View className="flex-row items-center mb-2">
           <AntDesign name="enviromento" size={16} color="gray" />
           <Text className="ml-2 text-gray-600 flex-1" numberOfLines={1}>
-            {item.address}
+            {item.address || 'No address'}
           </Text>
         </View>
 

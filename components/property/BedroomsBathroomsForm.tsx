@@ -7,8 +7,8 @@ interface BedroomsBathroomsFormProps {
   setBedrooms: (value: number) => void;
   bathrooms: number;
   setBathrooms: (value: number) => void;
-  livingrooms: number;
-  setLivingrooms: (value: number) => void;
+  livingRooms: number;
+  setLivingRooms: (value: number) => void;
 }
 
 const BedroomsBathroomsForm = ({
@@ -16,8 +16,8 @@ const BedroomsBathroomsForm = ({
   setBedrooms,
   bathrooms,
   setBathrooms,
-  livingrooms,
-  setLivingrooms,
+  livingRooms,
+  setLivingRooms,
 }: BedroomsBathroomsFormProps) => (
   <>
     <View className="mt-6">
@@ -76,18 +76,18 @@ const BedroomsBathroomsForm = ({
         <TouchableOpacity
           className="bg-gray-200 w-10 h-10 rounded-full items-center justify-center"
           onPress={() => {
-            if (livingrooms > 1) {
-              setLivingrooms(livingrooms - 1);
+            if (livingRooms > 1) {
+              setLivingRooms(livingRooms - 1);
             }
           }}
         >
           <AntDesign name="minus" size={20} color="#4A90E2" />
         </TouchableOpacity>
-        <Text className="mx-4 text-lg font-semibold">{livingrooms}</Text>
+        <Text className="mx-4 text-lg font-semibold">{livingRooms}</Text>
         <TouchableOpacity
           className="bg-gray-200 w-10 h-10 rounded-full items-center justify-center"
           onPress={() => {
-            setLivingrooms(livingrooms + 1);
+            setLivingRooms(livingRooms + 1);
           }}
         >
           <AntDesign name="plus" size={20} color="#4A90E2" />
@@ -98,4 +98,3 @@ const BedroomsBathroomsForm = ({
 );
 
 export default BedroomsBathroomsForm;
-

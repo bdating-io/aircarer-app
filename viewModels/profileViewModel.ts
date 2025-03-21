@@ -52,8 +52,6 @@ export const useProfileViewModel = () => {
     state: '',
     postal_code: '',
     country: 'Australia', // 默认值
-    latitude: '',
-    longitude: '',
   });
 
   const daysOfWeek = [
@@ -341,11 +339,13 @@ export const useProfileViewModel = () => {
   const getAddress = async (userId: string) => {
     try {
       const address = await supabaseDBClient.getUserAddressById(userId);
-
+      if (!address) {
+        console.log('No address found for user');
+        return;
+      }
       setAddress(address);
     } catch (error) {
       console.error('Error fetching address:', (error as Error).message);
-      Alert.alert('Error', (error as Error).message);
     }
   };
 
@@ -353,7 +353,7 @@ export const useProfileViewModel = () => {
     setIsLoading(true);
     try {
       const user = await supabaseAuthClient.getUser();
-
+      console.log('address:', address);
       await supabaseDBClient.updateUserAddress(user.id, address);
 
       Alert.alert('Success', 'Address saved successfully!');

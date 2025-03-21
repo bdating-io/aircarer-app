@@ -51,7 +51,8 @@ export default function Account() {
     {
       title: 'Payment Options',
       icon: 'card-outline',
-      onPress: () => router.push('/(pages)/(account)/(payment)/payment'),
+      onPress: () => null,
+      // router.push('/(pages)/(account)/(payment)/payment'),
     },
     {
       title: 'Notifications',
@@ -65,7 +66,7 @@ export default function Account() {
     },
   ];
 
-  if (myProfile?.role) {
+  if (myProfile?.role === 'house_owner') {
     menuItems.push({
       title: 'Property List',
       icon: 'home-outline',

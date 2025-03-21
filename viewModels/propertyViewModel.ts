@@ -26,7 +26,7 @@ export const usePropertyViewModel = () => {
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [bedrooms, setBedrooms] = useState(1);
   const [bathrooms, setBathrooms] = useState(1);
-  const [livingrooms, setLivingrooms] = useState(1);
+  const [livingRooms, setLivingRooms] = useState(1);
   const [petCleaning, setPetCleaning] = useState(false);
   const [carpetCleaning, setCarpetCleaning] = useState(false);
   const [rangeHoodCleaning, setRangeHoodCleaning] = useState(false);
@@ -65,7 +65,7 @@ export const usePropertyViewModel = () => {
     }
   };
 
-  const fetchProperty = async (property_id: string) => {
+  const fetchProperty = async (property_id: number) => {
     try {
       setLoading(true);
       const property = await supabaseDBClient.getUserPropertyById(property_id);
@@ -79,7 +79,7 @@ export const usePropertyViewModel = () => {
     }
   };
 
-  const handleDeleteProperty = async (userId: string, propertyId?: string) => {
+  const handleDeleteProperty = async (userId: string, propertyId?: number) => {
     // 检查当前用户是否是房源所有者
     const user = await supabaseAuthClient.getUser();
     if (userId !== user.id) {
@@ -295,7 +295,7 @@ export const usePropertyViewModel = () => {
         longitude,
         bedrooms,
         bathrooms,
-        livingrooms,
+        living_rooms: livingRooms,
         pet_cleaning: petCleaning,
         carpet_cleaning: carpetCleaning,
         range_hood_cleaning: rangeHoodCleaning,
@@ -339,7 +339,7 @@ export const usePropertyViewModel = () => {
     longitude,
     bedrooms,
     bathrooms,
-    livingrooms,
+    livingRooms,
     petCleaning,
     carpetCleaning,
     rangeHoodCleaning,
@@ -358,7 +358,7 @@ export const usePropertyViewModel = () => {
     setLongitude,
     setBedrooms,
     setBathrooms,
-    setLivingrooms,
+    setLivingRooms,
     setPetCleaning,
     setCarpetCleaning,
     setRangeHoodCleaning,
