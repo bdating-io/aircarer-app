@@ -43,14 +43,14 @@ export default function WorkingArea() {
         </Text>
 
         <View>
-          {coordinates && (
+          {coordinates?.latitude && coordinates?.longitude && (
             <MapView
               style={{ width: '100%', height: '70%' }} // MaoView only works with style not tailwind css classes
               region={{
                 latitude: coordinates.latitude,
                 longitude: coordinates.longitude,
-                latitudeDelta: zoomDelta,
-                longitudeDelta: zoomDelta,
+                latitudeDelta: workDistance / 50,
+                longitudeDelta: workDistance / 50,
               }}
               provider={undefined}
             >
@@ -60,7 +60,7 @@ export default function WorkingArea() {
                   longitude: coordinates.longitude,
                 }}
               />
-              <Circle
+             {workDistance && (<Circle
                 center={{
                   latitude: coordinates.latitude,
                   longitude: coordinates.longitude,
@@ -68,7 +68,7 @@ export default function WorkingArea() {
                 radius={workDistance * 1000}
                 strokeColor="rgba(0,0,255,0.5)"
                 fillColor="rgba(0,0,255,0.2)"
-              />
+              />)}
             </MapView>
           )}
 
