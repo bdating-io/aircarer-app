@@ -1,7 +1,6 @@
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
 import useStore from '@/utils/store';
-import { set } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
