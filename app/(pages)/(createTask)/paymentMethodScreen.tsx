@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useStripe, PaymentSheetError } from '@stripe/stripe-react-native';
 import useStore from '@/utils/store';
-import { SUPABASE_URL } from '@/clients/supabase';
+import { SUPABASE_URL } from '@env';
 
 // 示例支付方式
 const paymentMethods = [
