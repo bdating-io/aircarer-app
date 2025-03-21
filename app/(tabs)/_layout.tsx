@@ -109,7 +109,7 @@ export default function Layout() {
         name="cleanerTasks"
         options={{
           title: 'My Tasks',
-          headerShown: true,
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <AntDesign name="profile" size={22} color={color} />
           ),

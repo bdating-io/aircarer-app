@@ -1,6 +1,7 @@
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
 import useStore from '@/utils/store';
+import { set } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
@@ -11,46 +12,51 @@ export const useHomeViewModel = () => {
   const { myProfile, setMyProfile, mySession, setMySession } = useStore();
   const [userEmail, setUserEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [userDetailFetched, setUserDetailFetched] = useState<boolean>(false);
 
   useEffect(() => {
+    setLoading(true);
     supabaseAuthClient.getSession().then((session) => {
-      setLoading(true);
       setMySession(session);
       if (session?.user) {
-        checkProfile(session.user.id);
-        checkAddress(session.user.id);
+        checkUserDetails(session.user.id)
+          .then(() => {
+            setUserDetailFetched(true);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
         setUserEmail(session.user.email || '');
       }
-      setLoading(false);
     });
 
     // Listen for auth changes
     supabaseAuthClient.onAuthStateChange((_event, session) => {
       if (session && session.user) {
         setMySession(session);
-        checkProfile(session.user.id);
-        checkAddress(session.user.id);
+        checkUserDetails(session.user.id)
+          .then(() => {
+            setUserDetailFetched(true);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
         setUserEmail(session.user.email || '');
       }
     });
+    setLoading(false);
   }, []);
 
-  const checkProfile = async (userId: string) => {
+  const checkUserDetails = async (userId: string) => {
     try {
-      const profile = await supabaseDBClient.getUserProfileById(userId);
+      const [profile, addresses] = await Promise.all([
+        supabaseDBClient.getUserProfileById(userId),
+        supabaseDBClient.getUserAddressesById(userId),
+      ]);
       setMyProfile(profile);
-    } catch (error) {
-      Alert.alert('Error checking profile', (error as Error).message);
-    }
-  };
-
-  // Check address
-  const checkAddress = async (userId: string) => {
-    try {
-      const addresses = await supabaseDBClient.getUserAddressesById(userId);
       setHasAddress(!!addresses);
     } catch (error) {
-      Alert.alert('Error checking address', (error as Error).message);
+      Alert.alert('Error checking user details', (error as Error).message);
     }
   };
 
@@ -97,6 +103,7 @@ export const useHomeViewModel = () => {
   };
 
   return {
+    userDetailFetched,
     loading,
     hasAddress,
     myProfile,
