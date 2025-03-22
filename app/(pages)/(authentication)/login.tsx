@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -27,15 +27,9 @@ export default function Login() {
     countdown,
     signInWithEmail,
     signInWithPhone,
-    checkSession,
     setPhone,
     resendOTP,
   } = useAuthViewModel();
-
-  // 添加会话检查
-  useEffect(() => {
-    checkSession();
-  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-[#4A90E2]">

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -26,17 +26,12 @@ export default function Signup() {
     isCodeSent,
     resendDisabled,
     countdown,
-    checkSession,
     sendVerificationCode,
     verifyPhone,
     completeSignUp,
     setPhone,
     resendOTP,
   } = useAuthViewModel();
-
-  useEffect(() => {
-    checkSession();
-  }, []);
 
   const renderPhoneInput = () => (
     <View className="mb-4">

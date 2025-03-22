@@ -391,7 +391,7 @@ export const useProfileViewModel = () => {
   const fetchCoordinatesFromMyAddress = async () => {
     try {
       const coords = await geocodeAddress(
-        `${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.post_code}, ${myAddress.country}`,
+        `${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.postal_code}, ${myAddress.country}`,
       );
       setCoordinates(coords);
     } catch (error) {
@@ -485,12 +485,12 @@ export const useProfileViewModel = () => {
 
       const workPref = {
         user_id: user.id,
-        areas:  {
+        areas: {
           distance: profileData.workDistance,
           latitude: coordinates?.latitude,
           longitude: coordinates?.longitude,
         },
-        time:  timeSlots,
+        time: timeSlots,
         experience: profileData.experience,
         pricing: profileData.pricing,
       };
