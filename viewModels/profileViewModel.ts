@@ -8,7 +8,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { AddressFormData } from '@/types/address';
-import { SUPABASE_URL } from '@env';
 import { WorkPreference } from '@/types/workPreferences';
 
 const DEFAULT_WORK_DISTANCE = 10;
@@ -377,7 +376,7 @@ export const useProfileViewModel = () => {
     if (!mySession) {
       throw new Error('User not authenticated');
     }
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/geodecode`, {
+    const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/geodecode`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

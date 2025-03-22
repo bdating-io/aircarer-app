@@ -11,8 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useStripe, PaymentSheetError } from '@stripe/stripe-react-native';
 import useStore from '@/utils/store';
-import { SUPABASE_URL } from '@env';
-
+ 
 // 示例支付方式
 const paymentMethods = [
   { id: '1', label: 'Credit Card' },
@@ -20,7 +19,8 @@ const paymentMethods = [
   { id: '3', label: 'PayPal' },
 ];
 
-const PAYMENT_API_URL = `${SUPABASE_URL}/functions/v1/payments`;
+const PAYMENT_API_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/payments`;
+
 
 export default function PaymentMethodScreen() {
   const router = useRouter();

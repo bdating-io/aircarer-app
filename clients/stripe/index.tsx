@@ -1,6 +1,5 @@
 import React from 'react';
 import { StripeProvider as StripeSDKProvider } from '@stripe/stripe-react-native';
-import { STRIPE_PUBLISHABLE_KEY } from '@env';
 
 // 定义组件Props类型
 interface Props {
@@ -11,7 +10,7 @@ interface Props {
 function StripeProvider({ children }: Props) {
   return (
     <StripeSDKProvider
-      publishableKey={STRIPE_PUBLISHABLE_KEY || 'not-set'}
+      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'not-set'}
     >
       {children}
     </StripeSDKProvider>
