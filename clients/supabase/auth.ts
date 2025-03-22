@@ -41,7 +41,7 @@ export const supabaseAuthClient = {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        throw new Error('User not authenticated');
+        console.debug('User not authenticated');
       }
       return session;
     } catch (error) {

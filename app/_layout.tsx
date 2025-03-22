@@ -2,12 +2,12 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import { useEffect, useCallback } from 'react';
 import { useRouter, useSegments } from 'expo-router';
-import { supabase } from '@/clients/supabase';
 import { useStripe } from '@stripe/stripe-react-native';
 import { Linking } from 'react-native';
 
 import '../global.css';
 import StripeProvider from '@/clients/stripe';
+import { supabaseAuthClient } from '@/clients/supabase/auth';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function RootLayout() {
         }
       }
     },
-    [handleURLCallback]
+    [handleURLCallback],
   );
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function RootLayout() {
       'url',
       (event: { url: string }) => {
         handleDeepLink(event.url);
-      }
+      },
     );
 
     return () => deepLinkListener.remove();
@@ -50,22 +50,16 @@ export default function RootLayout() {
   useEffect(() => {
     // Check if the user is authenticated
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (!data.session) {
-        if (
-          segments[0] !== '(pages)' ||
-          (segments[0] === '(pages)' && segments[1] !== '(authentication)')
-        ) {
-          router.replace('/(pages)/(authentication)/welcome');
-        }
+      const session = await supabaseAuthClient.getSession();
+      if (!session) {
+        router.replace('/(pages)/(authentication)/welcome');
       } else if (segments[1] === '(authentication)') {
         router.replace('/(tabs)/home');
       }
     };
 
     checkAuth();
-  }, [segments]);
+  }, []);
 
   return (
     <StripeProvider>
