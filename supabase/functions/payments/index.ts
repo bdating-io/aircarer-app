@@ -26,7 +26,15 @@ Deno.serve(async (req) => {
       amount: requestPayload.amount,
       currency: requestPayload.currency,
       automatic_payment_methods: { enabled: true },
-      capture_method: 'automatic'
+      capture_method: 'automatic',
+    }
+
+    if (requestPayload.metadata) {
+      params.metadata = requestPayload.metadata;
+    }
+
+    if (requestPayload.description) {
+      params.description = requestPayload.description;
     }
 
     try {

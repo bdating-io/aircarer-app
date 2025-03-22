@@ -124,7 +124,7 @@ export default function BudgetPage() {
       if (error) throw error;
 
       console.debug('budget updated successfully');
-      router.push('/(pages)/(createTask)/paymentMethodScreen');
+      router.push(`/(pages)/(createTask)/paymentMethodScreen?taskId=${taskId}`);
     } catch (err: any) {
       Alert.alert('Error', err.message);
     }
