@@ -1,14 +1,17 @@
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
 import { supabaseStorageClient } from '@/clients/supabase/storage';
-import useStore from '@/utils/store';
-import { ProfileData, TimeSlot } from '@/types/profile';
+import { Profile, Role, TimeSlot } from '@/types/profile';
 import { imagePicker } from '@/utils/imagePicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { AddressFormData } from '@/types/address';
+import { Address, AustralianState } from '@/types/address';
 import { WorkPreference } from '@/types/workPreferences';
+import { useProfileModel } from '@/models/profileModel';
+import { useSessionModel } from '@/models/sessionModel';
+import { useAddressModel } from '@/models/addressModel';
+import { useWorkPreferenceModel } from '@/models/workPreferenceModel';
 
 const DEFAULT_WORK_DISTANCE = 10;
 const DEFAULT_ZOOM_DELTA = 0.2;
@@ -25,33 +28,31 @@ export const useProfileViewModel = () => {
     string | null
   >(null);
   const [abn, setAbn] = useState('');
-  const {
-    myAddress,
-    mySession,
-    myProfile,
-    setMyProfile,
-    setMyAddress,
-    setMyWorkPreference,
-  } = useStore();
+  const { myProfile, setMyProfile, clearMyProfile } = useProfileModel();
+  const { mySession } = useSessionModel();
+  const { myAddress, setMyAddress } = useAddressModel();
+  const { setMyWorkPreference } = useWorkPreferenceModel();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
 
   const [workDistance, setWorkDistance] = useState(DEFAULT_WORK_DISTANCE);
-  const [coordinates, setCoordinates] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  const [coordinates, setCoordinates] = useState<
+    | {
+        latitude: number;
+        longitude: number;
+      }
+    | undefined
+  >(undefined);
   const [zoomDelta, setZoomDelta] = useState(DEFAULT_ZOOM_DELTA);
   const params = useLocalSearchParams();
-  const [selectedRole, setSelectedRole] =
-    useState<ProfileData['role']>('Cleaner');
+  const [selectedRole, setSelectedRole] = useState<Role>(Role.Cleaner);
 
-  const [address, setAddress] = useState<AddressFormData>({
+  const [address, setAddress] = useState<Address>({
     type: 'USER_ADDRESS',
     street_number: '',
     street_name: '',
     city: '',
-    state: '',
+    state: AustralianState.VIC, // 默认值
     postal_code: '',
     country: 'Australia', // 默认值
   });
@@ -169,23 +170,16 @@ export const useProfileViewModel = () => {
     }
   };
 
-  const createPersonalProfile = async (profileData: ProfileData) => {
+  const updateUserProfile = async (profile: Partial<Profile>) => {
     setIsLoading(true);
     try {
       const user = await supabaseAuthClient.getUser();
 
-      await supabaseDBClient.updateUserProfile(user.id, profileData);
-
+      await supabaseDBClient.updateUserProfile(user.id, profile);
       // 更新本地状态
-      setMyProfile({
-        ...myProfile,
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        abn: profileData.abn,
-        role: profileData.role,
-      });
+      setMyProfile({ ...myProfile!, ...profile });
 
-      Alert.alert('Success', 'Profile created successfully!');
+      console.debug('Success, Profile updated successfully!');
     } catch (error) {
       console.error('Error creating profile:', error);
       Alert.alert('Error', (error as Error).message);
@@ -289,34 +283,15 @@ export const useProfileViewModel = () => {
       return;
     }
 
-    if (
-      selectedRole === 'Cleaner' ||
-      (selectedRole === 'House Owner' && abn.length > 0)
-    ) {
-      // 验证ABN
-      setValidatingAbn(true);
-      const isAbnValid = await validateABNOnline(abn);
-      setValidatingAbn(false);
-
-      if (!isAbnValid) {
-        Alert.alert(
-          'Invalid ABN',
-          'Please enter a valid Australian Business Number',
-        );
-        return;
-      }
-    }
-
     try {
-      const profileData: ProfileData = {
-        firstName,
-        lastName,
-        abn,
+      const profileData: Partial<Profile> = {
+        first_name: firstName,
+        last_name: lastName,
         role: selectedRole,
-        isBackgroundChecked,
+        abn: abn,
       };
 
-      await createPersonalProfile(profileData);
+      await updateUserProfile(profileData);
 
       // 根据角色导航到不同页面
       switch (selectedRole) {
@@ -358,7 +333,7 @@ export const useProfileViewModel = () => {
       console.log('address:', address);
       await supabaseDBClient.updateUserAddress(user.id, address);
 
-      Alert.alert('Success', 'Address saved successfully!');
+      console.debug('Success, Address saved successfully!');
 
       setMyAddress(address);
       router.push('/(pages)/(profile)/(cleanerProfile)/workingArea');
@@ -376,19 +351,26 @@ export const useProfileViewModel = () => {
     if (!mySession) {
       throw new Error('User not authenticated');
     }
-    const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/geodecode`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${mySession.access_token}`,
+    const response = await fetch(
+      `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/geodecode`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${mySession.access_token}`,
+        },
+        body: JSON.stringify({ address: address }),
       },
-      body: JSON.stringify({ address: address }),
-    });
+    );
     const data = await response.json();
     return data;
   };
 
   const fetchCoordinatesFromMyAddress = async () => {
+    if (!myAddress) {
+      console.error('No address found');
+      return;
+    }
     try {
       const coords = await geocodeAddress(
         `${myAddress.street_number} ${myAddress.street_name}, ${myAddress.city}, ${myAddress.state}, ${myAddress.postal_code}, ${myAddress.country}`,
@@ -526,49 +508,52 @@ export const useProfileViewModel = () => {
   };
 
   return {
+    abn,
+    abnValid,
     address,
+    backgroundCheckImage,
+    coordinates,
+    firstName,
     hourlyRate,
+    isBackgroundChecked,
+    isLoading,
+    lastName,
+    myProfile,
+    selectedRole,
     timeSlots,
     uploadingImage,
-    isLoading,
-    abnValid,
     validatingAbn,
-    isBackgroundChecked,
-    backgroundCheckImage,
-    abn,
-    myProfile,
-    firstName,
-    lastName,
-    selectedRole,
     workDistance,
-    coordinates,
     zoomDelta,
     checkTermsAcceptance,
-    handleAcceptTerms,
-    pickBackgroundCheckImage,
-    createPersonalProfile,
-    validateABN,
-    validateABNOnline,
-    handleAbnChange,
-    validateAndSubmitProfile,
-    setFirstName,
-    setLastName,
-    setAbn,
-    setSelectedRole,
-    setBackgroundCheckImage,
-    setIsBackgroundChecked,
-    updateUserAddress,
-    getAddress,
-    setAddress,
+    clearMyProfile,
+    completeProfileSetting,
+    updateUserProfile,
     fetchCoordinatesFromMyAddress,
+    getAddress,
     getDBWorkPref,
+    handleAbnChange,
+    handleAcceptTerms,
+    navigateToExperience,
+    navigateToPricing,
     navigateToWorkingTime,
+    pickBackgroundCheckImage,
+    setAbn,
+    setAddress,
+    setBackgroundCheckImage,
+    setFirstName,
+    setHourlyRate,
+    setIsBackgroundChecked,
+    setIsLoading,
+    setLastName,
+    setMyProfile,
+    setSelectedRole,
     setWorkDistance,
     setZoomDelta,
-    navigateToExperience,
     toggleTimeSlot,
-    navigateToPricing,
-    setHourlyRate,
-    completeProfileSetting,
+    updateUserAddress,
+    validateABN,
+    validateABNOnline,
+    validateAndSubmitProfile,
   };
 };

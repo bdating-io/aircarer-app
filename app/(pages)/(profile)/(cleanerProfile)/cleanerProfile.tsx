@@ -11,6 +11,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { useProfileViewModel } from '@/viewModels/profileViewModel';
+import { AustralianState } from '@/types/address';
+import Dropdown from '@/components/Dropdown';
 
 export default function AddressForm() {
   const router = useRouter();
@@ -88,18 +90,20 @@ export default function AddressForm() {
 
           {/* State */}
           <View className="mb-4">
-            <Text className="text-white text-lg mb-2">State *</Text>
-            <View className="bg-white/10 rounded-xl p-4">
-              <TextInput
-                className="text-white text-lg"
-                placeholder="VIC"
-                placeholderTextColor="rgba(255,255,255,0.7)"
-                value={address.state}
-                onChangeText={(text) =>
-                  setAddress((prev) => ({ ...prev, state: text }))
-                }
-              />
-            </View>
+            <Dropdown
+              title="State *"
+              placeholder="Select State"
+              options={Object.values(AustralianState)}
+              selectedOption={address.state}
+              titleStyle="text-white text-lg"
+              dropdownStyle="bg-white/10 rounded-xl p-4"
+              onSelect={(option) =>
+                setAddress((prev) => ({
+                  ...prev,
+                  state: option as AustralianState,
+                }))
+              }
+            />
           </View>
 
           {/* Postal Code */}

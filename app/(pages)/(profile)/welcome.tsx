@@ -6,17 +6,19 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
-import { supabase } from '@/clients/supabase';
-import useStore from '@/utils/store';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
+import { supabaseAuthClient } from '@/clients/supabase/auth';
+import { supabaseDBClient } from '@/clients/supabase/database';
 
 export default function Welcome() {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { myProfile, setMyProfile } = useStore(); // Get the setMessage action from the store
+  const { myProfile, setMyProfile, isLoading, setIsLoading } =
+    useProfileViewModel(); // Get the setMessage action from the store
 
   useEffect(() => {
     if (myProfile && myProfile.first_name) {
@@ -29,55 +31,39 @@ export default function Welcome() {
 
     setIsLoading(true);
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) {
-        console.error('Error getting user:', userError);
-        Alert.alert('Error', 'Failed to get user information');
-        return;
-      }
-
-      if (!user) {
-        console.error('No user found');
-        Alert.alert('Error', 'User not found');
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          first_name: nickname.trim(),
-          updated_at: new Date().toISOString(),
-        })
-        .select();
-
-      if (error) {
-        console.error('Supabase error:', error.message, error.details);
-        throw error;
-      }
-
-      console.log('Profile updated successfully:', data);
-      myProfile.first_name = nickname.trim();
-      setMyProfile(myProfile);
-      router.push('/(pages)/(profile)/userTerms');
-    } catch (error: any) {
-      console.error('Error updating first name:', {
-        message: error?.message,
-        details: error?.details,
-        error,
+      const user = await supabaseAuthClient.getUser();
+      await supabaseDBClient.updateUserProfile(user.id, {
+        first_name: nickname.trim(),
+        updated_at: new Date().toISOString(),
       });
+
+      console.log('Profile updated successfully:');
+      if (myProfile) {
+        myProfile.first_name = nickname.trim();
+        setMyProfile(myProfile);
+      }
+
+      router.push('/(pages)/(profile)/userTerms');
+    } catch (error) {
+      console.error('Error updating first name:', error);
       Alert.alert(
         'Error',
-        error?.message || 'Failed to update first name. Please try again.',
+        (error as Error).message ||
+          'Failed to update first name. Please try again.',
       );
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-100 p-4">
+        <ActivityIndicator size="large" />
+        <Text>Loading properties...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -87,21 +73,23 @@ export default function Welcome() {
           <TouchableOpacity onPress={() => router.back()}>
             <AntDesign name="left" size={24} color="black" />
           </TouchableOpacity>
-          <Text className="text-xl font-semibold ml-4">Welcome</Text>
+          <Text className="text-xl font-semibold ml-4">{'Welcome'}</Text>
         </View>
       </View>
 
       {/* Content */}
       <View className="flex-1 px-6 pt-8">
         <Text className="text-3xl font-bold text-center mb-8">
-          Welcome to Aircarer
+          {'Welcome to Aircarer'}
         </Text>
 
         <Text className="text-lg text-gray-600 text-center mb-12">
-          Let's get to know each other better!
+          {"Let's get to know each other better!"}
         </Text>
 
-        <Text className="text-lg mb-4">How would you like to be called?</Text>
+        <Text className="text-lg mb-4">
+          {'How would you like to be called?'}
+        </Text>
 
         <TextInput
           className="w-full border border-gray-300 rounded-xl px-4 py-3 mb-6"
@@ -118,7 +106,9 @@ export default function Welcome() {
           onPress={handleContinue}
           disabled={!nickname.trim()}
         >
-          <Text className="text-white text-center font-semibold">Continue</Text>
+          <Text className="text-white text-center font-semibold">
+            {'Continue'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

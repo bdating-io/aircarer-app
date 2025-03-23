@@ -49,9 +49,6 @@ export default function EditTaskDetailScreen() {
   const taskId = params.taskId as string;
   const taskDataString = params.taskData as string;
 
-  console.log('Received params:', params);
-  console.log('Task ID:', taskId);
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -74,7 +71,6 @@ export default function EditTaskDetailScreen() {
     if (taskDataString) {
       try {
         const taskData = JSON.parse(taskDataString) as Task;
-        console.log('Successfully parsed task data');
 
         // 设置表单字段
         setTaskType(taskData.task_type || '');
@@ -215,7 +211,7 @@ export default function EditTaskDetailScreen() {
               }
 
               Alert.alert('Success', 'Task deleted successfully');
-              router.back();
+              router.navigate('/(tabs)/houseOwnerTasks');
             } catch (err: any) {
               console.error('Error in handleDelete:', err);
               Alert.alert('Error', err.message || 'Failed to delete task');

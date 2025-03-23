@@ -118,7 +118,7 @@ export const usePropertyViewModel = () => {
     );
   };
 
-  const handleEditProperty = async (userId: string, propertyId?: string) => {
+  const handleEditProperty = async (userId: string, propertyId?: number) => {
     // 检查当前用户是否是房源所有者
     const user = await supabaseAuthClient.getUser();
     if (userId !== user.id) {

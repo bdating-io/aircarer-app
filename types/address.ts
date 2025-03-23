@@ -1,37 +1,24 @@
 // 地址类型定义
-export interface Address {
+export type Address = {
   id?: string;
   type: string;
   street_number: string;
   street_name: string;
   city: string;
-  state: string;
-  postal_code: string;
-  country: string;
-  latitude?: string | null;
-  longitude?: string | null;
-  validated?: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
-
-// 地址表单数据类型
-export interface AddressFormData {
-  type: string;
-  street_number: string;
-  street_name: string;
-  city: string;
-  state: string;
+  state: AustralianState;
   postal_code: string;
   country: string;
   latitude?: string;
   longitude?: string;
-  [key: string]: string | undefined;
-}
+  validated?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
+};
 
 // 地址验证错误类型
 export interface AddressValidationError {
-  field: keyof AddressFormData;
+  field: keyof Address;
   message: string;
 }
 

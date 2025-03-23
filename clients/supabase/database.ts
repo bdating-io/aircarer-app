@@ -1,8 +1,8 @@
-import { ProfileData } from '@/types/profile';
+import { Profile } from '@/types/profile';
 import { supabase } from '.';
 import { Property } from '@/types/property';
 import { User } from '@supabase/auth-js';
-import { AddressFormData } from '@/types/address';
+import { Address } from '@/types/address';
 import { WorkPreference } from '@/types/workPreferences';
 import { HouseOwnerTask } from '@/types/task';
 
@@ -19,9 +19,7 @@ export const supabaseDBClient = {
     return data;
   },
 
-  getUserAddressById: async (
-    userId: string,
-  ): Promise<AddressFormData | undefined> => {
+  getUserAddressById: async (userId: string): Promise<Address | undefined> => {
     const { data, error } = await supabase
       .from('addresses')
       .select('*')
@@ -46,7 +44,7 @@ export const supabaseDBClient = {
     return data;
   },
 
-  updateUserAddress: async (userId: string, addressData: AddressFormData) => {
+  updateUserAddress: async (userId: string, addressData: Address) => {
     const { error } = await supabase
       .from('addresses')
       .upsert([
@@ -63,10 +61,10 @@ export const supabaseDBClient = {
     }
   },
 
-  getUserProfileById: async (userId: string) => {
+  getUserProfileById: async (userId: string): Promise<Profile> => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('first_name, last_name, abn, role')
+      .select('*')
       .eq('user_id', userId)
       .single();
     if (error) {
@@ -98,15 +96,12 @@ export const supabaseDBClient = {
     }
   },
 
-  updateUserProfile: async (userId: string, profileData: ProfileData) => {
+  updateUserProfile: async (userId: string, profileData: Partial<Profile>) => {
     const { error } = await supabase
       .from('profiles')
       .upsert({
         user_id: userId,
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        abn: profileData.abn,
-        role: profileData.role,
+        ...profileData,
         updated_at: new Date().toISOString(),
       })
       .select()

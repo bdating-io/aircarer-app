@@ -9,11 +9,13 @@ import {
 import { useRouter } from 'expo-router';
 import { supabase } from '@/clients/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import useStore from '@/utils/store';
+import { useProfileViewModel } from '@/viewModels/profileViewModel';
+import { supabaseAuthClient } from '@/clients/supabase/auth';
+import { Role } from '@/types/profile';
 
 export default function Account() {
   const router = useRouter();
-  const { myProfile, setMyProfile } = useStore();
+  const { myProfile, clearMyProfile } = useProfileViewModel();
   const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
@@ -27,11 +29,10 @@ export default function Account() {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      await supabaseAuthClient.signOut();
+      clearMyProfile();
       Alert.alert('Success', 'Successfully logged out!');
       router.push('/(pages)/(authentication)/login');
-      if (error) throw error;
-      setMyProfile(null);
     } catch (error) {
       Alert.alert('Error signing out', (error as Error).message);
     }
@@ -66,7 +67,7 @@ export default function Account() {
     },
   ];
 
-  if (myProfile?.role === 'house_owner') {
+  if (myProfile?.role === Role.HouseOwner) {
     menuItems.push({
       title: 'Property List',
       icon: 'home-outline',

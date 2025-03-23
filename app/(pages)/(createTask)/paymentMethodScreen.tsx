@@ -10,8 +10,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useStripe, PaymentSheetError } from '@stripe/stripe-react-native';
-import useStore from '@/utils/store';
- 
+import { useSessionModel } from '@/models/sessionModel';
+
 // 示例支付方式
 const paymentMethods = [
   { id: '1', label: 'Credit Card' },
@@ -21,7 +21,6 @@ const paymentMethods = [
 
 const PAYMENT_API_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/payments`;
 
-
 export default function PaymentMethodScreen() {
   const router = useRouter();
 
@@ -30,7 +29,7 @@ export default function PaymentMethodScreen() {
     'Add new payment method',
   );
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const { mySession } = useStore();
+  const { mySession } = useSessionModel();
 
   const initializePaymentSheet = async () => {
     const { error } = await initPaymentSheet({

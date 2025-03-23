@@ -8,6 +8,8 @@ interface DropdownProps {
   options: string[];
   selectedOption: string;
   titleStyle?: string;
+  textStyles?: string;
+  dropdownStyle?: string;
   onSelect: (option: string) => void;
 }
 
@@ -17,18 +19,20 @@ const Dropdown = ({
   selectedOption,
   placeholder,
   titleStyle,
+  textStyles,
+  dropdownStyle,
   onSelect,
 }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <View className="mb-4">
-      <Text className={`font-bold mb-2 ${titleStyle ?? ''}`}>{title}</Text>
+      <Text className={titleStyle ?? 'font-bold mb-2'}>{title}</Text>
       <TouchableOpacity
-        className="flex-row justify-between items-center bg-white border border-blue-600 rounded px-3 py-3.5"
+        className={`flex-row justify-between items-center ${dropdownStyle ?? 'bg-white border border-blue-600 rounded px-3 py-3.5'} `}
         onPress={() => setIsOpen(!isOpen)}
       >
-        <Text className="text-lg text-black">
+        <Text className={textStyles ?? 'text-lg text-black'}>
           {selectedOption || placeholder}
         </Text>
         <Ionicons
@@ -38,7 +42,7 @@ const Dropdown = ({
         />
       </TouchableOpacity>
       {isOpen && (
-        <View className="bg-white border border-gray-300 border-t-0 rounded mt-[-1px]">
+        <View className="bg-white border border-gray-300 border-t-0 mt-[-1px]">
           {options.map((option, index) => (
             <TouchableOpacity
               key={index}
