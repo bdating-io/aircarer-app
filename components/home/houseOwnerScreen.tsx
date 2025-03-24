@@ -13,7 +13,7 @@ export const HouseOwnerScreen: React.FC = () => {
       <View className="bg-[#4A90E2] p-4 rounded-lg py-40">
         <Dropdown
           title="Select a cleaning type to start"
-          titleStyle="text-white text-center"
+          titleStyle="text-white text-center font-bold mb-2 text-lg"
           options={cleaningTypes}
           selectedOption={cleaningType}
           onSelect={setCleaningType}

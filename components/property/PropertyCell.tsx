@@ -6,8 +6,8 @@ import { Property } from '@/types/property';
 interface PropertyCellProps {
   property: Property;
   currentUserId: string | null;
-  handleEditProperty: (userId: string, propertyId?: string) => void;
-  handleDeleteProperty: (userId: string, propertyId?: string) => void;
+  handleEditProperty: (userId: string, propertyId?: number) => void;
+  handleDeleteProperty: (userId: string, propertyId?: number) => void;
   renderSpecialRequirements: (property: Property) => string;
 }
 

@@ -10,40 +10,28 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '@/clients/supabase';
-import useStore from '@/utils/store';
+import { useProfileModel } from '@/models/profileModel';
+import { supabaseAuthClient } from '@/clients/supabase/auth';
+import { supabaseDBClient } from '@/clients/supabase/database';
 
 export default function EditProfile() {
   const router = useRouter();
-  const { myProfile, setMyProfile } = useStore();
+  const { myProfile, setMyProfile } = useProfileModel();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    bio: myProfile?.bio || '',
     first_name: myProfile?.first_name || '',
     last_name: myProfile?.last_name || '',
-    bio: myProfile?.bio || '',
-    location: myProfile?.location || '',
+    location: myProfile?.location,
   });
 
   const updateProfile = async () => {
     try {
       setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await supabaseAuthClient.getUser();
+      await supabaseDBClient.updateUserProfile(user.id, formData);
 
-      if (!user) throw new Error('No user found');
-
-      const updates = {
-        user_id: user.id,
-        ...formData,
-        updated_at: new Date(),
-      };
-
-      const { error } = await supabase.from('profiles').upsert(updates);
-
-      if (error) throw error;
-
-      setMyProfile({ ...myProfile, ...formData });
+      setMyProfile({ ...myProfile!, ...formData });
       Alert.alert('Success', 'Profile updated successfully!');
       router.back();
     } catch (error) {

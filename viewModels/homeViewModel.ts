@@ -1,6 +1,7 @@
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
-import useStore from '@/utils/store';
+import { useProfileModel } from '@/models/profileModel';
+import { useSessionModel } from '@/models/sessionModel';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
@@ -8,7 +9,8 @@ import { Alert } from 'react-native';
 export const useHomeViewModel = () => {
   const router = useRouter();
   const [hasAddress, setHasAddress] = useState<boolean>(false);
-  const { myProfile, setMyProfile, mySession, setMySession } = useStore();
+  const { myProfile, setMyProfile, clearMyProfile } = useProfileModel();
+  const { mySession, setMySession, clearMySession } = useSessionModel();
   const [userEmail, setUserEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [userDetailFetched, setUserDetailFetched] = useState<boolean>(false);
@@ -16,8 +18,8 @@ export const useHomeViewModel = () => {
   useEffect(() => {
     setLoading(true);
     supabaseAuthClient.getSession().then((session) => {
-      setMySession(session);
-      if (session?.user) {
+      if (session) {
+        setMySession(session);
         checkUserDetails(session.user.id)
           .then(() => {
             setUserDetailFetched(true);
@@ -62,8 +64,8 @@ export const useHomeViewModel = () => {
   const handleSignOut = async () => {
     try {
       await supabaseAuthClient.signOut();
-      setMyProfile(null);
-      setMySession(null);
+      clearMyProfile();
+      clearMySession();
     } catch (error) {
       Alert.alert('Error signing out', (error as Error).message);
     }

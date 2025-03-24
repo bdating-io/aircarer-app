@@ -10,9 +10,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useStripe, PaymentSheetError } from '@stripe/stripe-react-native';
-import useStore from '@/utils/store';
+import { useSessionModel } from '@/models/sessionModel';
+
 import { supabase } from '@/clients/supabase';
-import { PaymentStatus } from "@/types/task";
+import { PaymentStatus } from '@/types/task';
 
 // 示例支付方式
 const paymentMethods = [
@@ -23,7 +24,6 @@ const paymentMethods = [
 
 const PAYMENT_API_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/payments`;
 
-
 export default function PaymentMethodScreen() {
   const router = useRouter();
   const { taskId } = useLocalSearchParams() as { taskId?: string };
@@ -32,7 +32,7 @@ export default function PaymentMethodScreen() {
     'Add new payment method',
   );
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const { mySession } = useStore();
+  const { mySession } = useSessionModel();
   const [loading, setLoading] = useState(true);
   const [taskData, setTaskData] = useState({});
 
@@ -83,25 +83,27 @@ export default function PaymentMethodScreen() {
     }
   };
 
-  const confirmHandler = async (paymentMethod, shouldSavePaymentMethod, intentCreationCallback) => {
+  const confirmHandler = async (
+    paymentMethod,
+    shouldSavePaymentMethod,
+    intentCreationCallback,
+  ) => {
     const response = await fetch(`${PAYMENT_API_URL}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${mySession.access_token}`,
       },
-      body: JSON.stringify(
-        {
-          action: 'create-payment-intent',
-          paymentMethod,
-          amount: taskData.budget * 100,
-          currency: 'AUD',
-          paymentMethodType: 'card',
-          paymentMethodOptions: {},
-          metadata: taskData,
-          description: `payment for task_id: ${taskData.task_id}, at ${taskData.address}`
-        }
-      )
+      body: JSON.stringify({
+        action: 'create-payment-intent',
+        paymentMethod,
+        amount: taskData.budget * 100,
+        currency: 'AUD',
+        paymentMethodType: 'card',
+        paymentMethodOptions: {},
+        metadata: taskData,
+        description: `payment for task_id: ${taskData.task_id}, at ${taskData.address}`,
+      }),
     });
     // Call the `intentCreationCallback` with your server response's client secret or error
     const { clientSecret, error } = await response.json();
@@ -126,7 +128,7 @@ export default function PaymentMethodScreen() {
 
     // 暂时先跳转回首页
     //router.push("/(tabs)/home");
-    if (selectedMethod === "Credit Card") {
+    if (selectedMethod === 'Credit Card') {
       await initializePaymentSheet();
       const { error } = await presentPaymentSheet();
 

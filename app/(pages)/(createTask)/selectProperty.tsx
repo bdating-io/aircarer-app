@@ -4,7 +4,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator } from 'react-native-paper';
 import Dropdown from '@/components/Dropdown';
 import { usePropertyViewModel } from '@/viewModels/propertyViewModel';
-import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { Property } from '@/types/property';
 import { supabaseDBClient } from '@/clients/supabase/database';
 
@@ -28,17 +27,6 @@ export default function SelectProperty() {
     };
 
     fetchProperties();
-
-    const { data: subscription } = supabaseAuthClient.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          fetchProperties();
-        }
-      },
-    );
-    return () => {
-      subscription.subscription.unsubscribe();
-    };
   }, []);
 
   useEffect(() => {

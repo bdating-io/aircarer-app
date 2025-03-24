@@ -1,21 +1,22 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/clients/supabase';
 import { Session } from '@supabase/supabase-js';
+import { ActivityIndicator } from '@ant-design/react-native';
+import { supabaseAuthClient } from '@/clients/supabase/auth';
 
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabaseAuthClient.getSession().then((session) => {
       setSession(session);
       setIsLoading(false);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabaseAuthClient.onAuthStateChange((_event, session) => {
       setSession(session);
     });
   }, []);
@@ -24,7 +25,8 @@ export default function Index() {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        {/* 可以添加loading指示器 */}
+        <ActivityIndicator size="large" />
+        <Text className="mt-4 text-gray-600">Loading...</Text>
       </View>
     );
   }
