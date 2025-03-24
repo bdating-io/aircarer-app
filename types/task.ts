@@ -51,3 +51,9 @@ export type CleanerTask = {
   approval_status: TaskApprovalStatus;
   budget: number;
 };
+
+export enum PaymentStatus {
+  NotPaid = 'Not Paid',
+  Paid = 'Paid',
+  Completed = 'Completed',
+};
