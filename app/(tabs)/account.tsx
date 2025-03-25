@@ -49,22 +49,22 @@ export default function Account() {
   };
 
   const menuItems: MenuItem[] = [
-    {
-      title: 'Payment Options',
-      icon: 'card-outline',
-      onPress: () => null,
-      // router.push('/(pages)/(account)/(payment)/payment'),
-    },
-    {
-      title: 'Notifications',
-      icon: 'notifications-outline',
-      onPress: () => router.push('/(pages)/(account)/notifications'),
-    },
-    {
-      title: 'Settings',
-      icon: 'settings-outline',
-      onPress: () => router.push('/(pages)/(account)/settings'),
-    },
+    // {
+    //   title: 'Payment Options',
+    //   icon: 'card-outline',
+    //   onPress: () => null,
+    //   // router.push('/(pages)/(account)/(payment)/payment'),
+    // },
+    // {
+    //   title: 'Notifications',
+    //   icon: 'notifications-outline',
+    //   onPress: () => router.push('/(pages)/(account)/notifications'),
+    // },
+    // {
+    //   title: 'Settings',
+    //   icon: 'settings-outline',
+    //   onPress: () => router.push('/(pages)/(account)/settings'),
+    // },
   ];
 
   if (myProfile?.role === Role.HouseOwner) {
@@ -79,7 +79,7 @@ export default function Account() {
     <SafeAreaView className="flex-1 bg-[#4A90E2]">
       {/* Profile Header */}
       <View className="px-6 pt-4 pb-6">
-        <Text className="text-2xl font-bold text-white">Account</Text>
+        <Text className="text-2xl font-bold text-white">My Account</Text>
 
         {/* Profile Card */}
         <View className="mt-4 flex-row items-center">
@@ -106,7 +106,7 @@ export default function Account() {
 
       {/* Account Settings */}
       <View className="flex-1 bg-white rounded-t-3xl px-6 pt-6">
-        <Text className="text-lg font-semibold mb-4">ACCOUNT SETTINGS</Text>
+        {/* <Text className="text-lg font-semibold mb-4">ACCOUNT SETTINGS</Text> */}
 
         {/* Menu Items */}
         <View className="space-y-4">
@@ -133,7 +133,7 @@ export default function Account() {
           </Text>
         </TouchableOpacity>
 
-        <View className="mt-8 space-y-4">
+         {/* <View className="mt-8 space-y-4">
           <TouchableOpacity
             className="bg-[#FF6B6B] rounded-lg p-4 mt-8"
             onPress={() => router.push('/(pages)/(profile)/userTerms')}
@@ -142,7 +142,7 @@ export default function Account() {
               Update Profile test
             </Text>
           </TouchableOpacity>
-        </View>
+       </View> */}
       </View>
     </SafeAreaView>
   );

@@ -9,6 +9,7 @@ export type Property = {
   carpet_cleaning: boolean;
   range_hood_cleaning: boolean;
   oven_cleaning: boolean;
+  dishwasher_cleaning: boolean;
   entry_method: string;
   unit_number?: string;
   street_number: string;
