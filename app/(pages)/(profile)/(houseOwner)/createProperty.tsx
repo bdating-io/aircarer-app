@@ -17,18 +17,29 @@ import EntryMethodForm from '@/components/property/EntryMethodForm';
 
 export default function CreateProperty() {
   const {
+    // Address
     unitNumber,
     streetNumber,
     streetName,
     suburb,
     state,
     postalCode,
+    setUnitNumber,
+    setStreetNumber,
+    setStreetName,
+    setSuburb,
+    setState,
+    setPostalCode,
+
+    // Rooms
     bedrooms,
     setBedrooms,
     bathrooms,
     setBathrooms,
     livingRooms,
     setLivingRooms,
+
+    // Special requirements (boolean)
     petCleaning,
     setPetCleaning,
     carpetCleaning,
@@ -37,14 +48,20 @@ export default function CreateProperty() {
     setRangeHoodCleaning,
     ovenCleaning,
     setOvenCleaning,
+    dishwasherCleaning,
+    setDishwasherCleaning,
+
+    // Special requirements (numeric)
+    glassCleaning,
+    setGlassCleaning,
+    wallStainRemoval,
+    setWallStainRemoval,
+
+    // Entry method
     entryMethod,
     setEntryMethod,
-    setUnitNumber,
-    setStreetNumber,
-    setStreetName,
-    setSuburb,
-    setState,
-    setPostalCode,
+
+    // Others
     loading,
     getCurrentLocation,
     isGettingLocation,
@@ -59,7 +76,6 @@ export default function CreateProperty() {
       >
         <ScrollView className="flex-1 px-4">
           {/* Address Details */}
-
           <PropertyAddressForm
             unitNumber={unitNumber}
             streetNumber={streetNumber}
@@ -84,14 +100,15 @@ export default function CreateProperty() {
                 Address Preview:
               </Text>
               <Text className="text-gray-800">
-                {unitNumber ?? ''}
-                {streetNumber} {streetName}, {suburb},{state ?? ''}
-                {postalCode ?? ''}
+                {unitNumber ? `${unitNumber} ` : ''}
+                {streetNumber} {streetName}, {suburb},
+                {state ? ` ${state}` : ''}
+                {postalCode ? ` ${postalCode}` : ''}
               </Text>
             </View>
           )}
 
-          {/* Bedrooms & Bathrooms */}
+          {/* Bedrooms, Bathrooms & Living Rooms */}
           <BedroomsBathroomsForm
             bedrooms={bedrooms}
             setBedrooms={setBedrooms}
@@ -111,6 +128,12 @@ export default function CreateProperty() {
             setRangeHoodCleaning={setRangeHoodCleaning}
             ovenCleaning={ovenCleaning}
             setOvenCleaning={setOvenCleaning}
+            dishwasherCleaning={dishwasherCleaning}
+            setDishwasherCleaning={setDishwasherCleaning}
+            glassCleaning={glassCleaning}
+            setGlassCleaning={setGlassCleaning}
+            wallStainRemoval={wallStainRemoval}
+            setWallStainRemoval={setWallStainRemoval}
           />
 
           {/* Entry Method */}
@@ -131,7 +154,7 @@ export default function CreateProperty() {
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-medium">{'Submit'}</Text>
+            <Text className="text-white font-medium">Submit</Text>
           )}
         </TouchableOpacity>
       </View>

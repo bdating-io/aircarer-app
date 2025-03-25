@@ -15,7 +15,7 @@ export const usePropertyViewModel = () => {
   const [locationPermission, setLocationPermission] = useState<boolean>(false);
   const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
 
-  //New Property Form State
+  // New Property Form State
   const [unitNumber, setUnitNumber] = useState('');
   const [streetNumber, setStreetNumber] = useState('');
   const [streetName, setStreetName] = useState('');
@@ -32,6 +32,11 @@ export const usePropertyViewModel = () => {
   const [rangeHoodCleaning, setRangeHoodCleaning] = useState(false);
   const [ovenCleaning, setOvenCleaning] = useState(false);
   const [entryMethod, setEntryMethod] = useState('');
+  
+  // New Special Requirements State
+  const [dishwasherCleaning, setDishwasherCleaning] = useState(false);
+  const [glassCleaning, setGlassCleaning] = useState(0);
+  const [wallStainRemoval, setWallStainRemoval] = useState(0);
 
   // 请求位置权限
   useEffect(() => {
@@ -180,6 +185,11 @@ export const usePropertyViewModel = () => {
     if (property.carpet_cleaning) requirements.push('Carpet Cleaning');
     if (property.range_hood_cleaning) requirements.push('Range Hood Cleaning');
     if (property.oven_cleaning) requirements.push('Oven Cleaning');
+    if (property.dishwasher_cleaning) requirements.push('Dishwasher Cleaning');
+    if (property.glass_cleaning && property.glass_cleaning > 0)
+      requirements.push(`Glass Cleaning (${property.glass_cleaning})`);
+    if (property.wall_stain_removal && property.wall_stain_removal > 0)
+      requirements.push(`Wall Stain Removal (${property.wall_stain_removal})`);
 
     if (requirements.length === 0) return 'None';
     return requirements.join(', ');
@@ -265,7 +275,6 @@ export const usePropertyViewModel = () => {
       // 如果没有坐标，尝试获取坐标
       if (!latitude || !longitude) {
         try {
-          // 自动尝试获取坐标
           const geocodeResults = await Location.geocodeAsync(fullAddress);
 
           if (geocodeResults && geocodeResults.length > 0) {
@@ -278,11 +287,10 @@ export const usePropertyViewModel = () => {
             'Error getting coordinates during submission:',
             geocodeError,
           );
-          // 继续提交，即使没有坐标
         }
       }
 
-      // Create new property object
+      // Create new property object, including new special requirements
       const newProperty: Property = {
         address: fullAddress,
         unit_number: unitNumber,
@@ -300,14 +308,15 @@ export const usePropertyViewModel = () => {
         carpet_cleaning: carpetCleaning,
         range_hood_cleaning: rangeHoodCleaning,
         oven_cleaning: ovenCleaning,
+        dishwasher_cleaning: dishwasherCleaning,
+        glass_cleaning: glassCleaning,
+        wall_stain_removal: wallStainRemoval,
         entry_method: entryMethod,
         user_id: user.id,
       };
 
       await supabaseDBClient.addUserProperty(newProperty);
       Alert.alert('Success', 'Property added successfully!');
-
-      // Navigate to propertyList page
       router.push('/(tabs)/propertyList');
     } catch (error) {
       console.error('Submission error:', error);
@@ -345,6 +354,9 @@ export const usePropertyViewModel = () => {
     rangeHoodCleaning,
     ovenCleaning,
     entryMethod,
+    dishwasherCleaning,
+    glassCleaning,
+    wallStainRemoval,
 
     // Setters
     setProperty,
@@ -364,6 +376,9 @@ export const usePropertyViewModel = () => {
     setRangeHoodCleaning,
     setOvenCleaning,
     setEntryMethod,
+    setDishwasherCleaning,
+    setGlassCleaning,
+    setWallStainRemoval,
 
     // Functions
     fetchProperty,
