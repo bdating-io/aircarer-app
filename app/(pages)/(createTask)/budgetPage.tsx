@@ -28,11 +28,7 @@ export default function BudgetPage() {
 
   // Calculated price
   const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
-  // user input
-  const [budget, setBudget] = useState<string>('');
 
-  // modal
-  const [modalVisible, setModalVisible] = useState(false);
   // loading
   const [loading, setLoading] = useState(true);
 
@@ -93,20 +89,13 @@ export default function BudgetPage() {
       Alert.alert('Error', 'No taskId provided.');
       return;
     }
-    const userBudgetNum = parseFloat(budget);
-    if (isNaN(userBudgetNum) || userBudgetNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid budget greater than $0.');
-      return;
-    }
-    // must >= estimatedPrice
-    if (userBudgetNum < estimatedPrice) {
-      Alert.alert(
-        'Budget Too Low',
-        `Your chosen budget must be at least $${estimatedPrice}. Please refer to the budget suggestions for more details.`,
-      );
-      return;
-    }
+    const userBudgetNum = estimatedPrice;
 
+    /*
+    Job status:
+    New: waiting for owner to complete details and pay
+    Pending: details completed, payment may not be done
+    */
     try {
       // update tasks table
       const { error } = await supabase
@@ -123,7 +112,7 @@ export default function BudgetPage() {
 
       if (error) throw error;
 
-      console.debug('budget updated successfully');
+      console.debug('task updated successfully');
       router.push(`/(pages)/(createTask)/paymentMethodScreen?taskId=${taskId}`);
     } catch (err: any) {
       Alert.alert('Error', err.message);
@@ -144,62 +133,18 @@ export default function BudgetPage() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={{ flex: 1, padding: 16 }}>
-        <Text style={styles.header}>Enter your budget</Text>
+        <Text style={styles.header}>Cleaning Fee Estimate</Text>
         <Text style={styles.subHeader}>
-          Don’t worry, you can always negotiate the final price later.
+          {/* Don’t worry, you can always negotiate the final price later. */}
         </Text>
-
-        {/* info box */}
-        <View style={styles.infoBox}>
-          <Text style={styles.infoBoxTitle}>How to set the budget?</Text>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={{ color: '#4E89CE' }}>Set budget suggestions</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* modal */}
-        {modalVisible && (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <Text
-                style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}
-              >
-                Set Budget Suggestions
-              </Text>
-              <Text style={{ fontSize: 14, marginBottom: 16 }}>
-                Here is a sample pricing reference based on your cleaning type,
-                bedroom and bathroom count. Adjust accordingly.
-                {'\n\n'}
-                <Text style={{ fontWeight: 'bold' }}>Formula Example:</Text>
-                {'\n'} • Base Price = $40 + ($20 × total rooms)
-                {'\n'} • Regular = Base × 2{'\n'} • Deep = Base × 3{'\n'} etc...
-              </Text>
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                style={styles.modalCloseBtn}
-              >
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
 
         {/* show estimated price */}
         {estimatedPrice > 0 && (
           <Text style={{ marginBottom: 8 }}>
-            We estimate your cleaning might cost around:
+            We estimate your cleaning job will cost:
             <Text style={{ fontWeight: 'bold' }}> ${estimatedPrice}</Text>
           </Text>
         )}
-
-        {/* Budget input */}
-        <TextInput
-          placeholder="$0"
-          value={budget}
-          onChangeText={setBudget}
-          keyboardType="numeric"
-          style={styles.budgetInput}
-        />
 
         {/* Next button */}
         <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
