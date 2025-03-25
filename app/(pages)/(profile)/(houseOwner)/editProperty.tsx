@@ -32,7 +32,7 @@ export default function EditProperty() {
 
   useEffect(() => {
     if (propertyId) {
-      fetchProperty(Number(propertyId));
+      fetchProperty(propertyId as string);
     }
   }, [propertyId]);
 
@@ -158,6 +158,18 @@ export default function EditProperty() {
             ovenCleaning={property.oven_cleaning}
             setOvenCleaning={(value) =>
               setProperty({ ...property, oven_cleaning: value })
+            }
+            dishwasherCleaning={property.dishwasher_cleaning}
+            setDishwasherCleaning={(value) =>
+              setProperty({ ...property, dishwasher_cleaning: value })
+            }
+            glassCleaning={property.glass_cleaning || 0}
+            setGlassCleaning={(value) =>
+              setProperty({ ...property, glass_cleaning: value })
+            }
+            wallStainRemoval={property.wall_stain_removal || 0}
+            setWallStainRemoval={(value) =>
+              setProperty({ ...property, wall_stain_removal: value })
             }
           />
 
