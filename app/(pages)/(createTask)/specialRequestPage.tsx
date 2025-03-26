@@ -12,35 +12,37 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/clients/supabase';
+import { AntDesign } from '@expo/vector-icons';
 
 export default function SpecialRequestPage() {
   const router = useRouter();
   const { taskId } = useLocalSearchParams() as { taskId?: string };
 
-  const requests = [
+  // Put Dishwasher cleaning in the same toggle array:
+  const toggleOptions = [
     'Pet fur cleaning',
     'Carpet steaming',
     'Range hood cleaning',
     'Oven cleaning',
     'Outdoor cleaning',
+    'Dishwasher cleaning', 
   ];
 
-  const requestColumns: Record<string, string> = {
-    'Pet fur cleaning': 'pet_cleaning',
-    'Carpet steaming': 'carpet_steaming',
-    'Range hood cleaning': 'rangehood_cleaning',
-    'Oven cleaning': 'oven_cleaning',
-    'Outdoor cleaning': 'outdoor_cleaning',
-  };
+  // Keep track of which toggles are selected
+  const [selectedToggles, setSelectedToggles] = useState<string[]>([]);
 
-  const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
+  // Numeric inputs
+  const [glassCleaning, setGlassCleaning] = useState(0);
+  const [wallStainRemoval, setWallStainRemoval] = useState(0);
+
+  // Custom request text
   const [customRequest, setCustomRequest] = useState('');
 
-  const toggleRequest = (request: string) => {
-    if (selectedRequests.includes(request)) {
-      setSelectedRequests(selectedRequests.filter((item) => item !== request));
+  const toggleOption = (option: string) => {
+    if (selectedToggles.includes(option)) {
+      setSelectedToggles(selectedToggles.filter(item => item !== option));
     } else {
-      setSelectedRequests([...selectedRequests, request]);
+      setSelectedToggles([...selectedToggles, option]);
     }
   };
 
@@ -50,34 +52,41 @@ export default function SpecialRequestPage() {
       return;
     }
 
-    if (selectedRequests.length === 0 && !customRequest.trim()) {
+    // If no toggles selected, no numeric inputs, and no custom text, show error
+    if (
+      selectedToggles.length === 0 &&
+      glassCleaning === 0 &&
+      wallStainRemoval === 0 &&
+      !customRequest.trim()
+    ) {
       Alert.alert(
         'Error',
-        'Please select at least one special request or enter a custom request.',
+        'Please select at least one special request or enter a custom request.'
       );
       return;
     }
 
+    // Build one JSON object with all options
+    const specialRequirements = {
+      toggles: {
+        pet_fur_cleaning: selectedToggles.includes('Pet fur cleaning'),
+        carpet_steaming: selectedToggles.includes('Carpet steaming'),
+        rangehood_cleaning: selectedToggles.includes('Range hood cleaning'),
+        oven_cleaning: selectedToggles.includes('Oven cleaning'),
+        outdoor_cleaning: selectedToggles.includes('Outdoor cleaning'),
+        dishwasher_cleaning: selectedToggles.includes('Dishwasher cleaning'), // new line
+      },
+      numeric: {
+        glass_cleaning: glassCleaning,
+        wall_stain_removal: wallStainRemoval,
+      },
+      custom: customRequest.trim(),
+    };
+
     try {
-      const updateObj: Record<string, any> = {
-        pet_cleaning: false,
-        carpet_steaming: false,
-        rangehood_cleaning: false,
-        oven_cleaning: false,
-        outdoor_cleaning: false,
-        special_requirement: customRequest.trim(),
-      };
-
-      selectedRequests.forEach((req) => {
-        const colName = requestColumns[req];
-        if (colName) {
-          updateObj[colName] = true;
-        }
-      });
-
       const { error } = await supabase
         .from('tasks')
-        .update(updateObj)
+        .update({ special_requirements: specialRequirements })
         .eq('task_id', taskId);
 
       if (error) throw error;
@@ -98,22 +107,75 @@ export default function SpecialRequestPage() {
         <Text style={styles.title}>Special Request</Text>
         <Text style={styles.subtitle}>Do you need any of the following?</Text>
 
-        {requests.map((request) => {
-          const selected = selectedRequests.includes(request);
+        {toggleOptions.map(option => {
+          const selected = selectedToggles.includes(option);
           return (
             <TouchableOpacity
-              key={request}
-              onPress={() => toggleRequest(request)}
+              key={option}
+              onPress={() => toggleOption(option)}
               style={[
                 styles.requestButton,
                 { backgroundColor: selected ? '#4E89CE' : '#ccc' },
               ]}
             >
-              <Text style={styles.requestText}>{request}</Text>
+              <Text style={styles.requestText}>{option}</Text>
             </TouchableOpacity>
           );
         })}
 
+        {/* Glass Cleaning (numeric input) */}
+        <View style={styles.numericContainer}>
+          <View>
+            <Text style={styles.optionLabel}>Glass Cleaning</Text>
+            <Text style={styles.numericHint}>(charged per piece)</Text>
+          </View>
+          <View style={styles.counterContainer}>
+            <TouchableOpacity
+              onPress={() =>
+                setGlassCleaning(glassCleaning > 0 ? glassCleaning - 1 : 0)
+              }
+              style={styles.counterButton}
+            >
+              <AntDesign name="minus" size={16} color="#4E89CE" />
+            </TouchableOpacity>
+            <Text style={styles.counterText}>{glassCleaning}</Text>
+            <TouchableOpacity
+              onPress={() => setGlassCleaning(glassCleaning + 1)}
+              style={styles.counterButton}
+            >
+              <AntDesign name="plus" size={16} color="#4E89CE" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Wall Stain Removal (numeric input) */}
+        <View style={styles.numericContainer}>
+          <View>
+            <Text style={styles.optionLabel}>Wall Stain Removal</Text>
+            <Text style={styles.numericHint}>(charged per wall)</Text>
+          </View>
+          <View style={styles.counterContainer}>
+            <TouchableOpacity
+              onPress={() =>
+                setWallStainRemoval(
+                  wallStainRemoval > 0 ? wallStainRemoval - 1 : 0
+                )
+              }
+              style={styles.counterButton}
+            >
+              <AntDesign name="minus" size={16} color="#4E89CE" />
+            </TouchableOpacity>
+            <Text style={styles.counterText}>{wallStainRemoval}</Text>
+            <TouchableOpacity
+              onPress={() => setWallStainRemoval(wallStainRemoval + 1)}
+              style={styles.counterButton}
+            >
+              <AntDesign name="plus" size={16} color="#4E89CE" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Custom Request */}
         <Text style={styles.customLabel}>
           Please specify any other special requirements (maximum 250 words)
         </Text>
@@ -135,6 +197,7 @@ export default function SpecialRequestPage() {
   );
 }
 
+// Styles remain mostly the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -158,6 +221,34 @@ const styles = StyleSheet.create({
   },
   requestText: {
     color: '#fff',
+    fontWeight: 'bold',
+  },
+  numericContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  optionLabel: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  numericHint: {
+    fontSize: 12,
+    color: '#666',
+  },
+  counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  counterButton: {
+    backgroundColor: '#ccc',
+    padding: 6,
+    borderRadius: 4,
+  },
+  counterText: {
+    marginHorizontal: 8,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   customLabel: {
