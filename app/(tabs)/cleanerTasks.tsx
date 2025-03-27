@@ -237,7 +237,7 @@ export default function CleanerTasksScreen() {
         </View>
       </TouchableOpacity>
 
-      {/* Edit / Delete row */}
+      {item.status !== 'Completed' && (
       <View className="flex-row justify-end mt-2">
         <TouchableOpacity
           className="px-3 py-2 bg-blue-500 rounded-md"
@@ -245,7 +245,7 @@ export default function CleanerTasksScreen() {
         >
           <Text className="text-white font-semibold">Cancel</Text>
         </TouchableOpacity>
-      </View>
+      </View>)}
     </View>
   );
 
