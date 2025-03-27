@@ -2,24 +2,16 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   ActivityIndicator,
   SafeAreaView,
-  Modal,
-  Platform,
-  TextInput,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 import { supabase } from '@/clients/supabase';
 import { format } from 'date-fns';
-import { Calendar } from 'react-native-calendars';
 import { AntDesign } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import Dropdown from '@/components/Dropdown';
 import { usePropertyViewModel } from '@/viewModels/propertyViewModel';
 import { Property } from '@/types/property';
@@ -50,7 +42,7 @@ interface Task {
   estimated_hours: number;
   schedule_mode: string;
   scheduled_start_date: string;
-  special_requirements?: any; // 新增字段，存储 special requirements
+  special_requirements?: any;
 }
 
 export default function EditTaskDetailScreen() {
@@ -60,16 +52,14 @@ export default function EditTaskDetailScreen() {
   const taskDataString = params.taskData as string;
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Full Task object (for map & summary display)
+  // 存放完整的任务数据
   const [task, setTask] = useState<Task | null>(null);
 
-  // Form fields
-  const [scheduledDate, setScheduledDate] = useState(''); // "YYYY-MM-DD"
-  const [scheduledTime, setScheduledTime] = useState(''); // "HH:MM"
+  // 只读字段
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
   const [address, setAddress] = useState('');
   const [estimatedPrice, setEstimatedPrice] = useState('');
   const [cleaningType, setCleaningType] = useState('');
@@ -77,7 +67,7 @@ export default function EditTaskDetailScreen() {
   const [estimatedHours, setEstimatedHours] = useState('');
   const [scheduleMode, setScheduleMode] = useState('');
 
-  // Special Requirements States
+  // Special Requirements（只读状态）
   const [specialToggles, setSpecialToggles] = useState({
     oven_cleaning: false,
     carpet_steaming: false,
@@ -90,7 +80,7 @@ export default function EditTaskDetailScreen() {
   const [wallStainRemoval, setWallStainRemoval] = useState(0);
   const [specialCustom, setSpecialCustom] = useState('');
 
-  // Toggle options for special requirements
+  // Toggle options（用于显示标签）
   const toggleOptions = [
     { label: 'Pet fur cleaning', key: 'pet_fur_cleaning' },
     { label: 'Carpet steaming', key: 'carpet_steaming' },
@@ -100,24 +90,12 @@ export default function EditTaskDetailScreen() {
     { label: 'Dishwasher cleaning', key: 'dishwasher_cleaning' },
   ];
 
-  const toggleSpecialOption = (key: string) => {
-    setSpecialToggles(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // For property selection
+  // 只读属性选择
   const { loading: propLoading, properties, fetchUserAndProperties } =
     usePropertyViewModel();
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
-  // Toggles for calendar/time modals
-  const [showCalendar, setShowCalendar] = useState(false);
-
-  // For the time picker, we use a custom modal
-  const [showTimeModal, setShowTimeModal] = useState(false);
-  const [tempTime, setTempTime] = useState<Date>(new Date());
-
   useEffect(() => {
-    // Fetch properties
     fetchUserAndProperties();
 
     if (taskDataString) {
@@ -138,7 +116,6 @@ export default function EditTaskDetailScreen() {
     }
   }, [taskDataString, taskId]);
 
-  // Fetch from DB
   const fetchTask = async () => {
     if (!taskId) {
       setError('No task ID provided');
@@ -165,7 +142,6 @@ export default function EditTaskDetailScreen() {
     }
   };
 
-  // Initialize fields
   const initializeForm = (data: Task) => {
     setScheduledDate(data.scheduled_start_date || '');
     if (data.scheduled_start_time) {
@@ -173,7 +149,7 @@ export default function EditTaskDetailScreen() {
         const dt = new Date(data.scheduled_start_time);
         const hh = dt.getHours().toString().padStart(2, '0');
         const mm = dt.getMinutes().toString().padStart(2, '0');
-        setScheduledTime(`${hh}:${mm}`); // e.g. "08:00"
+        setScheduledTime(`${hh}:${mm}`);
       } catch {
         setScheduledTime('');
       }
@@ -187,7 +163,6 @@ export default function EditTaskDetailScreen() {
     setEstimatedHours(data.estimated_hours?.toString() || '');
     setScheduleMode(data.schedule_mode || '');
 
-    // Property selection
     if (data.property_id) {
       const existingProp = properties.find((p) => p.property_id === data.property_id);
       if (existingProp) {
@@ -195,7 +170,7 @@ export default function EditTaskDetailScreen() {
       }
     }
 
-    // Initialize special requirements
+    // 初始化 special requirements
     if (data.special_requirements) {
       let specReq = data.special_requirements;
       if (typeof specReq === 'string') {
@@ -219,107 +194,7 @@ export default function EditTaskDetailScreen() {
       setGlassCleaning(specReq.numeric?.glass_cleaning ?? 0);
       setWallStainRemoval(specReq.numeric?.wall_stain_removal ?? 0);
       setSpecialCustom(specReq.custom || '');
-    } else {
-      // 默认值
-      setSpecialToggles({
-        oven_cleaning: false,
-        carpet_steaming: false,
-        outdoor_cleaning: false,
-        pet_fur_cleaning: false,
-        rangehood_cleaning: false,
-        dishwasher_cleaning: false,
-      });
-      setGlassCleaning(0);
-      setWallStainRemoval(0);
-      setSpecialCustom('');
     }
-  };
-
-  // Save
-  const handleSave = async () => {
-    if (!taskId) return;
-
-    try {
-      setSaving(true);
-
-      // Combine date + time => ISO
-      let combinedDateTime: string | null = null;
-      if (scheduledDate && scheduledTime) {
-        combinedDateTime = new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString();
-      }
-
-      const updateData = {
-        scheduled_start_date: scheduledDate,
-        scheduled_start_time: combinedDateTime,
-        estimated_price: parseFloat(estimatedPrice) || 0,
-        cleaning_type: cleaningType,
-        bring_equipment: bringEquipment,
-        estimated_hours: parseFloat(estimatedHours) || 0,
-        schedule_mode: scheduleMode,
-        // property info
-        property_id: selectedProperty?.property_id,
-        address: selectedProperty?.address,
-        latitude: selectedProperty?.latitude,
-        longitude: selectedProperty?.longitude,
-        // special requirements
-        special_requirements: {
-          toggles: specialToggles,
-          numeric: {
-            glass_cleaning: glassCleaning,
-            wall_stain_removal: wallStainRemoval,
-          },
-          custom: specialCustom.trim(),
-        },
-      };
-
-      const { error } = await supabase
-        .from('tasks')
-        .update(updateData)
-        .eq('task_id', taskId);
-
-      if (error) throw error;
-
-      Alert.alert(
-        'Success',
-        'Task updated successfully',
-        [{ text: 'OK', onPress: () => router.navigate('/(tabs)/houseOwnerTasks') }]
-      );
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to save task');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Delete
-  const handleDelete = () => {
-    if (!taskId) return;
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete this task? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setDeleting(true);
-              const { error } = await supabase
-                .from('tasks')
-                .delete()
-                .eq('task_id', taskId);
-              if (error) throw error;
-              Alert.alert('Success', 'Task deleted successfully');
-              router.navigate('/(tabs)/houseOwnerTasks');
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to delete task');
-              setDeleting(false);
-            }
-          },
-        },
-      ]
-    );
   };
 
   if (loading) {
@@ -334,12 +209,6 @@ export default function EditTaskDetailScreen() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity
-          style={[styles.button, styles.errorButton]}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.buttonText}>Go Back</Text>
-        </TouchableOpacity>
       </View>
     );
   }
@@ -347,28 +216,20 @@ export default function EditTaskDetailScreen() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Task not found</Text>
-        <TouchableOpacity
-          style={[styles.button, styles.errorButton]}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.buttonText}>Go Back</Text>
-        </TouchableOpacity>
       </View>
     );
   }
 
-  // For display in top section
   let displayDateTime = '';
   try {
     if (task.scheduled_start_time) {
       const dt = new Date(task.scheduled_start_time);
-      displayDateTime = format(dt, 'PPP p'); // e.g. Mar 20, 2025 5:00 AM
+      displayDateTime = format(dt, 'PPP p');
     }
   } catch {
     // ignore
   }
 
-  // For map display
   const lat = selectedProperty?.latitude ?? task.latitude;
   const lng = selectedProperty?.longitude ?? task.longitude;
 
@@ -376,10 +237,7 @@ export default function EditTaskDetailScreen() {
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <AntDesign name="arrowleft" size={24} color="white" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Task Details</Text>
+        <Text style={styles.headerTitle}>Task Details (Read-Only)</Text>
       </View>
 
       <View style={styles.contentContainer}>
@@ -426,323 +284,107 @@ export default function EditTaskDetailScreen() {
             </View>
           </View>
 
-          {/* -------------- Property Selection -------------- */}
+          {/* Property (Read-Only) */}
           <View style={styles.formGroup}>
-            {propLoading ? (
-              <ActivityIndicator />
-            ) : (
-              <Dropdown
-                title="Select Property"
-                titleStyle={styles.label}
-                options={properties.map((p) => p.address ?? 'No address')}
-                selectedOption={selectedProperty?.address ?? ''}
-                onSelect={(address) => {
-                  const found = properties.find((p) => p.address === address);
-                  setSelectedProperty(found ?? null);
-                }}
-                placeholder={address || "Select your property"}
-              />
-            )}
+            <Text style={styles.label}>Property</Text>
+            <Text style={styles.readOnlyText}>
+              {selectedProperty?.address || address || 'N/A'}
+            </Text>
           </View>
 
-          {/* Cleaning Type */}
+          {/* Cleaning Type (Read-Only) */}
           <View style={styles.formGroup}>
-            <Dropdown
-              title="Select Cleaning Type"
-              titleStyle={styles.label}
-              options={["AirBnB", "End-of-Lease/Sale"]}
-              selectedOption={cleaningType}
-              onSelect={(option) => setCleaningType(option)}
-              placeholder="Select cleaning type"
-            />
+            <Text style={styles.label}>Cleaning Type</Text>
+            <Text style={styles.readOnlyText}>{cleaningType || 'N/A'}</Text>
           </View>
 
-          {/* Bring Equipment */}
+          {/* Bring Equipment (Read-Only) */}
           <View style={styles.formGroup}>
-            <Dropdown
-              title="Select Bring Equipment"
-              titleStyle={styles.label}
-              options={["Yes", "No"]}
-              selectedOption={bringEquipment}
-              onSelect={(option) => setBringEquipment(option)}
-              placeholder="Yes"
-            />
+            <Text style={styles.label}>Bring Equipment</Text>
+            <Text style={styles.readOnlyText}>{bringEquipment || 'N/A'}</Text>
           </View>
 
-          {/* Schedule Mode */}
+          {/* Schedule Mode (Read-Only) */}
           <View style={styles.formGroup}>
-            <Dropdown
-              title="Select Schedule Mode"
-              titleStyle={styles.label}
-              options={["Exact Date", "Before a Date"]}
-              selectedOption={scheduleMode}
-              onSelect={(option) => setScheduleMode(option)}
-              placeholder="Select Schedule Mode"
-            />
+            <Text style={styles.label}>Schedule Mode</Text>
+            <Text style={styles.readOnlyText}>{scheduleMode || 'N/A'}</Text>
           </View>
 
-          {/* Scheduled Date */}
+          {/* Scheduled Date (Read-Only) */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Scheduled Date</Text>
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => setShowCalendar(true)}
-            >
-              <Text>{scheduledDate || 'YYYY-MM-DD'}</Text>
-            </TouchableOpacity>
+            <Text style={styles.readOnlyText}>{scheduledDate || 'N/A'}</Text>
           </View>
 
-          {/* Calendar Modal */}
-          <Modal visible={showCalendar} transparent animationType="slide">
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Select Date</Text>
-                <Calendar
-                  onDayPress={(day) => {
-                    setScheduledDate(day.dateString);
-                    setShowCalendar(false);
-                  }}
-                  markedDates={
-                    scheduledDate
-                      ? {
-                          [scheduledDate]: {
-                            selected: true,
-                            marked: true,
-                            selectedColor: '#4E89CE',
-                          },
-                        }
-                      : {}
-                  }
-                  minDate={new Date().toISOString().split('T')[0]}
-                  theme={{
-                    todayTextColor: '#4E89CE',
-                    arrowColor: '#4E89CE',
-                  }}
-                />
-                <TouchableOpacity
-                  style={[styles.button, { marginTop: 16, backgroundColor: '#ccc' }]}
-                  onPress={() => setShowCalendar(false)}
-                >
-                  <Text style={styles.buttonText}>Close</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-
-          {/* Scheduled Time */}
+          {/* Scheduled Time (Read-Only) */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Scheduled Start Time</Text>
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => {
-                if (scheduledTime) {
-                  const [h, m] = scheduledTime.split(':');
-                  const newDate = new Date();
-                  newDate.setHours(Number(h));
-                  newDate.setMinutes(Number(m));
-                  newDate.setSeconds(0);
-                  setTempTime(newDate);
-                } else {
-                  setTempTime(new Date());
-                }
-                setShowTimeModal(true);
-              }}
-            >
-              <Text>{scheduledTime || 'HH:MM'}</Text>
-            </TouchableOpacity>
+            <Text style={styles.readOnlyText}>{scheduledTime || 'N/A'}</Text>
           </View>
 
-          {/* Time Modal */}
-          <Modal
-            visible={showTimeModal}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setShowTimeModal(false)}
-          >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Select Start Time</Text>
-                <DateTimePicker
-                  value={tempTime}
-                  mode="time"
-                  display="spinner"
-                  is24Hour={true}
-                  onChange={(event, selectedDate) => {
-                    if (selectedDate) {
-                      setTempTime(selectedDate);
-                    }
-                  }}
-                />
-                <View style={{ flexDirection: 'row', marginTop: 16 }}>
-                  <TouchableOpacity
-                    style={[
-                      styles.button,
-                      { flex: 1, marginRight: 8, backgroundColor: '#ccc' },
-                    ]}
-                    onPress={() => setShowTimeModal(false)}
-                  >
-                    <Text style={styles.buttonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.button, { flex: 1, backgroundColor: '#4E89CE' }]}
-                    onPress={() => {
-                      const hours = tempTime.getHours().toString().padStart(2, '0');
-                      const minutes = tempTime.getMinutes().toString().padStart(2, '0');
-                      setScheduledTime(`${hours}:${minutes}`);
-                      setShowTimeModal(false);
-                    }}
-                  >
-                    <Text style={styles.buttonText}>OK</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
-
-          {/*
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Estimated Price ($)</Text>
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => {
-                Alert.prompt(
-                  'Edit Estimated Price',
-                  '',
-                  (text) => setEstimatedPrice(text),
-                  'plain-text',
-                  estimatedPrice
-                );
-              }}
-            >
-              <Text>{estimatedPrice || 'Tap to edit price'}</Text>
-            </TouchableOpacity>
-          </View>
-          */}
-
-          {/* Estimated Hours*/}
+          {/* Estimated Hours (Read-Only) */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Estimated Hours</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              onChangeText={(text) => setEstimatedHours(text)}
-              value={estimatedHours}
-              placeholder="Enter estimated hours"
-            />
+            <Text style={styles.readOnlyText}>{estimatedHours || 'N/A'}</Text>
           </View>
 
-
-          {/* Special Requirements */}
+          {/* Special Requirements (Read-Only) */}
           <View style={styles.formGroup}>
             <Text style={[styles.label, { marginBottom: 8 }]}>Special Requirements</Text>
-
-            {toggleOptions.map(option => {
-              const selected = specialToggles[option.key];
-              return (
-                <TouchableOpacity
-                  key={option.key}
-                  onPress={() => toggleSpecialOption(option.key)}
-                  style={[
-                    styles.requestButton,
-                    { backgroundColor: selected ? '#4E89CE' : '#ccc', marginBottom: 8 },
-                  ]}
-                >
-                  <Text style={styles.requestText}>{option.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
+            {/* Toggles */}
+            <View style={styles.toggleContainer}>
+              {toggleOptions.map(option => {
+                const selected = specialToggles[option.key];
+                return (
+                  <View
+                    key={option.key}
+                    style={[
+                      styles.requestButton,
+                      { backgroundColor: selected ? '#4E89CE' : '#ccc', marginRight: 8, marginBottom: 8 },
+                    ]}
+                  >
+                    <Text style={styles.requestText}>{option.label}</Text>
+                  </View>
+                );
+              })}
+            </View>
 
             {/* Glass Cleaning */}
             <View style={styles.numericContainer}>
-              <View>
-                <Text style={styles.optionLabel}>Glass Cleaning</Text>
-                <Text style={styles.numericHint}>(charged per piece)</Text>
-              </View>
-              <View style={styles.counterContainer}>
-                <TouchableOpacity
-                  onPress={() =>
-                    setGlassCleaning(glassCleaning > 0 ? glassCleaning - 1 : 0)
-                  }
-                  style={styles.counterButton}
-                >
+              <Text style={styles.optionLabel}>Glass Cleaning</Text>
+              <View style={styles.readOnlyCounterContainer}>
+                <View style={styles.counterButton}>
                   <AntDesign name="minus" size={16} color="#4E89CE" />
-                </TouchableOpacity>
+                </View>
                 <Text style={styles.counterText}>{glassCleaning}</Text>
-                <TouchableOpacity
-                  onPress={() => setGlassCleaning(glassCleaning + 1)}
-                  style={styles.counterButton}
-                >
+                <View style={styles.counterButton}>
                   <AntDesign name="plus" size={16} color="#4E89CE" />
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
 
             {/* Wall Stain Removal */}
             <View style={styles.numericContainer}>
-              <View>
-                <Text style={styles.optionLabel}>Wall Stain Removal</Text>
-                <Text style={styles.numericHint}>(charged per wall)</Text>
-              </View>
-              <View style={styles.counterContainer}>
-                <TouchableOpacity
-                  onPress={() =>
-                    setWallStainRemoval(wallStainRemoval > 0 ? wallStainRemoval - 1 : 0)
-                  }
-                  style={styles.counterButton}
-                >
+              <Text style={styles.optionLabel}>Wall Stain Removal</Text>
+              <View style={styles.readOnlyCounterContainer}>
+                <View style={styles.counterButton}>
                   <AntDesign name="minus" size={16} color="#4E89CE" />
-                </TouchableOpacity>
+                </View>
                 <Text style={styles.counterText}>{wallStainRemoval}</Text>
-                <TouchableOpacity
-                  onPress={() => setWallStainRemoval(wallStainRemoval + 1)}
-                  style={styles.counterButton}
-                >
+                <View style={styles.counterButton}>
                   <AntDesign name="plus" size={16} color="#4E89CE" />
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
 
-            {/* Custom Request */}
-            <Text style={[styles.customLabel, { marginTop: 12 }]}>
-              Please specify any other special requirements (maximum 250 words)
-            </Text>
-            <TextInput
-              placeholder="Enter your custom request here..."
-              value={specialCustom}
-              onChangeText={setSpecialCustom}
-              multiline
-              numberOfLines={4}
-              maxLength={250}
-              style={styles.customInput}
-            />
+            {/* Custom */}
+            <Text style={[styles.customLabel, { marginTop: 12 }]}>Custom Requirements</Text>
+            <View style={styles.customReadOnlyContainer}>
+              <Text style={styles.customReadOnlyText}>{specialCustom || 'N/A'}</Text>
+            </View>
           </View>
 
-          {/* Buttons */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.saveButton]}
-              onPress={handleSave}
-              disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Save Changes</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.button, styles.deleteButton]}
-              onPress={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Delete Task</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+          {/* 本页面为只读展示，无保存按钮 */}
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -756,13 +398,9 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: '#4E89CE',
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-  },
-  backButton: {
-    paddingRight: 16,
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
@@ -791,9 +429,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     fontWeight: '500',
-  },
-  errorButton: {
-    backgroundColor: '#4E89CE',
   },
   taskInfo: {
     padding: 16,
@@ -828,65 +463,26 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontWeight: '500',
   },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+  readOnlyText: {
+    fontSize: 16,
+    color: '#333',
     padding: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    fontSize: 16,
-    justifyContent: 'center',
-  },
-  buttonContainer: {
-    marginTop: 24,
-    marginBottom: 40,
-    gap: 12,
-  },
-  button: {
+    backgroundColor: '#f2f2f2',
     borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 4,
   },
-  saveButton: {
-    backgroundColor: '#4E89CE',
+  toggleContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  deleteButton: {
-    backgroundColor: '#F44336',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  // Modal styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#00000055',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  // Special Requirements Styles
   requestButton: {
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
   },
   requestText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 14,
   },
   numericContainer: {
     flexDirection: 'row',
@@ -898,11 +494,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  numericHint: {
-    fontSize: 12,
-    color: '#666',
-  },
   counterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  readOnlyCounterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -920,13 +516,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 16,
     marginBottom: 4,
+    fontSize: 16,
   },
-  customInput: {
+  customReadOnlyContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 12,
     borderRadius: 8,
-    backgroundColor: '#fff',
-    textAlignVertical: 'top',
+    padding: 12,
+    backgroundColor: '#f2f2f2',
+  },
+  customReadOnlyText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
