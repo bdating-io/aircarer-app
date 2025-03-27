@@ -60,7 +60,7 @@ export default function DateSelection() {
   }>();
 
   // exact / before 两个模式
-  const [dateOption, setDateOption] = useState<'Exact' | 'Before'>('Exact');
+  const [dateOption, setDateOption] = useState<'Exact Date' | 'Before a Date'>('Exact');
 
   // exact模式
   const [exactDate, setExactDate] = useState('');
@@ -92,7 +92,7 @@ export default function DateSelection() {
     }
 
     // 2) 如果是 EXACT
-    if (dateOption === 'Exact') {
+    if (dateOption === 'Exact Date') {
       if (!exactDate) {
         Alert.alert('Error', 'Please select a valid date.');
         return;
@@ -123,7 +123,7 @@ export default function DateSelection() {
         const { error } = await supabase
           .from('tasks')
           .update({
-            schedule_mode: 'Exact',
+            schedule_mode: 'Exact Date',
             scheduled_start_time: dateObj.toISOString(),
             scheduled_start_date: exactDate, // 改为保存 exactDate
             scheduled_period: null,
@@ -148,7 +148,7 @@ export default function DateSelection() {
     } else {
       // 3) 如果是 BEFORE
       if (!beforeDate) {
-        Alert.alert('Error', "Please select a valid date for 'before'.");
+        Alert.alert('Error', "Please select a valid date.");
         return;
       }
       if (
@@ -168,7 +168,7 @@ export default function DateSelection() {
         const { error } = await supabase
           .from('tasks')
           .update({
-            schedule_mode: 'Before',
+            schedule_mode: 'Before a Date',
             scheduled_start_time: new Date(
               beforeDate +
                 'T' +
@@ -230,11 +230,11 @@ export default function DateSelection() {
             {/* exact / before 选项 */}
             <View style={{ flexDirection: 'row', marginBottom: 16 }}>
               <TouchableOpacity
-                onPress={() => setDateOption('Exact')}
+                onPress={() => setDateOption('Exact Date')}
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: dateOption === 'Exact' ? '#4E89CE' : '#ccc',
+                  backgroundColor: dateOption === 'Exact Date' ? '#4E89CE' : '#ccc',
                   marginRight: 4,
                   borderRadius: 8,
                   alignItems: 'center',
@@ -244,11 +244,11 @@ export default function DateSelection() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => setDateOption('Before')}
+                onPress={() => setDateOption('Before a Date')}
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: dateOption === 'Before' ? '#4E89CE' : '#ccc',
+                  backgroundColor: dateOption === 'Before a Date' ? '#4E89CE' : '#ccc',
                   marginLeft: 4,
                   borderRadius: 8,
                   alignItems: 'center',
@@ -258,7 +258,7 @@ export default function DateSelection() {
               </TouchableOpacity>
             </View>
 
-            {dateOption === 'Exact' ? (
+            {dateOption === 'Exact Date' ? (
               // ========== EXACT模式 ==========
               <View style={{ marginBottom: 16 }}>
                 <Text
