@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/clients/supabase';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -25,10 +25,12 @@ export default function TaskDetail() {
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<any>(null);
   const [beforePhotos, setBeforePhotos] = useState<any[]>([]);
+  const { taskId } = useLocalSearchParams();
 
   useEffect(() => {
+   
     fetchTaskData();
-  }, []);
+  }, [taskId]);
 
   const fetchTaskData = async () => {
     try {
@@ -37,15 +39,13 @@ export default function TaskDetail() {
       const { data: tasks, error: taskError } = await supabase
         .from('tasks')
         .select()
-        .eq('status', 'In Progress')
-        .order('scheduled_start_time', { ascending: false })
+        .eq('task_id', taskId)
         .limit(1);
 
       if (taskError) throw taskError;
       if (!tasks || tasks.length === 0) return;
 
       setTask(tasks[0]);
-      const taskId = tasks[0].task_id;
 
       // 获取任务相关的照片
       const { data: photos, error: photoError } = await supabase
@@ -57,7 +57,7 @@ export default function TaskDetail() {
       if (photoError) throw photoError;
       setBeforePhotos(photos || []);
     } catch (error) {
-      console.error('Error fetching task data:', error);
+      console.error('Error fetching task data:', error + ", taskId="+ taskId);
     } finally {
       setLoading(false);
     }
@@ -216,7 +216,12 @@ export default function TaskDetail() {
         <View className="mt-4 mb-8">
           <TouchableOpacity
             className="py-4 rounded-lg items-center bg-green-500"
-            onPress={() => router.push('/afterClean')}
+            onPress={() => {
+              router.push({
+                pathname: '/afterClean',
+                params: { taskId: taskId },
+              })}
+            }
           >
             <Text className="text-white font-bold">
               Complete Cleaning & Take Photos

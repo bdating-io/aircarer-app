@@ -89,7 +89,7 @@ const isTask = (data: any): data is Task => {
 
 export default function Task() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { taskId } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<Task | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -112,7 +112,7 @@ export default function Task() {
         const { data, error } = await supabase
           .from('tasks')
           .select('*')
-          .eq('task_id', id)
+          .eq('task_id', taskId)
           .single();
 
         if (error) throw error;
@@ -139,7 +139,7 @@ export default function Task() {
     };
 
     fetchTask();
-  }, [id]);
+  }, [taskId]);
 
   // 获取当前用户ID
   useEffect(() => {
@@ -260,7 +260,7 @@ export default function Task() {
       const { data, error: fetchError } = await supabase
         .from('tasks')
         .select('*')
-        .eq('task_id', id)
+        .eq('task_id', taskId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -404,7 +404,10 @@ export default function Task() {
       Alert.alert('Success', 'Arrival confirmed successfully!');
 
       // 导航到 beforeClean 页面
-      router.push('/beforeClean');
+      router.push({
+        pathname: '/beforeClean',
+        params: { taskId: task.task_id },
+      })
     } catch (error) {
       console.error('Error confirming arrival:', error);
       Alert.alert('Error', 'Failed to confirm arrival');
@@ -436,7 +439,7 @@ export default function Task() {
     }
 
     // 如果任务已被当前用户接受，显示其他按钮
-    if (task.cleaner_id === currentUserId) {
+    if (task.cleaner_id === currentUserId && task.status !== 'Completed') {
       return (
         <View>
           {/* Confirm Task Button - 只在任务已接受且未确认时显示 */}
@@ -478,7 +481,6 @@ export default function Task() {
               </Text>
             </TouchableOpacity>
           )}
-
           {/* Check-in Status */}
           {hasCheckedIn && (
             <View className="bg-green-100 py-4 px-4 rounded-lg mb-4">
@@ -493,11 +495,17 @@ export default function Task() {
             </View>
           )}
 
+
           {/* Take Before Photos Button - 当已确认到达但尚未上传照片时显示 */}
           {hasArrived && !hasBeforePhotos && (
             <TouchableOpacity
               className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
-              onPress={() => router.push('/beforeClean')}
+              onPress={() => 
+                router.push({
+                  pathname: '/beforeClean',
+                  params: { taskId: task.task_id },
+                })
+              }
             >
               <Text className="text-white font-bold">Take Before Photos</Text>
             </TouchableOpacity>
@@ -507,7 +515,12 @@ export default function Task() {
           {hasArrived && hasBeforePhotos && (
             <TouchableOpacity
               className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
-              onPress={() => router.push('/taskDetail')}
+              onPress={() => 
+                router.push({
+                    pathname: '/taskDetail',
+                    params: { taskId: task.task_id },
+                  })
+              }
             >
               <Text className="text-white font-bold">View Cleaning Guide</Text>
             </TouchableOpacity>
