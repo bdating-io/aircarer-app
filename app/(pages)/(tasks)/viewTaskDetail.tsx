@@ -224,15 +224,11 @@ export default function ViewTaskDetailScreen() {
             <View className="flex-row justify-between items-center my-2">
               <Text className="font-semibold text-base">Glass Cleaning</Text>
               <View className="flex-row items-center">
-                <View className="bg-gray-300 p-2 rounded-md">
-                  <AntDesign name="minus" size={16} color="#4E89CE" />
-                </View>
                 <Text className="mx-2 font-bold text-base">
-                  {numeric?.glass_cleaning}
+                  {numeric?.glass_cleaning === 0
+                    ? 'N/A'
+                    : numeric?.glass_cleaning}
                 </Text>
-                <View className="bg-gray-300 p-2 rounded-md">
-                  <AntDesign name="plus" size={16} color="#4E89CE" />
-                </View>
               </View>
             </View>
 
@@ -241,15 +237,11 @@ export default function ViewTaskDetailScreen() {
                 Wall Stain Removal
               </Text>
               <View className="flex-row items-center">
-                <View className="bg-gray-300 p-2 rounded-md">
-                  <AntDesign name="minus" size={16} color="#4E89CE" />
-                </View>
                 <Text className="mx-2 font-bold text-base">
-                  {numeric?.wall_stain_removal}
+                  {numeric?.wall_stain_removal === 0
+                    ? 'N/A'
+                    : numeric?.wall_stain_removal}
                 </Text>
-                <View className="bg-gray-300 p-2 rounded-md">
-                  <AntDesign name="plus" size={16} color="#4E89CE" />
-                </View>
               </View>
             </View>
 
