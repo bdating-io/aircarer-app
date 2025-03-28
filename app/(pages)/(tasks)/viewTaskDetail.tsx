@@ -79,8 +79,8 @@ export default function ViewTaskDetailScreen() {
         setTask(data);
         initializeForm(data);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch task');
+    } catch (err) {
+      setError((err as Error).message || 'Failed to fetch task');
     } finally {
       setLoading(false);
     }
@@ -191,15 +191,12 @@ export default function ViewTaskDetailScreen() {
             </Text>
           </View>
 
-          <View className="mb-4">
-            <Text className="text-base font-medium mb-2">
-              Special Requirements
-            </Text>
-            {!Object.values(specialToggles).some((value) => value) ? (
-              <Text className="text-base text-gray-700 bg-gray-200 p-3 w- rounded-lg">
-                N/A
+          {!Object.values(specialToggles).some((value) => value) && (
+            <View className="mb-4">
+              <Text className="text-base font-medium mb-2">
+                Special Requirements
               </Text>
-            ) : (
+
               <View className="flex-row flex-wrap">
                 {toggleOptions.map((option) => {
                   const selected =
@@ -219,39 +216,42 @@ export default function ViewTaskDetailScreen() {
                   return null;
                 })}
               </View>
-            )}
+            </View>
+          )}
 
+          {numeric?.glass_cleaning !== 0 && (
             <View className="flex-row justify-between items-center my-2">
               <Text className="font-semibold text-base">Glass Cleaning</Text>
               <View className="flex-row items-center">
                 <Text className="mx-2 font-bold text-base">
-                  {numeric?.glass_cleaning === 0
-                    ? 'N/A'
-                    : numeric?.glass_cleaning}
+                  {numeric?.glass_cleaning}
                 </Text>
               </View>
             </View>
+          )}
 
+          {numeric?.wall_stain_removal !== 0 && (
             <View className="flex-row justify-between items-center my-2">
               <Text className="font-semibold text-base">
                 Wall Stain Removal
               </Text>
               <View className="flex-row items-center">
                 <Text className="mx-2 font-bold text-base">
-                  {numeric?.wall_stain_removal === 0
-                    ? 'N/A'
-                    : numeric?.wall_stain_removal}
+                  {numeric?.wall_stain_removal}
                 </Text>
               </View>
             </View>
-
-            <Text className="font-semibold mt-3 mb-1 text-base">
-              Custom Requirements
-            </Text>
-            <View className="border border-gray-300 rounded-lg p-3 bg-gray-200">
-              <Text className="text-base text-gray-700">{custom || 'N/A'}</Text>
+          )}
+          {custom && (
+            <View className="mb-4">
+              <Text className="font-semibold mt-3 mb-1 text-base">
+                Custom Requirements
+              </Text>
+              <View className="border border-gray-300 rounded-lg p-3 bg-gray-200">
+                <Text className="text-base text-gray-700">{custom}</Text>
+              </View>
             </View>
-          </View>
+          )}
         </ScrollView>
       </View>
     </SafeAreaView>
