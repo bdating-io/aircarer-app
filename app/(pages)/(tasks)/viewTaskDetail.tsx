@@ -130,8 +130,7 @@ export default function ViewTaskDetailScreen() {
     const dt = new Date(task.scheduled_start_time);
     displayDateTime = format(dt, 'h:mm a do MMMM, yyyy');
   }
-  console.log('numeric?.glass_cleaning', numeric?.glass_cleaning);
-  console.log('numeric?.wall_stain_removal', numeric?.wall_stain_removal);
+
   return (
     <SafeAreaView className="flex-1 bg-blue-500">
       <View className="bg-blue-500 flex-row items-center px-4 py-3">
