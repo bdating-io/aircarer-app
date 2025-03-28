@@ -35,6 +35,7 @@ export type HouseOwnerTask = {
   property_id: number | null;
   estimated_hours: number;
   schedule_mode: string;
+  special_requirements: SpecialRequirements;
 };
 
 export type CleanerTask = {
@@ -52,8 +53,24 @@ export type CleanerTask = {
   budget: number;
 };
 
+export type SpecialRequirements = {
+  toggles: {
+    pet_fur_cleaning: boolean;
+    carpet_steaming: boolean;
+    rangehood_cleaning: boolean;
+    oven_cleaning: boolean;
+    outdoor_cleaning: boolean;
+    dishwasher_cleaning: boolean;
+  };
+  numeric: {
+    glass_cleaning: number;
+    wall_stain_removal: number;
+  };
+  custom: string;
+};
+
 export enum PaymentStatus {
   NotPaid = 'Not Paid',
   Paid = 'Paid',
   Completed = 'Completed',
-};
+}

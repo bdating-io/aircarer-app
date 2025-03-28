@@ -9,6 +9,7 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="task" />
+      <Stack.Screen name="viewTaskDetail" />
     </Stack>
   );
 }
