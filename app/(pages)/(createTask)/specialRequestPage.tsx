@@ -25,7 +25,7 @@ export default function SpecialRequestPage() {
     'Range hood cleaning',
     'Oven cleaning',
     'Outdoor cleaning',
-    'Dishwasher cleaning', 
+    'Dishwasher cleaning',
   ];
 
   // Keep track of which toggles are selected
@@ -40,7 +40,7 @@ export default function SpecialRequestPage() {
 
   const toggleOption = (option: string) => {
     if (selectedToggles.includes(option)) {
-      setSelectedToggles(selectedToggles.filter(item => item !== option));
+      setSelectedToggles(selectedToggles.filter((item) => item !== option));
     } else {
       setSelectedToggles([...selectedToggles, option]);
     }
@@ -61,7 +61,7 @@ export default function SpecialRequestPage() {
     ) {
       Alert.alert(
         'Error',
-        'Please select at least one special request or enter a custom request.'
+        'Please select at least one special request or enter a custom request.',
       );
       return;
     }
@@ -107,7 +107,7 @@ export default function SpecialRequestPage() {
         <Text style={styles.title}>Special Request</Text>
         <Text style={styles.subtitle}>Do you need any of the following?</Text>
 
-        {toggleOptions.map(option => {
+        {toggleOptions.map((option) => {
           const selected = selectedToggles.includes(option);
           return (
             <TouchableOpacity
@@ -158,7 +158,7 @@ export default function SpecialRequestPage() {
             <TouchableOpacity
               onPress={() =>
                 setWallStainRemoval(
-                  wallStainRemoval > 0 ? wallStainRemoval - 1 : 0
+                  wallStainRemoval > 0 ? wallStainRemoval - 1 : 0,
                 )
               }
               style={styles.counterButton}

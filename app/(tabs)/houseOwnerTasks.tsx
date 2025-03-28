@@ -74,7 +74,7 @@ export default function HouseOwnerTasksScreen() {
   // Open edit page
   const handleEditTask = (task: HouseOwnerTask) => {
     router.push({
-      pathname: '/(pages)/(tasks)/editTaskDetail',
+      pathname: '/(pages)/(tasks)/viewTaskDetail',
       params: {
         taskId: task.task_id.toString(),
         taskData: JSON.stringify(task),
