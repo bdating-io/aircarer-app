@@ -130,7 +130,8 @@ export default function ViewTaskDetailScreen() {
     const dt = new Date(task.scheduled_start_time);
     displayDateTime = format(dt, 'h:mm a do MMMM, yyyy');
   }
-
+  console.log('numeric?.glass_cleaning', numeric?.glass_cleaning);
+  console.log('numeric?.wall_stain_removal', numeric?.wall_stain_removal);
   return (
     <SafeAreaView className="flex-1 bg-blue-500">
       <View className="bg-blue-500 flex-row items-center px-4 py-3">
@@ -191,7 +192,7 @@ export default function ViewTaskDetailScreen() {
             </Text>
           </View>
 
-          {!Object.values(specialToggles).some((value) => value) && (
+          {Object.values(specialToggles).some((value) => value) && (
             <View className="mb-4">
               <Text className="text-base font-medium mb-2">
                 Special Requirements
@@ -219,7 +220,7 @@ export default function ViewTaskDetailScreen() {
             </View>
           )}
 
-          {numeric?.glass_cleaning !== 0 && (
+          {!numeric?.glass_cleaning && numeric?.glass_cleaning !== 0 && (
             <View className="flex-row justify-between items-center my-2">
               <Text className="font-semibold text-base">Glass Cleaning</Text>
               <View className="flex-row items-center">
@@ -230,18 +231,19 @@ export default function ViewTaskDetailScreen() {
             </View>
           )}
 
-          {numeric?.wall_stain_removal !== 0 && (
-            <View className="flex-row justify-between items-center my-2">
-              <Text className="font-semibold text-base">
-                Wall Stain Removal
-              </Text>
-              <View className="flex-row items-center">
-                <Text className="mx-2 font-bold text-base">
-                  {numeric?.wall_stain_removal}
+          {!numeric?.wall_stain_removal &&
+            numeric?.wall_stain_removal !== 0 && (
+              <View className="flex-row justify-between items-center my-2">
+                <Text className="font-semibold text-base">
+                  Wall Stain Removal
                 </Text>
+                <View className="flex-row items-center">
+                  <Text className="mx-2 font-bold text-base">
+                    {numeric?.wall_stain_removal}
+                  </Text>
+                </View>
               </View>
-            </View>
-          )}
+            )}
           {custom && (
             <View className="mb-4">
               <Text className="font-semibold mt-3 mb-1 text-base">
