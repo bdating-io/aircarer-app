@@ -60,7 +60,9 @@ export default function DateSelection() {
   }>();
 
   // exact / before 两个模式
-  const [dateOption, setDateOption] = useState<'Exact Date' | 'Before a Date'>('Exact');
+  const [dateOption, setDateOption] = useState<'Exact Date' | 'Before a Date'>(
+    'Exact Date',
+  );
 
   // exact模式
   const [exactDate, setExactDate] = useState('');
@@ -134,7 +136,7 @@ export default function DateSelection() {
           .single();
 
         if (error) throw error;
-        Alert.alert('Success', 'Updated with EXACT schedule!');
+        console.debug('Success, updated with EXACT schedule!');
 
         // 跳转到下一步 takePhotoPage
         router.push({
@@ -148,7 +150,7 @@ export default function DateSelection() {
     } else {
       // 3) 如果是 BEFORE
       if (!beforeDate) {
-        Alert.alert('Error', "Please select a valid date.");
+        Alert.alert('Error', 'Please select a valid date.');
         return;
       }
       if (
@@ -234,7 +236,8 @@ export default function DateSelection() {
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: dateOption === 'Exact Date' ? '#4E89CE' : '#ccc',
+                  backgroundColor:
+                    dateOption === 'Exact Date' ? '#4E89CE' : '#ccc',
                   marginRight: 4,
                   borderRadius: 8,
                   alignItems: 'center',
@@ -248,7 +251,8 @@ export default function DateSelection() {
                 style={{
                   flex: 1,
                   padding: 12,
-                  backgroundColor: dateOption === 'Before a Date' ? '#4E89CE' : '#ccc',
+                  backgroundColor:
+                    dateOption === 'Before a Date' ? '#4E89CE' : '#ccc',
                   marginLeft: 4,
                   borderRadius: 8,
                   alignItems: 'center',

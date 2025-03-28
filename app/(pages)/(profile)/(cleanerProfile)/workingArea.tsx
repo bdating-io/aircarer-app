@@ -12,10 +12,8 @@ export default function WorkingArea() {
     coordinates,
     fetchCoordinatesFromMyAddress,
     workDistance,
-    zoomDelta,
     getDBWorkPref,
     setWorkDistance,
-    setZoomDelta,
     navigateToWorkingTime,
   } = useProfileViewModel();
 
@@ -60,15 +58,17 @@ export default function WorkingArea() {
                   longitude: coordinates.longitude,
                 }}
               />
-             {workDistance && (<Circle
-                center={{
-                  latitude: coordinates.latitude,
-                  longitude: coordinates.longitude,
-                }}
-                radius={workDistance * 1000}
-                strokeColor="rgba(0,0,255,0.5)"
-                fillColor="rgba(0,0,255,0.2)"
-              />)}
+              {workDistance && (
+                <Circle
+                  center={{
+                    latitude: coordinates.latitude,
+                    longitude: coordinates.longitude,
+                  }}
+                  radius={workDistance * 1000}
+                  strokeColor="rgba(0,0,255,0.5)"
+                  fillColor="rgba(0,0,255,0.2)"
+                />
+              )}
             </MapView>
           )}
 
@@ -79,11 +79,9 @@ export default function WorkingArea() {
               values={[workDistance]}
               onValuesChangeFinish={(v) => {
                 setWorkDistance(v[0]);
-                setZoomDelta(v[0] / 50);
               }}
               onValuesChange={(v) => {
                 setWorkDistance(v[0]);
-                setZoomDelta(v[0] / 50);
               }}
             />
             <Text>{workDistance} KMs</Text>

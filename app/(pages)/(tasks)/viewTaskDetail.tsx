@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,29 +9,21 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
-import { supabase } from '@/clients/supabase';
 import { format } from 'date-fns';
 import { AntDesign } from '@expo/vector-icons';
 import { HouseOwnerTask } from '@/types/task';
+import { useTaskViewModel } from '@/viewModels/taskViewModel';
 
 export default function ViewTaskDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const taskId = params.taskId as string;
   const taskDataString = params.taskData as string;
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [specialToggles, setSpecialToggles] = useState({
-    oven_cleaning: false,
-    carpet_steaming: false,
-    outdoor_cleaning: false,
-    pet_fur_cleaning: false,
-    rangehood_cleaning: false,
-    dishwasher_cleaning: false,
-  });
-  const [task, setTask] = useState<HouseOwnerTask | null>(null);
 
-  const { custom, numeric } = task?.special_requirements || {};
+  const { task, loading, isError, setIsError, setLoading, fetchTask, setTask } =
+    useTaskViewModel();
+
+  const { toggles, custom, numeric } = task?.special_requirements || {};
   const toggleOptions = [
     { label: 'Pet fur cleaning', key: 'pet_fur_cleaning' },
     { label: 'Carpet steaming', key: 'carpet_steaming' },
@@ -45,61 +37,19 @@ export default function ViewTaskDetailScreen() {
     if (taskDataString) {
       try {
         const parsedTask = JSON.parse(taskDataString) as HouseOwnerTask;
-        initializeForm(parsedTask);
         setTask(parsedTask);
         setLoading(false);
       } catch (err) {
         console.error('Error parsing task data:', err);
-        fetchTask();
+        fetchTask(taskId);
       }
     } else if (taskId) {
-      fetchTask();
+      fetchTask(taskId);
     } else {
-      setError('No task information provided');
+      setIsError(false);
       setLoading(false);
     }
   }, [taskDataString, taskId]);
-
-  const fetchTask = async () => {
-    if (!taskId) {
-      setError('No task ID provided');
-      setLoading(false);
-      return;
-    }
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('task_id', taskId)
-        .single();
-      if (error) throw error;
-      if (!data) {
-        setError('Task not found');
-      } else {
-        setTask(data);
-        initializeForm(data);
-      }
-    } catch (err) {
-      setError((err as Error).message || 'Failed to fetch task');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const initializeForm = (data: HouseOwnerTask) => {
-    if (data.special_requirements) {
-      setSpecialToggles(
-        data.special_requirements.toggles || {
-          oven_cleaning: false,
-          carpet_steaming: false,
-          outdoor_cleaning: false,
-          pet_fur_cleaning: false,
-          rangehood_cleaning: false,
-          dishwasher_cleaning: false,
-        },
-      );
-    }
-  };
 
   if (loading) {
     return (
@@ -111,10 +61,12 @@ export default function ViewTaskDetailScreen() {
       </View>
     );
   }
-  if (error) {
+  if (isError) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text className="mb-4 text-lg font-medium text-red-500">{error}</Text>
+        <Text className="mb-4 text-lg font-medium text-red-500">
+          {'Something wrong happened while fetching task details'}
+        </Text>
       </View>
     );
   }
@@ -191,7 +143,7 @@ export default function ViewTaskDetailScreen() {
             </Text>
           </View>
 
-          {Object.values(specialToggles).some((value) => value) && (
+          {toggles && Object.values(toggles).some((value) => value) && (
             <View className="mb-4">
               <Text className="text-base font-medium mb-2">
                 Special Requirements
@@ -199,8 +151,7 @@ export default function ViewTaskDetailScreen() {
 
               <View className="flex-row flex-wrap">
                 {toggleOptions.map((option) => {
-                  const selected =
-                    specialToggles[option.key as keyof typeof specialToggles];
+                  const selected = toggles[option.key as keyof typeof toggles];
                   if (selected) {
                     return (
                       <View
@@ -219,18 +170,19 @@ export default function ViewTaskDetailScreen() {
             </View>
           )}
 
-          {!numeric?.glass_cleaning && numeric?.glass_cleaning !== 0 && (
-            <View className="flex-row justify-between items-center my-2">
-              <Text className="font-semibold text-base">Glass Cleaning</Text>
-              <View className="flex-row items-center">
-                <Text className="mx-2 font-bold text-base">
-                  {numeric?.glass_cleaning}
-                </Text>
+          {numeric?.glass_cleaning !== undefined &&
+            numeric?.glass_cleaning !== 0 && (
+              <View className="flex-row justify-between items-center my-2">
+                <Text className="font-semibold text-base">Glass Cleaning</Text>
+                <View className="flex-row items-center">
+                  <Text className="mx-2 font-bold text-base">
+                    {numeric?.glass_cleaning}
+                  </Text>
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
-          {!numeric?.wall_stain_removal &&
+          {numeric?.wall_stain_removal !== undefined &&
             numeric?.wall_stain_removal !== 0 && (
               <View className="flex-row justify-between items-center my-2">
                 <Text className="font-semibold text-base">

@@ -38,20 +38,7 @@ export type HouseOwnerTask = {
   special_requirements: SpecialRequirements;
 };
 
-export type CleanerTask = {
-  task_id?: number;
-  task_type: TaskType;
-  task_title: string;
-  estimated_price: number;
-  confirmed_price: number | null;
-  status: TaskStatus;
-  payment_status: TaskPaymentStatus;
-  scheduled_start_time: string;
-  actual_start_time: string | null;
-  completion_time: string | null;
-  approval_status: TaskApprovalStatus;
-  budget: number;
-};
+export type CleanerTask = Partial<HouseOwnerTask>;
 
 export type SpecialRequirements = {
   toggles: {

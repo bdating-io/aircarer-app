@@ -14,7 +14,6 @@ import { useAddressModel } from '@/models/addressModel';
 import { useWorkPreferenceModel } from '@/models/workPreferenceModel';
 
 const DEFAULT_WORK_DISTANCE = 10;
-const DEFAULT_ZOOM_DELTA = 0.2;
 
 export const useProfileViewModel = () => {
   const router = useRouter();
@@ -43,7 +42,6 @@ export const useProfileViewModel = () => {
       }
     | undefined
   >(undefined);
-  const [zoomDelta, setZoomDelta] = useState(DEFAULT_ZOOM_DELTA);
   const params = useLocalSearchParams();
   const [selectedRole, setSelectedRole] = useState<Role>(Role.Cleaner);
 
@@ -389,7 +387,6 @@ export const useProfileViewModel = () => {
     );
     setMyWorkPreference(workPref);
     setWorkDistance(workPref.areas.distance || DEFAULT_WORK_DISTANCE);
-    setZoomDelta(workDistance / 50);
   };
 
   const navigateToWorkingTime = () => {
@@ -467,8 +464,8 @@ export const useProfileViewModel = () => {
 
       const workPref = {
         user_id: user.id,
-        areas: {
-          distance: profileData.workDistance,
+        area: {
+          distance: workDistance,
           latitude: coordinates?.latitude,
           longitude: coordinates?.longitude,
         },
@@ -524,7 +521,6 @@ export const useProfileViewModel = () => {
     uploadingImage,
     validatingAbn,
     workDistance,
-    zoomDelta,
     checkTermsAcceptance,
     clearMyProfile,
     completeProfileSetting,
@@ -549,7 +545,6 @@ export const useProfileViewModel = () => {
     setMyProfile,
     setSelectedRole,
     setWorkDistance,
-    setZoomDelta,
     toggleTimeSlot,
     updateUserAddress,
     validateABN,

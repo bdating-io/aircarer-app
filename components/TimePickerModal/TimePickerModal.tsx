@@ -5,32 +5,30 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  Modal
+  Modal,
 } from 'react-native';
 
 export default class TimePickerModal extends React.Component {
   constructor(props) {
     super(props);
 
-    const {
-      start_time_separation_data = {},
-      end_time_separation_data = {}
-    } = this.props;
+    const { start_time_separation_data = {}, end_time_separation_data = {} } =
+      this.props;
 
     this.state = {
       // 初始为空字符串 => 未输入
-      start_hours: start_time_separation_data.hours ?? "",
-      start_minutes: start_time_separation_data.minutes ?? "",
+      start_hours: start_time_separation_data.hours ?? '',
+      start_minutes: start_time_separation_data.minutes ?? '',
       is_selected_start_am: start_time_separation_data.is_am ?? true,
       is_selected_start_pm: start_time_separation_data.is_pm ?? false,
 
-      end_hours: end_time_separation_data.hours ?? "",
-      end_minutes: end_time_separation_data.minutes ?? "",
+      end_hours: end_time_separation_data.hours ?? '',
+      end_minutes: end_time_separation_data.minutes ?? '',
       is_selected_end_am: end_time_separation_data.is_am ?? true,
       is_selected_end_pm: end_time_separation_data.is_pm ?? false,
 
       // 用于显示错误信息
-      errorMsg: ""
+      errorMsg: '',
     };
   }
 
@@ -38,77 +36,80 @@ export default class TimePickerModal extends React.Component {
    * 如果 val 是空字符串，说明用户没输入数字，就返回 ""。
    * 若用户输入数字，则转成 Number 并校验范围（小时 1~12；分钟 0~59）。
    */
-  validateHour = (val) => {
-    if (val === "") {
-      return "";
+  validateHour = (val: string) => {
+    if (val === '') {
+      return '';
     }
     let num = parseInt(val, 10);
     if (isNaN(num)) {
-      return "";
+      return '';
     }
     if (num < 1) num = 1;
     if (num > 12) num = 12;
     return num.toString();
   };
 
-  validateMinutes = (val) => {
-    if (val === "") {
-      return "";
+  validateMinutes = (val: string) => {
+    if (val === '') {
+      return '';
+    }
+    if (val === '0') {
+      return '00';
     }
     let num = parseInt(val, 10);
     if (isNaN(num)) {
-      return "";
+      return '';
     }
     if (num < 0) num = 0;
     if (num > 59) num = 59;
     return num.toString();
   };
 
-  onChangeStartHourInput = (text) => {
+  onChangeStartHourInput = (text: string) => {
     const newHours = this.validateHour(text);
     this.setState({ start_hours: newHours });
   };
 
-  onChangeStartMinuteInput = (text) => {
+  onChangeStartMinuteInput = (text: string) => {
     const newMinutes = this.validateMinutes(text);
     this.setState({ start_minutes: newMinutes });
   };
 
-  onChangeEndHourInput = (text) => {
+  onChangeEndHourInput = (text: string) => {
     const newHours = this.validateHour(text);
     this.setState({ end_hours: newHours });
   };
 
-  onChangeEndMinuteInput = (text) => {
+  onChangeEndMinuteInput = (text: string) => {
     const newMinutes = this.validateMinutes(text);
     this.setState({ end_minutes: newMinutes });
   };
 
   // 切换AM/PM
-  onPressAmButton = (isStart) => {
+  onPressAmButton = (isStart: boolean) => {
     if (isStart) {
       this.setState({
         is_selected_start_am: true,
-        is_selected_start_pm: false
+        is_selected_start_pm: false,
       });
     } else {
       this.setState({
         is_selected_end_am: true,
-        is_selected_end_pm: false
+        is_selected_end_pm: false,
       });
     }
   };
 
-  onPressPmButton = (isStart) => {
+  onPressPmButton = (isStart: boolean) => {
     if (isStart) {
       this.setState({
         is_selected_start_am: false,
-        is_selected_start_pm: true
+        is_selected_start_pm: true,
       });
     } else {
       this.setState({
         is_selected_end_am: false,
-        is_selected_end_pm: true
+        is_selected_end_pm: true,
       });
     }
   };
@@ -120,7 +121,11 @@ export default class TimePickerModal extends React.Component {
    * - 12:xx PM => 12:xx (中午)
    * - 1:xx PM => 13:xx
    */
-  parseTimeToMinutes = (hoursString, minutesString, isAM) => {
+  parseTimeToMinutes = (
+    hoursString: string,
+    minutesString: string,
+    isAM: boolean,
+  ) => {
     const h = parseInt(hoursString, 10);
     const m = parseInt(minutesString, 10);
 
@@ -157,17 +162,17 @@ export default class TimePickerModal extends React.Component {
       is_selected_start_am,
       end_hours,
       end_minutes,
-      is_selected_end_am
+      is_selected_end_am,
     } = this.state;
 
     // (1) 检查是否有空
     if (
-      start_hours === "" ||
-      start_minutes === "" ||
-      end_hours === "" ||
-      end_minutes === ""
+      start_hours === '' ||
+      start_minutes === '' ||
+      end_hours === '' ||
+      end_minutes === ''
     ) {
-      this.setState({ errorMsg: "Please enter both start and end time." });
+      this.setState({ errorMsg: 'Please enter both start and end time.' });
       return;
     }
 
@@ -175,26 +180,26 @@ export default class TimePickerModal extends React.Component {
     const startTotal = this.parseTimeToMinutes(
       start_hours,
       start_minutes,
-      is_selected_start_am
+      is_selected_start_am,
     );
     const endTotal = this.parseTimeToMinutes(
       end_hours,
       end_minutes,
-      is_selected_end_am
+      is_selected_end_am,
     );
 
     // (3) 如果开始 >= 结束，则报错
     if (startTotal >= endTotal) {
-      this.setState({ errorMsg: "Start time must be earlier than end time." });
+      this.setState({ errorMsg: 'Start time must be earlier than end time.' });
       return;
     }
 
     // (4) 校验都通过 => 清空错误信息
-    this.setState({ errorMsg: "" });
+    this.setState({ errorMsg: '' });
 
     // (5) 拼出 "8:00 AM" 这样的字符串
-    const startAmPm = is_selected_start_am ? "AM" : "PM";
-    const endAmPm = is_selected_end_am ? "AM" : "PM";
+    const startAmPm = is_selected_start_am ? 'AM' : 'PM';
+    const endAmPm = is_selected_end_am ? 'AM' : 'PM';
     const startTime = `${start_hours}:${start_minutes} ${startAmPm}`;
     const endTime = `${end_hours}:${end_minutes} ${endAmPm}`;
 
@@ -216,7 +221,7 @@ export default class TimePickerModal extends React.Component {
             <Text style={styles.title}>Select Time Range</Text>
 
             {/* 显示错误信息 */}
-            {this.state.errorMsg !== "" && (
+            {this.state.errorMsg !== '' && (
               <Text style={styles.errorText}>{this.state.errorMsg}</Text>
             )}
 
@@ -244,7 +249,9 @@ export default class TimePickerModal extends React.Component {
               <TouchableOpacity
                 style={[
                   styles.amPmButton,
-                  this.state.is_selected_start_am ? styles.amPmButtonActive : null
+                  this.state.is_selected_start_am
+                    ? styles.amPmButtonActive
+                    : null,
                 ]}
                 onPress={() => this.onPressAmButton(true)}
               >
@@ -253,7 +260,9 @@ export default class TimePickerModal extends React.Component {
               <TouchableOpacity
                 style={[
                   styles.amPmButton,
-                  this.state.is_selected_start_pm ? styles.amPmButtonActive : null
+                  this.state.is_selected_start_pm
+                    ? styles.amPmButtonActive
+                    : null,
                 ]}
                 onPress={() => this.onPressPmButton(true)}
               >
@@ -285,7 +294,9 @@ export default class TimePickerModal extends React.Component {
               <TouchableOpacity
                 style={[
                   styles.amPmButton,
-                  this.state.is_selected_end_am ? styles.amPmButtonActive : null
+                  this.state.is_selected_end_am
+                    ? styles.amPmButtonActive
+                    : null,
                 ]}
                 onPress={() => this.onPressAmButton(false)}
               >
@@ -294,7 +305,9 @@ export default class TimePickerModal extends React.Component {
               <TouchableOpacity
                 style={[
                   styles.amPmButton,
-                  this.state.is_selected_end_pm ? styles.amPmButtonActive : null
+                  this.state.is_selected_end_pm
+                    ? styles.amPmButtonActive
+                    : null,
                 ]}
                 onPress={() => this.onPressPmButton(false)}
               >
@@ -303,8 +316,17 @@ export default class TimePickerModal extends React.Component {
             </View>
 
             {/* ------ 按钮 ------ */}
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 20 }}>
-              <TouchableOpacity onPress={this.onPressCancel} style={[styles.btn, { marginRight: 16 }]}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                marginTop: 20,
+              }}
+            >
+              <TouchableOpacity
+                onPress={this.onPressCancel}
+                style={[styles.btn, { marginRight: 16 }]}
+              >
                 <Text style={styles.btnText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={this.onPressOk} style={styles.btn}>
@@ -323,31 +345,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
-    padding: 20
+    padding: 20,
   },
   container: {
     backgroundColor: '#fff',
     borderRadius: 10,
-    padding: 16
+    padding: 16,
   },
   title: {
     fontWeight: 'bold',
     fontSize: 18,
-    marginBottom: 12
+    marginBottom: 12,
   },
   errorText: {
     color: 'red',
-    marginBottom: 8
+    marginBottom: 8,
   },
   subTitle: {
     fontWeight: '600',
     marginTop: 8,
-    marginBottom: 4
+    marginBottom: 4,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
@@ -355,7 +377,7 @@ const styles = StyleSheet.create({
     padding: 6,
     width: 50,
     textAlign: 'center',
-    borderRadius: 4
+    borderRadius: 4,
   },
   amPmButton: {
     paddingVertical: 6,
@@ -363,23 +385,23 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1,
     borderColor: '#ccc',
-    marginLeft: 8
+    marginLeft: 8,
   },
   amPmButtonActive: {
     backgroundColor: '#4E89CE',
-    borderColor: '#4E89CE'
+    borderColor: '#4E89CE',
   },
   amPmText: {
-    color: '#333'
+    color: '#333',
   },
   btn: {
     backgroundColor: '#4E89CE',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 6
+    borderRadius: 6,
   },
   btnText: {
     color: '#fff',
-    fontWeight: '600'
-  }
+    fontWeight: '600',
+  },
 });

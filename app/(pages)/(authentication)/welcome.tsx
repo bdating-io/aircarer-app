@@ -6,6 +6,7 @@ import {
   Image,
   SafeAreaView,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -43,49 +44,50 @@ export default function WelcomePage() {
         colors={['#4A90E2', '#5A6BFF']}
         style={styles.background}
       />
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.logoContainer}>
+          <Image style={styles.logo} resizeMode="contain" />
+          <Text style={styles.appName}>AirCarer</Text>
+          <Text style={styles.tagline}>
+            Connecting homes with professional cleaners
+          </Text>
+        </View>
 
-      <View style={styles.logoContainer}>
-        <Image style={styles.logo} resizeMode="contain" />
-        <Text style={styles.appName}>AirCarer</Text>
-        <Text style={styles.tagline}>
-          Connecting homes with professional cleaners
-        </Text>
-      </View>
+        <View style={styles.featureContainer}>
+          <FeatureItem
+            icon="checkcircleo"
+            title="Easy Booking"
+            description="Schedule cleaning services with just a few taps"
+          />
+          <FeatureItem
+            icon="Safety"
+            title="Trusted Cleaners"
+            description="All cleaners are vetted and background-checked"
+          />
+          <FeatureItem
+            icon="lock"
+            title="Secure Payments"
+            description="Pay securely through the app"
+          />
+        </View>
 
-      <View style={styles.featureContainer}>
-        <FeatureItem
-          icon="checkcircleo"
-          title="Easy Booking"
-          description="Schedule cleaning services with just a few taps"
-        />
-        <FeatureItem
-          icon="Safety"
-          title="Trusted Cleaners"
-          description="All cleaners are vetted and background-checked"
-        />
-        <FeatureItem
-          icon="lock"
-          title="Secure Payments"
-          description="Pay securely through the app"
-        />
-      </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            type="primary"
+            style={styles.loginButton}
+            onPress={() => router.replace('/(pages)/(authentication)/login')}
+          >
+            Log In
+          </Button>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          type="primary"
-          style={styles.loginButton}
-          onPress={() => router.replace('/(pages)/(authentication)/login')}
-        >
-          Log In
-        </Button>
-
-        <Button
-          style={styles.signupButton}
-          onPress={() => router.replace('/(pages)/(authentication)/signup')}
-        >
-          Create Account
-        </Button>
-      </View>
+          <Button
+            style={styles.signupButton}
+            onPress={() => router.replace('/(pages)/(authentication)/signup')}
+          >
+            Create Account
+          </Button>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
