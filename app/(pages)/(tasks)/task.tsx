@@ -105,39 +105,39 @@ export default function Task() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasBeforePhotos, setHasBeforePhotos] = useState(false);
 
+  const fetchTask = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('task_id', taskId)
+        .single();
+
+      if (error) throw error;
+      if (data /* && isTask(data)*/) {
+        data.payment_status = 'Not Paid';
+        setTask(data);
+      } else {
+        throw new Error('Fetched data does not match Task type');
+      }
+
+      // 检查是否已签到
+      if (data.check_in_time) {
+        setHasCheckedIn(true);
+      }
+
+      // 检查任务状态
+      updateTaskStatus(data);
+    } catch (error) {
+      console.error('Error fetching task:', error);
+      Alert.alert('Error', 'Failed to load task details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 获取任务数据
   useEffect(() => {
-    const fetchTask = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('task_id', taskId)
-          .single();
-
-        if (error) throw error;
-        if (data /* && isTask(data)*/) {
-          data.payment_status = 'Not Paid';
-          setTask(data);
-        } else {
-          throw new Error('Fetched data does not match Task type');
-        }
-
-        // 检查是否已签到
-        if (data.check_in_time) {
-          setHasCheckedIn(true);
-        }
-
-        // 检查任务状态
-        updateTaskStatus(data);
-      } catch (error) {
-        console.error('Error fetching task:', error);
-        Alert.alert('Error', 'Failed to load task details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTask();
   }, [taskId]);
 
@@ -189,7 +189,7 @@ export default function Task() {
       const { data, error: fetchError } = await supabase
         .from('tasks')
         .select('*')
-        .eq('task_id', id)
+        .eq('task_id', taskId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -347,8 +347,47 @@ export default function Task() {
 
   // 添加 handleAcceptTask 函数
   const handleAcceptTask = async (taskId: number) => {
-    if (!currentUserId) return;
-    // ... 接受任务的逻辑
+    if (!currentUserId) {
+      Alert.alert('Error', 'You must be logged in to accept tasks');
+      return;
+    }
+
+    Alert.alert('Accept Task', 'Are you sure you want to accept this task?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes',
+        onPress: async () => {
+          try {
+            // 更新任务，将当前用户设为清洁工
+            const { error } = await supabase
+              .from('tasks')
+              .update({
+                cleaner_id: currentUserId,
+              })
+              .eq('task_id', taskId);
+
+            if (error) throw error;
+
+            Alert.alert(
+              'Success',
+              'Task accepted! You can now confirm it when ready to clean.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    // 刷新任务
+                    fetchTask();
+                  },
+                },
+              ],
+            );
+          } catch (error) {
+            console.error('Error accepting task:', error);
+            Alert.alert('Error', 'Failed to accept task. Please try again.');
+          }
+        },
+      },
+    ]);
   };
 
   // 处理确认到达按钮点击
