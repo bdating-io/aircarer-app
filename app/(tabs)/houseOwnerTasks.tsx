@@ -73,10 +73,14 @@ export default function HouseOwnerTasksScreen() {
 
   // Open edit page
   const handleEditTask = (task: HouseOwnerTask) => {
+    if (!task.task_id) {
+      console.error('No task ID found');
+      return;
+    }
     router.push({
       pathname: '/(pages)/(tasks)/viewTaskDetail',
       params: {
-        taskId: task.task_id.toString(),
+        taskId: task.task_id,
         taskData: JSON.stringify(task),
       },
     });
@@ -165,7 +169,6 @@ export default function HouseOwnerTasksScreen() {
         className="p-4"
         data={tasks}
         renderItem={renderTask}
-        keyExtractor={(item) => item.task_id.toString()}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

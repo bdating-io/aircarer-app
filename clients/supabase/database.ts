@@ -225,4 +225,16 @@ export const supabaseDBClient = {
     }
     return data;
   },
+
+  getTaskById: async (taskId: string): Promise<HouseOwnerTask> => {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('task_id', taskId)
+      .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
 };

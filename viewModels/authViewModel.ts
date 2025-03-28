@@ -32,6 +32,10 @@ export const useAuthViewModel = () => {
   }, [resendDisabled, isCodeSent]);
 
   const signInWithEmail = async (email: string, password: string) => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
     setLoading(true);
     try {
       await supabaseAuthClient.signInWithEmail(email, password);

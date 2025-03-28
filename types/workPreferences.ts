@@ -1,8 +1,13 @@
+import { TimeSlot } from './profile';
+
 export type WorkPreference = {
-  id?: string;
   user_id: string;
-  workDistance: any;
-  time: any;
-  experience: any;
-  pricing: any;
+  area: {
+    distance: number;
+    latitude?: number;
+    longitude?: number;
+  };
+  time: TimeSlot[];
+  experience: string;
+  pricing: string;
 };

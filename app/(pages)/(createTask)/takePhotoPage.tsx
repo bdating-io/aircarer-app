@@ -185,7 +185,7 @@ export default function TakePhotoPage() {
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Rooms data saved!');
+      console.debug('Success, rooms data saved!');
       router.push(`/(pages)/(createTask)/specialRequestPage?taskId=${taskId}`); // 跳转下一个页面
     } catch (err: any) {
       Alert.alert('Error', err.message);

@@ -91,10 +91,10 @@ export default function SpecialRequestPage() {
 
       if (error) throw error;
 
-      Alert.alert('Success', 'Your special requests have been saved!');
+      console.debug('Success, your special requests have been saved!');
       router.push(`/(pages)/(createTask)/budgetPage?taskId=${taskId}`);
-    } catch (err: any) {
-      Alert.alert('Error', err.message);
+    } catch (err) {
+      Alert.alert('Error', (err as Error).message);
     }
   };
 
