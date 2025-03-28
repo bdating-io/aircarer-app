@@ -75,6 +75,8 @@ export default function Opportunity() {
         .from('tasks')
         .select('*')
         .is('cleaner_id', null) // 未分配给清洁工
+        .eq('status', 'Pending') 
+        .eq('payment_status', 'Completed') 
         .order('scheduled_start_time', { ascending: true });
 
       if (error) {
@@ -151,7 +153,7 @@ export default function Opportunity() {
   const renderTask = ({ item }: { item: Task }) => (
     <View className="bg-white rounded-lg p-4 mb-3 shadow-md">
       <View className="flex-row justify-between items-center mb-3">
-        <Text className="text-lg font-semibold">{item.task_type}</Text>
+        <Text className="text-lg font-semibold">{item.cleaning_type}</Text>
         <Text className="text-lg text-blue-500 font-semibold">
           ${item.estimated_price}
         </Text>
@@ -180,7 +182,7 @@ export default function Opportunity() {
         <TouchableOpacity
           className="bg-gray-200 py-2 px-3 rounded flex-1 mr-2 items-center"
           onPress={() =>
-            router.push(`/(pages)/(tasks)/task?id=${item.task_id}`)
+            router.push(`/(pages)/(tasks)/task?taskId=${item.task_id}`)
           }
         >
           <Text className="text-gray-800 font-medium">View Details</Text>

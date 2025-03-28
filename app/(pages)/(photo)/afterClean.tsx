@@ -10,47 +10,60 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/clients/supabase';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
 
-type RoomType = 'living_room' | 'bedroom' | 'kitchen' | 'bathroom' | 'other';
+type RoomType = 'entrance' | 'living_room' | 'bedroom' | 'kitchen' | 'bathroom' | 'laundry' | 'other';
 
 interface RoomPhotos {
   [key: string]: string[];
 }
 
 export default function AfterCleaning() {
+  const { taskId } = useLocalSearchParams();
   const [uploadedImages, setUploadedImages] = useState<RoomPhotos>({
+    entrance: [],
     living_room: [],
     bedroom: [],
     kitchen: [],
     bathroom: [],
+    laundry: [],
     other: [],
   });
   const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
 
   const rooms = [
+   {
+      id: 'entrance' as RoomType,
+      label: 'Entrance',
+      description: '1) Entrance area. 2) lock.',
+    },
     {
       id: 'living_room' as RoomType,
       label: 'Living Room',
-      description: 'Living room area',
+      description: '1) Sitting area. 2) TV stand area. 3) Waste bin.',
     },
     {
       id: 'bedroom' as RoomType,
-      label: 'Bedroom',
-      description: 'Bedroom area',
+      label: 'Bedrooms',
+      description: '1) Full view of bed. 2) Nightstand area. 3) Wardrobe area.',
     },
     {
       id: 'kitchen' as RoomType,
       label: 'Kitchen',
-      description: 'Kitchen area',
+      description: '1) Sink, 2) Countertop, 3) Stove, 4) Fridge, 5) Microwave.',
     },
     {
       id: 'bathroom' as RoomType,
-      label: 'Bathroom',
-      description: 'Bathroom area',
+      label: 'Bathrooms',
+      description: '1) Toilet bowl, 2) Sink, 3) Shower screen. 4) Shower drain',
+    },
+     {
+      id: 'laundry' as RoomType,
+      label: 'Laundry/Balcony',
+      description: '1) Washing machine/dryer, 2) Balcony.',
     },
     { id: 'other' as RoomType, label: 'Other', description: 'Other areas' },
   ];
@@ -132,23 +145,6 @@ export default function AfterCleaning() {
     setIsUploading(true);
 
     try {
-      // 获取当前进行中的任务
-      const { data: tasks, error: taskError } = await supabase
-        .from('tasks')
-        .select('task_id')
-        .eq('status', 'In Progress')
-        .order('scheduled_start_time', { ascending: false })
-        .limit(1);
-
-      if (taskError) throw taskError;
-      if (!tasks || tasks.length === 0) {
-        Alert.alert('Error', 'No active task found');
-        return;
-      }
-
-      const taskId = tasks[0].task_id;
-
-      // 上传所有照片
       for (const [roomId, uris] of Object.entries(uploadedImages)) {
         if (uris.length === 0) continue;
 
@@ -195,12 +191,27 @@ export default function AfterCleaning() {
         }
       }
 
+      //TODO: update task status to completed
+       const { error: updateError } = await supabase
+              .from('tasks')
+              .update({
+                status: 'Completed', // 更新状态为 Completed
+              })
+              .eq('task_id', taskId);
+
+            if (updateError) {
+              console.error('Error updating task:', updateError);
+              throw updateError;
+            }
       Alert.alert('Success', 'After cleaning photos uploaded successfully', [
         {
           text: 'OK',
           onPress: () => {
             // 导航回任务详情页面
-            router.push('/');
+              router.push({
+                pathname: '/(pages)/(tasks)/task',
+                params: { taskId: taskId },
+              })
           },
         },
       ]);

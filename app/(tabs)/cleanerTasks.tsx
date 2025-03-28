@@ -46,20 +46,19 @@ export default function CleanerTasksScreen() {
       }
 
       console.log(`Found ${data?.length || 0} tasks accepted by current user`);
-
       // 过滤掉状态为 Pending 且超过 4 小时的任务
       const now = new Date();
-      const filteredTasks =
-        data?.filter((task) => {
-          // 如果任务状态不是 Pending，保留该任务
-          if (task.status !== 'Pending') return true;
+      const filteredTasks =data;
+        // data?.filter((task) => {
+        //   // 如果任务状态不是 Pending，保留该任务
+        //   if (task.status !== 'Pending') return true;
 
-          // 计算时间差（小时）
-          const taskTime = new Date(task.scheduled_start_time);
-          const hoursDifference = differenceInHours(now, taskTime);
-          // 如果时间差小于等于 4 小时，保留该任务
-          return hoursDifference <= 4;
-        }) || [];
+        //   // 计算时间差（小时）
+        //   const taskTime = new Date(task.scheduled_start_time);
+        //   const hoursDifference = differenceInHours(now, taskTime);
+        //   // 如果时间差小于等于 4 小时，保留该任务
+        //   return hoursDifference <= 4;
+        // }) || [];
 
       setTasks(filteredTasks);
     } catch (error) {
@@ -178,7 +177,7 @@ export default function CleanerTasksScreen() {
       case 'Deep Cleaning':
         return 'tool';
       default:
-        return 'question';
+        return 'home';
     }
   };
 
@@ -191,7 +190,7 @@ export default function CleanerTasksScreen() {
         onPress={() =>
           router.push({
             pathname: '/(pages)/(tasks)/task',
-            params: { id: item.task_id },
+            params: { taskId: item.task_id },
           })
         }
       >
@@ -204,19 +203,21 @@ export default function CleanerTasksScreen() {
                 color="#4A90E2"
                 style={{ marginRight: 8 }}
               />
-              <Text className="text-lg font-semibold">{item.task_title}</Text>
+              <Text className="text-lg font-semibold">{item.cleaning_type}</Text>
             </View>
+       
             <Text className="text-gray-600 mt-1">
               {format(
                 new Date(item.scheduled_start_time),
                 'MMM dd, yyyy HH:mm',
               )}
             </Text>
-            {item.approval_status !== 'Approved' && (
+            <Text className="text-gray-600 mt-1">{item.address}</Text>
+            {/* {item.approval_status !== 'Approved' && (
               <Text className="text-orange-500 text-sm mt-1">
                 Pending Approval
               </Text>
-            )}
+            )} */}
           </View>
 
           <View className="items-end">
@@ -224,20 +225,19 @@ export default function CleanerTasksScreen() {
               ${item.confirmed_price || item.budget}
             </Text>
             <View
-              className={`px-2 py-1 rounded-full mt-1 ${getStatusColor(
+              className={`px-2 py- rounded-full mt-1 ${getStatusColor(
                 item.status,
               )}`}
             >
               <Text className="text-white text-sm">{item.status}</Text>
             </View>
-            {item.payment_status === 'Paid' && (
-              <Text className="text-green-500 text-sm mt-1">Paid</Text>
-            )}
+           
+            <Text></Text>
           </View>
         </View>
       </TouchableOpacity>
 
-      {/* Edit / Delete row */}
+      {item.status !== 'Completed' && (
       <View className="flex-row justify-end mt-2">
         <TouchableOpacity
           className="px-3 py-2 bg-blue-500 rounded-md"
@@ -245,7 +245,7 @@ export default function CleanerTasksScreen() {
         >
           <Text className="text-white font-semibold">Cancel</Text>
         </TouchableOpacity>
-      </View>
+      </View>)}
     </View>
   );
 

@@ -89,7 +89,7 @@ const isTask = (data: any): data is Task => {
 
 export default function Task() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { taskId } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<Task | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -105,41 +105,41 @@ export default function Task() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasBeforePhotos, setHasBeforePhotos] = useState(false);
 
+  const fetchTask = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('task_id', taskId)
+        .single();
+
+      if (error) throw error;
+      if (data /* && isTask(data)*/) {
+        data.payment_status = 'Not Paid';
+        setTask(data);
+      } else {
+        throw new Error('Fetched data does not match Task type');
+      }
+
+      // 检查是否已签到
+      if (data.check_in_time) {
+        setHasCheckedIn(true);
+      }
+
+      // 检查任务状态
+      updateTaskStatus(data);
+    } catch (error) {
+      console.error('Error fetching task:', error);
+      Alert.alert('Error', 'Failed to load task details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 获取任务数据
   useEffect(() => {
-    const fetchTask = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('task_id', id)
-          .single();
-
-        if (error) throw error;
-        if (data /* && isTask(data)*/) {
-          data.payment_status = 'Not Paid';
-          setTask(data);
-        } else {
-          throw new Error('Fetched data does not match Task type');
-        }
-
-        // 检查是否已签到
-        if (data.check_in_time) {
-          setHasCheckedIn(true);
-        }
-
-        // 检查任务状态
-        updateTaskStatus(data);
-      } catch (error) {
-        console.error('Error fetching task:', error);
-        Alert.alert('Error', 'Failed to load task details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTask();
-  }, [id]);
+  }, [taskId]);
 
   // 获取当前用户ID
   useEffect(() => {
@@ -189,7 +189,7 @@ export default function Task() {
       const { data, error: fetchError } = await supabase
         .from('tasks')
         .select('*')
-        .eq('task_id', id)
+        .eq('task_id', taskId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -260,7 +260,7 @@ export default function Task() {
       const { data, error: fetchError } = await supabase
         .from('tasks')
         .select('*')
-        .eq('task_id', id)
+        .eq('task_id', taskId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -347,8 +347,47 @@ export default function Task() {
 
   // 添加 handleAcceptTask 函数
   const handleAcceptTask = async (taskId: number) => {
-    if (!currentUserId) return;
-    // ... 接受任务的逻辑
+    if (!currentUserId) {
+      Alert.alert('Error', 'You must be logged in to accept tasks');
+      return;
+    }
+
+    Alert.alert('Accept Task', 'Are you sure you want to accept this task?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes',
+        onPress: async () => {
+          try {
+            // 更新任务，将当前用户设为清洁工
+            const { error } = await supabase
+              .from('tasks')
+              .update({
+                cleaner_id: currentUserId,
+              })
+              .eq('task_id', taskId);
+
+            if (error) throw error;
+
+            Alert.alert(
+              'Success',
+              'Task accepted! You can now confirm it when ready to clean.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    // 刷新任务
+                    fetchTask();
+                  },
+                },
+              ],
+            );
+          } catch (error) {
+            console.error('Error accepting task:', error);
+            Alert.alert('Error', 'Failed to accept task. Please try again.');
+          }
+        },
+      },
+    ]);
   };
 
   // 处理确认到达按钮点击
@@ -404,7 +443,10 @@ export default function Task() {
       Alert.alert('Success', 'Arrival confirmed successfully!');
 
       // 导航到 beforeClean 页面
-      router.push('/beforeClean');
+      router.push({
+        pathname: '/beforeClean',
+        params: { taskId: task.task_id },
+      })
     } catch (error) {
       console.error('Error confirming arrival:', error);
       Alert.alert('Error', 'Failed to confirm arrival');
@@ -436,7 +478,7 @@ export default function Task() {
     }
 
     // 如果任务已被当前用户接受，显示其他按钮
-    if (task.cleaner_id === currentUserId) {
+    if (task.cleaner_id === currentUserId && task.status !== 'Completed') {
       return (
         <View>
           {/* Confirm Task Button - 只在任务已接受且未确认时显示 */}
@@ -478,7 +520,6 @@ export default function Task() {
               </Text>
             </TouchableOpacity>
           )}
-
           {/* Check-in Status */}
           {hasCheckedIn && (
             <View className="bg-green-100 py-4 px-4 rounded-lg mb-4">
@@ -493,11 +534,17 @@ export default function Task() {
             </View>
           )}
 
+
           {/* Take Before Photos Button - 当已确认到达但尚未上传照片时显示 */}
           {hasArrived && !hasBeforePhotos && (
             <TouchableOpacity
               className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
-              onPress={() => router.push('/beforeClean')}
+              onPress={() => 
+                router.push({
+                  pathname: '/beforeClean',
+                  params: { taskId: task.task_id },
+                })
+              }
             >
               <Text className="text-white font-bold">Take Before Photos</Text>
             </TouchableOpacity>
@@ -507,7 +554,12 @@ export default function Task() {
           {hasArrived && hasBeforePhotos && (
             <TouchableOpacity
               className="bg-blue-500 py-4 px-4 rounded-lg items-center mb-4"
-              onPress={() => router.push('/taskDetail')}
+              onPress={() => 
+                router.push({
+                    pathname: '/taskDetail',
+                    params: { taskId: task.task_id },
+                  })
+              }
             >
               <Text className="text-white font-bold">View Cleaning Guide</Text>
             </TouchableOpacity>
