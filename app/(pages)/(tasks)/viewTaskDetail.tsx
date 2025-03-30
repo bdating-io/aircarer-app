@@ -122,6 +122,7 @@ export default function ViewTaskDetailScreen() {
             {displayDateTime ? (
               <Text className="text-lg text-gray-700">{displayDateTime}</Text>
             ) : null}
+            <Text className="text-gray-600 mt-1">ID: {task.task_id} </Text>
             <View className="flex-row justify-between mt-3">
               <View>
                 <Text className="text-sm text-gray-500">Status</Text>
@@ -136,12 +137,12 @@ export default function ViewTaskDetailScreen() {
             </View>
           </View>
 
-          <View className="mb-4">
+          {/* <View className="mb-4">
             <Text className="text-base font-medium mb-2">Estimated Hours</Text>
             <Text className="text-base text-gray-700 bg-gray-200 p-3 rounded-lg">
               {task.estimated_hours || 'N/A'}
             </Text>
-          </View>
+          </View> */}
 
           {toggles && Object.values(toggles).some((value) => value) && (
             <View className="mb-4">

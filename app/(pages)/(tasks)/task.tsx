@@ -646,10 +646,13 @@ export default function Task() {
           )}
           {/* Task Info */}
           <View className="p-4">
-            <Text className="text-xl font-bold">{task.task_type}</Text>
+            <Text className="text-xl font-bold">{task.cleaning_type}</Text>
             <Text className="text-gray-600 mt-2">{task.address}</Text>
             <Text className="text-gray-600 mt-1">
               {format(new Date(task.scheduled_start_time), 'PPP p')}
+            </Text>
+            <Text className="text-gray-600 mt-1">
+              ID: {task.task_id}
             </Text>
             <View className="flex-row justify-between mt-4">
               <View>
