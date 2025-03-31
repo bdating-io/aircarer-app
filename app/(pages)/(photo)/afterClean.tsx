@@ -82,9 +82,8 @@ export default function AfterCleaning() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
+        allowsEditing: false,
         quality: 0.8,
-        aspect: [4, 3],
       });
 
       if (!result.canceled) {
@@ -145,10 +144,9 @@ export default function AfterCleaning() {
     setIsUploading(true);
 
     try {
-      for (const [roomId, uris] of Object.entries(uploadedImages)) {
+      for (const [roomId, uris] of Object.entries(uploadedImages)) {//per roomtype
         if (uris.length === 0) continue;
-
-        for (const uri of uris) {
+        for (const uri of uris) {//per image
           try {
             // 读取文件内容为 base64
             const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -168,7 +166,11 @@ export default function AfterCleaning() {
                 cacheControl: '3600',
               });
 
-            if (uploadError) throw uploadError;
+            if (uploadError) {
+              console.error('Upload error:', uploadError);
+              continue; // 继续处理其他照片
+            }
+  
 
             // 获取公共 URL
             const {
@@ -176,7 +178,7 @@ export default function AfterCleaning() {
             } = supabase.storage.from('cleaning-photos').getPublicUrl(fileName);
 
             // 保存照片记录
-            await supabase.from('room_photos').insert([
+            const { error: insertError } = await supabase.from('room_photos').insert([
               {
                 task_id: taskId,
                 room_type: roomId,
@@ -184,8 +186,12 @@ export default function AfterCleaning() {
                 photo_url: publicUrl,
               },
             ]);
-          } catch (uploadError) {
-            console.error('Upload error:', uploadError);
+            if (insertError) {
+              console.error('Insert room_photos error:', insertError);
+              continue; // 继续处理其他照片
+            }
+          } catch (error) {
+            console.error('Upload or Insert Error:', error);
             continue; // 继续处理其他照片
           }
         }

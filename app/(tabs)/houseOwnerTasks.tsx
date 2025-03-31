@@ -144,6 +144,7 @@ export default function HouseOwnerTasksScreen() {
           <Text className="ml-2 text-gray-600 flex-1">
             Payment: {item.payment_status}
           </Text>
+          <Text className="text-gray-600 mt-1">ID: {item.task_id}</Text>
         </View>
       </TouchableOpacity>
     );

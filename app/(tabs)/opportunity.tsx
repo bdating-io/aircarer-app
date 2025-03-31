@@ -14,7 +14,7 @@ import { AntDesign } from '@expo/vector-icons';
 
 // 定义任务类型
 type Task = {
-  task_id: number;
+  task_id: string;
   customer_id: string;
   task_type: string;
   estimated_price: number;
@@ -172,12 +172,16 @@ export default function Opportunity() {
           {item.address}
         </Text>
       </View>
-
-      <View className="flex-row items-center mb-2">
-        <AntDesign name="tag" size={16} color="gray" />
-        <Text className="ml-2 text-gray-600">Status: {item.status}</Text>
+      <View className="flex-row justify-between items-center">
+        <View className="flex-row items-center mb-2">
+          <AntDesign name="tag" size={16} color="gray" />
+          <Text className="ml-2 text-gray-600">Status: {item.status}</Text>
+        </View>
+        <View className="flex-row items-center mb-2">
+        <Text className="ml-2 text-gray-600">ID: {item.task_id}</Text>
       </View>
-
+      </View>
+     
       <View className="flex-row justify-between mt-3">
         <TouchableOpacity
           className="bg-gray-200 py-2 px-3 rounded flex-1 mr-2 items-center"
