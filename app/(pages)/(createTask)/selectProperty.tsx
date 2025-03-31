@@ -49,7 +49,7 @@ export default function SelectProperty() {
     }
 
     try {
-      await supabaseDBClient.updateTask(taskId, {
+      await supabaseDBClient.updateTaskById(taskId, {
         property_id: selectedProperty.property_id,
         address: selectedProperty.address,
         // 新增：更新 tasks 表里的经纬度（从 properties 表获取）

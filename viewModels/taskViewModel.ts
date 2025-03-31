@@ -18,12 +18,29 @@ export const useTaskViewModel = () => {
       setLoading(false);
     }
   };
+
+  const updateTask = async (
+    taskId: string,
+    taskData: Partial<HouseOwnerTask>,
+  ) => {
+    try {
+      setLoading(true);
+      const data = await supabaseDBClient.updateTaskById(taskId, taskData);
+      setTask(data);
+    } catch (error) {
+      console.error('Error in updateTask:', error);
+      setIsError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
   return {
     loading,
     task,
     isError,
     setTask,
     fetchTask,
+    updateTask,
     setIsError,
     setLoading,
   };

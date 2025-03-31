@@ -15,7 +15,9 @@ export type HouseOwnerTask = {
   customer_id: string;
   status: TaskStatus;
   task_type: TaskType; // new row with icon
+  scheduled_start_date: string | null;
   scheduled_start_time: string | null;
+  scheduled_period: string | null;
   estimated_price: number;
   budget: number;
   confirmed_price: number | null;
