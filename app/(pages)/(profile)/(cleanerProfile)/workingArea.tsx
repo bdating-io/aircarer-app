@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
@@ -15,6 +15,7 @@ export default function WorkingArea() {
     getDBWorkPref,
     setWorkDistance,
     navigateToWorkingTime,
+    isLoading
   } = useProfileViewModel();
 
   useEffect(() => {
@@ -34,7 +35,8 @@ export default function WorkingArea() {
           </Text>
         </View>
       </View>
-
+      {isLoading && <ActivityIndicator color="black" />}
+      {!isLoading && (<>
       <View className="flex-1 px-4">
         <Text className="text-gray-600 mt-6 mb-4">
           Set your preferred maximum working distance
@@ -106,6 +108,7 @@ export default function WorkingArea() {
           </Text>
         </TouchableOpacity>
       </View>
+      </>)}
     </SafeAreaView>
   );
 }

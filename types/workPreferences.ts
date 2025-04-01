@@ -2,7 +2,7 @@ import { TimeSlot } from './profile';
 
 export type WorkPreference = {
   user_id: string;
-  area: {
+  areas: {
     distance: number;
     latitude?: number;
     longitude?: number;
