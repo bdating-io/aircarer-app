@@ -13,14 +13,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import PropertyAddressForm from '@/components/property/PropertyAddressForm';
 import BedroomsBathroomsForm from '@/components/property/BedroomsBathroomsForm';
-import SpecialRequirementsForm from '@/components/property/SpecialRequirementsForm';
 import { usePropertyViewModel } from '@/viewModels/propertyViewModel';
 import EntryMethodForm from '@/components/property/EntryMethodForm';
 
 export default function EditProperty() {
   const router = useRouter();
   const { propertyId } = useLocalSearchParams();
-
   const {
     property,
     loading,
@@ -59,7 +57,6 @@ export default function EditProperty() {
       </View>
     );
   }
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
@@ -138,38 +135,6 @@ export default function EditProperty() {
             livingRooms={property.living_rooms}
             setLivingRooms={(value) =>
               setProperty({ ...property, living_rooms: value })
-            }
-          />
-
-          {/* Special Requirements */}
-          <SpecialRequirementsForm
-            petCleaning={property.pet_cleaning}
-            setPetCleaning={(value) =>
-              setProperty({ ...property, pet_cleaning: value })
-            }
-            carpetCleaning={property.carpet_cleaning}
-            setCarpetCleaning={(value) =>
-              setProperty({ ...property, carpet_cleaning: value })
-            }
-            rangeHoodCleaning={property.range_hood_cleaning}
-            setRangeHoodCleaning={(value) =>
-              setProperty({ ...property, range_hood_cleaning: value })
-            }
-            ovenCleaning={property.oven_cleaning}
-            setOvenCleaning={(value) =>
-              setProperty({ ...property, oven_cleaning: value })
-            }
-            dishwasherCleaning={property.dishwasher_cleaning}
-            setDishwasherCleaning={(value) =>
-              setProperty({ ...property, dishwasher_cleaning: value })
-            }
-            glassCleaning={property.glass_cleaning || 0}
-            setGlassCleaning={(value) =>
-              setProperty({ ...property, glass_cleaning: value })
-            }
-            wallStainRemoval={property.wall_stain_removal || 0}
-            setWallStainRemoval={(value) =>
-              setProperty({ ...property, wall_stain_removal: value })
             }
           />
 

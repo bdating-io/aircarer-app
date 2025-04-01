@@ -12,7 +12,6 @@ import {
 import { usePropertyViewModel } from '@/viewModels/propertyViewModel';
 import PropertyAddressForm from '@/components/property/PropertyAddressForm';
 import BedroomsBathroomsForm from '@/components/property/BedroomsBathroomsForm';
-import SpecialRequirementsForm from '@/components/property/SpecialRequirementsForm';
 import EntryMethodForm from '@/components/property/EntryMethodForm';
 
 export default function CreateProperty() {
@@ -38,24 +37,6 @@ export default function CreateProperty() {
     setBathrooms,
     livingRooms,
     setLivingRooms,
-
-    // Special requirements (boolean)
-    petCleaning,
-    setPetCleaning,
-    carpetCleaning,
-    setCarpetCleaning,
-    rangeHoodCleaning,
-    setRangeHoodCleaning,
-    ovenCleaning,
-    setOvenCleaning,
-    dishwasherCleaning,
-    setDishwasherCleaning,
-
-    // Special requirements (numeric)
-    glassCleaning,
-    setGlassCleaning,
-    wallStainRemoval,
-    setWallStainRemoval,
 
     // Entry method
     entryMethod,
@@ -101,8 +82,7 @@ export default function CreateProperty() {
               </Text>
               <Text className="text-gray-800">
                 {unitNumber ? `${unitNumber} ` : ''}
-                {streetNumber} {streetName}, {suburb},
-                {state ? ` ${state}` : ''}
+                {streetNumber} {streetName}, {suburb},{state ? ` ${state}` : ''}
                 {postalCode ? ` ${postalCode}` : ''}
               </Text>
             </View>
@@ -116,24 +96,6 @@ export default function CreateProperty() {
             setBathrooms={setBathrooms}
             livingRooms={livingRooms}
             setLivingRooms={setLivingRooms}
-          />
-
-          {/* Special Requirements */}
-          <SpecialRequirementsForm
-            petCleaning={petCleaning}
-            setPetCleaning={setPetCleaning}
-            carpetCleaning={carpetCleaning}
-            setCarpetCleaning={setCarpetCleaning}
-            rangeHoodCleaning={rangeHoodCleaning}
-            setRangeHoodCleaning={setRangeHoodCleaning}
-            ovenCleaning={ovenCleaning}
-            setOvenCleaning={setOvenCleaning}
-            dishwasherCleaning={dishwasherCleaning}
-            setDishwasherCleaning={setDishwasherCleaning}
-            glassCleaning={glassCleaning}
-            setGlassCleaning={setGlassCleaning}
-            wallStainRemoval={wallStainRemoval}
-            setWallStainRemoval={setWallStainRemoval}
           />
 
           {/* Entry Method */}

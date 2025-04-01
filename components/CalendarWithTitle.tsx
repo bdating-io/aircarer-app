@@ -3,14 +3,12 @@ import { View, Text } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 
 type CalendarWithTitleProps = {
-  title: string;
   selectedDate: string;
   onDateChange: (date: string) => void;
   minDate?: string;
 };
 
-export default function CalendarWithTitle({
-  title,
+export default function CustomCalendar({
   selectedDate,
   onDateChange,
   minDate,
@@ -32,8 +30,9 @@ export default function CalendarWithTitle({
           arrowColor: '#4E89CE',
         }}
       />
-      <Text className="mt-4 text-base">Date:
-        {selectedDate && ( 
+      <Text className="mt-4 text-base">
+        Date:
+        {selectedDate && (
           <Text className="font-bold"> {selectedDate || 'None'}</Text>
         )}
       </Text>

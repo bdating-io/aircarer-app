@@ -14,7 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import TimePickerModal from '@/components/timePickerModal';
-import CalendarWithTitle from '@/components/CalendarWithTitle';
+import CustomCalendar from '@/components/CalendarWithTitle';
 import { useTaskViewModel } from '@/viewModels/taskViewModel';
 
 export default function DateSelection() {
@@ -117,9 +117,7 @@ export default function DateSelection() {
     try {
       if (dateOption === 'Exact Date') {
         if (!exactDate || !startTime || !endTime || !calculatedHours) {
-          throw new Error(
-            'Please select a valid date and time',
-          );
+          throw new Error('Please select a valid date and time');
         }
 
         const startTimeMinutes =
@@ -201,30 +199,29 @@ export default function DateSelection() {
 
             {dateOption === 'Exact Date' ? (
               <View className="mb-4">
-                <CalendarWithTitle
-                  title="Select Exact Date"
+                <CustomCalendar
                   selectedDate={exactDate}
                   onDateChange={setExactDate}
                   minDate={new Date().toISOString().split('T')[0]}
                 />
                 <View className="mt-0">
                   <View className="mt-2 mb-4">
-                    <Text className="text-base">Time: 
-                  {startTime && endTime && calculatedHours && (
-                      <Text className="font-bold"> 
-                        {` ${startTime.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true,
-                        })} - ${endTime.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true,
-                        })}`}
-                         ({calculatedHours} hours)
+                    <Text className="text-base">
+                      Time:
+                      {startTime && endTime && calculatedHours && (
+                        <Text className="font-bold">
+                          {` ${startTime.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          })} - ${endTime.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}`}
+                          ({calculatedHours} hours)
                         </Text>
-                    
-                  )}
+                      )}
                     </Text>
                   </View>
 
@@ -279,7 +276,6 @@ export default function DateSelection() {
                   </TouchableOpacity>
 
                   {/* Display calculated hours if both times are selected */}
-                
                 </View>
 
                 {/* TimePickerModal */}
@@ -306,8 +302,7 @@ export default function DateSelection() {
               </View>
             ) : (
               <View className="mb-4">
-                <CalendarWithTitle
-                  title="Select Before Date"
+                <CustomCalendar
                   selectedDate={beforeDate}
                   onDateChange={setBeforeDate}
                   minDate={new Date().toISOString().split('T')[0]}

@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import * as Location from 'expo-location';
+import { addressHelper } from '@/utils/addressHelper';
 
 export const usePropertyViewModel = () => {
   const router = useRouter();
@@ -27,16 +28,8 @@ export const usePropertyViewModel = () => {
   const [bedrooms, setBedrooms] = useState(1);
   const [bathrooms, setBathrooms] = useState(1);
   const [livingRooms, setLivingRooms] = useState(1);
-  const [petCleaning, setPetCleaning] = useState(false);
-  const [carpetCleaning, setCarpetCleaning] = useState(false);
-  const [rangeHoodCleaning, setRangeHoodCleaning] = useState(false);
-  const [ovenCleaning, setOvenCleaning] = useState(false);
+
   const [entryMethod, setEntryMethod] = useState('');
-  
-  // New Special Requirements State
-  const [dishwasherCleaning, setDishwasherCleaning] = useState(false);
-  const [glassCleaning, setGlassCleaning] = useState(0);
-  const [wallStainRemoval, setWallStainRemoval] = useState(0);
 
   // 请求位置权限
   useEffect(() => {
@@ -70,7 +63,8 @@ export const usePropertyViewModel = () => {
     }
   };
 
-  const fetchProperty = async (property_id: number) => {
+  const fetchProperty = async (property_id: string) => {
+    console.log('Fetching property with ID:', property_id);
     try {
       setLoading(true);
       const property = await supabaseDBClient.getUserPropertyById(property_id);
@@ -84,7 +78,7 @@ export const usePropertyViewModel = () => {
     }
   };
 
-  const handleDeleteProperty = async (userId: string, propertyId?: number) => {
+  const handleDeleteProperty = async (userId: string, propertyId?: string) => {
     // 检查当前用户是否是房源所有者
     const user = await supabaseAuthClient.getUser();
     if (userId !== user.id) {
@@ -123,14 +117,13 @@ export const usePropertyViewModel = () => {
     );
   };
 
-  const handleEditProperty = async (userId: string, propertyId?: number) => {
+  const handleEditProperty = async (userId: string, propertyId?: string) => {
     // 检查当前用户是否是房源所有者
     const user = await supabaseAuthClient.getUser();
     if (userId !== user.id) {
       Alert.alert('Error', "You don't have permission to edit this property");
       return;
     }
-
     if (!propertyId) {
       Alert.alert('Error', 'There was an error deleting this property');
       return;
@@ -158,11 +151,14 @@ export const usePropertyViewModel = () => {
     if (!property.property_id) {
       throw new Error('Property ID not found');
     }
+    const fullAddress = addressHelper.generateCompleteAddress(property);
+
     try {
       setLoading(true);
 
       await supabaseDBClient.updateUserProperty(property.property_id, {
         ...property,
+        address: fullAddress,
       });
 
       Alert.alert('Success', 'Property updated successfully!');
@@ -177,22 +173,6 @@ export const usePropertyViewModel = () => {
 
   const handleAddProperty = () => {
     router.push('/(pages)/(profile)/(houseOwner)/createProperty');
-  };
-
-  const renderSpecialRequirements = (property: Property) => {
-    const requirements = [];
-    if (property.pet_cleaning) requirements.push('Pet Cleaning');
-    if (property.carpet_cleaning) requirements.push('Carpet Cleaning');
-    if (property.range_hood_cleaning) requirements.push('Range Hood Cleaning');
-    if (property.oven_cleaning) requirements.push('Oven Cleaning');
-    if (property.dishwasher_cleaning) requirements.push('Dishwasher Cleaning');
-    if (property.glass_cleaning && property.glass_cleaning > 0)
-      requirements.push(`Glass Cleaning (${property.glass_cleaning})`);
-    if (property.wall_stain_removal && property.wall_stain_removal > 0)
-      requirements.push(`Wall Stain Removal (${property.wall_stain_removal})`);
-
-    if (requirements.length === 0) return 'None';
-    return requirements.join(', ');
   };
 
   // 获取当前位置并转换为地址
@@ -304,13 +284,6 @@ export const usePropertyViewModel = () => {
         bedrooms,
         bathrooms,
         living_rooms: livingRooms,
-        pet_cleaning: petCleaning,
-        carpet_cleaning: carpetCleaning,
-        range_hood_cleaning: rangeHoodCleaning,
-        oven_cleaning: ovenCleaning,
-        dishwasher_cleaning: dishwasherCleaning,
-        glass_cleaning: glassCleaning,
-        wall_stain_removal: wallStainRemoval,
         entry_method: entryMethod,
         user_id: user.id,
       };
@@ -349,14 +322,7 @@ export const usePropertyViewModel = () => {
     bedrooms,
     bathrooms,
     livingRooms,
-    petCleaning,
-    carpetCleaning,
-    rangeHoodCleaning,
-    ovenCleaning,
     entryMethod,
-    dishwasherCleaning,
-    glassCleaning,
-    wallStainRemoval,
 
     // Setters
     setProperty,
@@ -371,14 +337,7 @@ export const usePropertyViewModel = () => {
     setBedrooms,
     setBathrooms,
     setLivingRooms,
-    setPetCleaning,
-    setCarpetCleaning,
-    setRangeHoodCleaning,
-    setOvenCleaning,
     setEntryMethod,
-    setDishwasherCleaning,
-    setGlassCleaning,
-    setWallStainRemoval,
 
     // Functions
     fetchProperty,
@@ -386,7 +345,6 @@ export const usePropertyViewModel = () => {
     handleDeleteProperty,
     handleEditProperty,
     handleAddProperty,
-    renderSpecialRequirements,
     getCurrentLocation,
     addProperty,
     editProperty,
