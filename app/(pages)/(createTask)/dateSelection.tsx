@@ -296,28 +296,20 @@ export default function DateSelection() {
                 {/* TimePickerModal */}
                 <TimePickerModal
                   visible={showTimeModal}
-                  title="Select Time"
+                  title={`Select ${
+                    timePickerType === 'start' ? 'Start' : 'End'
+                  } Time`}
                   onClose={() => setShowTimeModal(false)}
                   onConfirm={(selectedDate) => {
+                    if (!validateSelectedDate(selectedDate)) {
+                      return;
+                    }
                     if (timePickerType === 'start') {
-                      // If end time is already set, calculate the difference
-
-                      if (!validateSelectedDate(selectedDate)) {
-                        return;
-                      }
-
-                      // Set start time
                       setStartTime(selectedDate);
-                    } else if (timePickerType === 'end') {
-                      // If start time is already set, calculate the difference
-
-                      if (!validateSelectedDate(selectedDate)) {
-                        return;
-                      }
-
-                      // Set end time
+                    } else {
                       setEndTime(selectedDate);
                     }
+
                     // Close the modal after selecting time
                     setShowTimeModal(false);
                   }}
