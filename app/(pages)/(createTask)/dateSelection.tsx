@@ -43,20 +43,70 @@ export default function DateSelection() {
   const [showTimeModal, setShowTimeModal] = useState(false);
   const { updateTask } = useTaskViewModel();
 
-  const validateTimeRange = (start: Date, end: Date): boolean => {
-    const diffHours = (end.getTime() - start.getTime()) / 3600000;
+  const validateSelectedDate = (date: Date): boolean => {
+    const timeLimits = {
+      start: { minHour: 6, minMinute: 0, maxHour: 23, maxMinute: 0 },
+      end: { minHour: 7, minMinute: 0, maxHour: 23, maxMinute: 59 },
+    };
 
-    if (diffHours <= 0) {
-      Alert.alert('Error', 'End time must be after start time.');
+    const { minHour, minMinute, maxHour, maxMinute } =
+      timeLimits[timePickerType];
+
+    if (
+      date.getHours() < minHour ||
+      (date.getHours() === minHour && date.getMinutes() < minMinute)
+    ) {
+      Alert.alert(
+        'Error',
+        `${timePickerType === 'start' ? 'Start' : 'End'} time cannot be earlier than ${minHour}:${minMinute
+          .toString()
+          .padStart(2, '0')} ${minHour < 12 ? 'AM' : 'PM'}.`,
+      );
       return false;
     }
 
-    if (diffHours > 12) {
-      Alert.alert('Error', 'The time range cannot exceed 12 hours.');
+    if (
+      date.getHours() > maxHour ||
+      (date.getHours() === maxHour && date.getMinutes() > maxMinute)
+    ) {
+      Alert.alert(
+        'Error',
+        `${timePickerType === 'start' ? 'Start' : 'End'} time cannot be later than ${maxHour}:${maxMinute
+          .toString()
+          .padStart(2, '0')} ${maxHour < 12 ? 'AM' : 'PM'}.`,
+      );
       return false;
     }
 
-    setCalculatedHours(diffHours.toFixed(1));
+    if (
+      (timePickerType === 'start' && endTime) ||
+      (timePickerType === 'end' && startTime)
+    ) {
+      const diffHours =
+        timePickerType === 'start' && endTime
+          ? (endTime.getTime() - date.getTime()) / 3600000
+          : timePickerType === 'end' && startTime
+            ? (date.getTime() - startTime.getTime()) / 3600000
+            : 0;
+
+      if (diffHours < 0) {
+        Alert.alert('Error', 'End time cannot be earlier than start time.');
+        return false;
+      }
+
+      if (diffHours < 1) {
+        Alert.alert('Error', 'The time range must be at least 1 hour.');
+        return false;
+      }
+
+      if (diffHours > 12) {
+        Alert.alert('Error', 'The time range cannot exceed 12 hours.');
+        return false;
+      }
+
+      setCalculatedHours(diffHours.toFixed(1));
+    }
+
     return true;
   };
 
@@ -251,20 +301,20 @@ export default function DateSelection() {
                   onConfirm={(selectedDate) => {
                     if (timePickerType === 'start') {
                       // If end time is already set, calculate the difference
-                      if (endTime) {
-                        if (!validateTimeRange(selectedDate, endTime)) {
-                          return;
-                        }
+
+                      if (!validateSelectedDate(selectedDate)) {
+                        return;
                       }
+
                       // Set start time
                       setStartTime(selectedDate);
                     } else if (timePickerType === 'end') {
                       // If start time is already set, calculate the difference
-                      if (startTime) {
-                        if (!validateTimeRange(startTime, selectedDate)) {
-                          return;
-                        }
+
+                      if (!validateSelectedDate(selectedDate)) {
+                        return;
                       }
+
                       // Set end time
                       setEndTime(selectedDate);
                     }
