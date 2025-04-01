@@ -20,23 +20,19 @@ export default function PropertyList() {
     handleAddProperty,
     handleEditProperty,
     handleDeleteProperty,
-    renderSpecialRequirements,
   } = usePropertyViewModel();
 
   useEffect(() => {
     fetchUserAndProperties();
   }, []);
-
   const renderItem = ({ item }: { item: Property }) => (
     <PropertyCell
       property={item}
       currentUserId={currentUserId}
       handleEditProperty={handleEditProperty}
       handleDeleteProperty={handleDeleteProperty}
-      renderSpecialRequirements={renderSpecialRequirements}
     />
   );
-
   return (
     <View className="flex-1 bg-white">
       {/* Header */}

@@ -381,12 +381,14 @@ export const useProfileViewModel = () => {
   };
 
   const getDBWorkPref = async () => {
+    setIsLoading(true);
     if (!mySession) throw new Error('User not authenticated');
     const workPref = await supabaseDBClient.getUserWorkPreferenceById(
       mySession.user.id,
     );
     setMyWorkPreference(workPref);
     setWorkDistance(workPref.areas.distance || DEFAULT_WORK_DISTANCE);
+    setIsLoading(false);
   };
 
   const navigateToWorkingTime = () => {
@@ -398,9 +400,12 @@ export const useProfileViewModel = () => {
 
     const profileData = {
       ...previousData,
-      workDistance: workDistance,
+      areas: {
+        distance: workDistance,
+        latitude: coordinates?.latitude,
+        longitude: coordinates?.longitude,
+      },
     };
-
     router.push({
       pathname: '/workingTime',
       params: { profileData: JSON.stringify(profileData) },
@@ -416,7 +421,6 @@ export const useProfileViewModel = () => {
       ...previousData,
       workingTime: timeSlots,
     };
-
     router.push({
       pathname: '/(pages)/(profile)/(cleanerProfile)/experience',
       params: { profileData: JSON.stringify(profileData) },
@@ -461,14 +465,9 @@ export const useProfileViewModel = () => {
     setIsLoading(true);
     try {
       const user = await supabaseAuthClient.getUser();
-
       const workPref = {
         user_id: user.id,
-        area: {
-          distance: workDistance,
-          latitude: coordinates?.latitude,
-          longitude: coordinates?.longitude,
-        },
+        areas: profileData.areas,
         time: timeSlots,
         experience: profileData.experience,
         pricing: profileData.pricing,

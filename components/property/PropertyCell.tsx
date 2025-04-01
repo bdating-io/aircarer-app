@@ -6,9 +6,8 @@ import { Property } from '@/types/property';
 interface PropertyCellProps {
   property: Property;
   currentUserId: string | null;
-  handleEditProperty: (userId: string, propertyId?: number) => void;
-  handleDeleteProperty: (userId: string, propertyId?: number) => void;
-  renderSpecialRequirements: (property: Property) => string;
+  handleEditProperty: (userId: string, propertyId?: string) => void;
+  handleDeleteProperty: (userId: string, propertyId?: string) => void;
 }
 
 const PropertyCell: React.FC<PropertyCellProps> = ({
@@ -16,7 +15,6 @@ const PropertyCell: React.FC<PropertyCellProps> = ({
   currentUserId,
   handleEditProperty,
   handleDeleteProperty,
-  renderSpecialRequirements,
 }) => {
   return (
     <View
@@ -43,15 +41,6 @@ const PropertyCell: React.FC<PropertyCellProps> = ({
               {property.bathrooms} bathroom(s)
             </Text>
           </View>
-        </View>
-
-        <View className="mb-2">
-          <Text className="text-gray-600 font-medium">
-            Special Requirements:
-          </Text>
-          <Text className="text-gray-700">
-            {renderSpecialRequirements(property)}
-          </Text>
         </View>
 
         <View className="mb-2">

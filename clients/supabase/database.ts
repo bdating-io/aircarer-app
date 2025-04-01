@@ -122,7 +122,7 @@ export const supabaseDBClient = {
     return data;
   },
 
-  getUserPropertyById: async (propertyId: number): Promise<Property> => {
+  getUserPropertyById: async (propertyId: string): Promise<Property> => {
     const { data, error } = await supabase
       .from('properties')
       .select('*')
@@ -146,7 +146,7 @@ export const supabaseDBClient = {
     }
   },
 
-  deleteUserProperty: async (propertyId: number, userId: string) => {
+  deleteUserProperty: async (propertyId: string, userId: string) => {
     const { error } = await supabase
       .from('properties')
       .delete()
@@ -158,9 +158,10 @@ export const supabaseDBClient = {
   },
 
   updateUserProperty: async (
-    propertyId: number,
+    propertyId: string,
     property: Partial<Property>,
   ) => {
+    console.log('property', property);
     const { error } = await supabase
       .from('properties')
       .update({
