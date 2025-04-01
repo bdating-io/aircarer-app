@@ -16,8 +16,7 @@ export default function CalendarWithTitle({
   minDate,
 }: CalendarWithTitleProps) {
   return (
-    <View className="mb-4">
-      <Text className="font-semibold mb-2 text-lg">{title}</Text>
+    <View className="mb-0">
       <Calendar
         onDayPress={(day: DateData) => onDateChange(day.dateString)}
         markedDates={{
@@ -33,11 +32,11 @@ export default function CalendarWithTitle({
           arrowColor: '#4E89CE',
         }}
       />
-      {selectedDate && (
-        <Text className="mt-4 text-base">
-          Selected Date: {selectedDate || 'None'}
-        </Text>
-      )}
+      <Text className="mt-4 text-base">Date:
+        {selectedDate && ( 
+          <Text className="font-bold"> {selectedDate || 'None'}</Text>
+        )}
+      </Text>
     </View>
   );
 }

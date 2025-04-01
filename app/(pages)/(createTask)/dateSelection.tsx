@@ -118,7 +118,7 @@ export default function DateSelection() {
       if (dateOption === 'Exact Date') {
         if (!exactDate || !startTime || !endTime || !calculatedHours) {
           throw new Error(
-            'Please select a valid date and time, and enter the estimated hours.',
+            'Please select a valid date and time',
           );
         }
 
@@ -179,10 +179,6 @@ export default function DateSelection() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView className="flex-1 bg-gray-100">
           <View className="p-4">
-            <Text className="text-lg font-semibold mb-3">
-              Looking for an exact date?
-            </Text>
-
             <View className="flex-row mb-4">
               <TouchableOpacity
                 onPress={() => setDateOption('Exact Date')}
@@ -211,11 +207,26 @@ export default function DateSelection() {
                   onDateChange={setExactDate}
                   minDate={new Date().toISOString().split('T')[0]}
                 />
-
-                <View className="mt-4">
-                  <Text className="font-semibold mb-2 text-lg">
-                    Select Start & End Time
-                  </Text>
+                <View className="mt-0">
+                  <View className="mt-2 mb-4">
+                    <Text className="text-base">Time: 
+                  {startTime && endTime && calculatedHours && (
+                      <Text className="font-bold"> 
+                        {` ${startTime.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        })} - ${endTime.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}`}
+                         ({calculatedHours} hours)
+                        </Text>
+                    
+                  )}
+                    </Text>
+                  </View>
 
                   {/* Button to select Start Time */}
                   <TouchableOpacity
@@ -268,29 +279,7 @@ export default function DateSelection() {
                   </TouchableOpacity>
 
                   {/* Display calculated hours if both times are selected */}
-                  {startTime && endTime && calculatedHours && (
-                    <View className="mt-2">
-                      <Text className="mb-1 text-base">
-                        {`Selected Time: ${startTime.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true,
-                        })} - ${endTime.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true,
-                        })}`}
-                      </Text>
-
-                      <Text className="text-base">
-                        The cleaning is expected to take{' '}
-                        <Text className="font-bold">
-                          {calculatedHours} hours
-                        </Text>
-                        .
-                      </Text>
-                    </View>
-                  )}
+                
                 </View>
 
                 {/* TimePickerModal */}
