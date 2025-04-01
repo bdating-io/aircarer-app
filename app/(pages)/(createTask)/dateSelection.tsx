@@ -41,64 +41,84 @@ export default function DateSelection() {
   );
   const [estimatedHours, setEstimatedHours] = useState('');
   const [showTimeModal, setShowTimeModal] = useState(false);
-
   const { updateTask } = useTaskViewModel();
+
+  const validateTimeRange = (start: Date, end: Date): boolean => {
+    const diffHours = (end.getTime() - start.getTime()) / 3600000;
+
+    if (diffHours <= 0) {
+      Alert.alert('Error', 'End time must be after start time.');
+      return false;
+    }
+
+    if (diffHours > 12) {
+      Alert.alert('Error', 'The time range cannot exceed 12 hours.');
+      return false;
+    }
+
+    setCalculatedHours(diffHours.toFixed(1));
+    return true;
+  };
 
   const handleSubmit = async () => {
     if (!taskId) {
       return Alert.alert('Error', 'No taskId provided in route params.');
     }
+    try {
+      if (dateOption === 'Exact Date') {
+        if (!exactDate || !startTime || !endTime || !calculatedHours) {
+          throw new Error(
+            'Please select a valid date and time, and enter the estimated hours.',
+          );
+        }
 
-    if (dateOption === 'Exact Date') {
-      if (!exactDate || !startTime || !endTime || !calculatedHours) {
-        return Alert.alert(
-          'Error',
-          'Please select a valid date, start/end time, and ensure hours are calculated.',
-        );
+        const startTimeMinutes =
+          startTime.getHours() * 60 + startTime.getMinutes();
+        const [year, month, day] = exactDate.split('-').map(Number);
+        const dateObj = new Date(year, month - 1, day, 0, 0);
+        dateObj.setMinutes(startTimeMinutes);
+
+        await updateTask(taskId, {
+          schedule_mode: 'Exact Date',
+          scheduled_start_time: dateObj.toISOString(),
+          scheduled_start_date: exactDate,
+          scheduled_period: null,
+          estimated_hours: parseFloat(calculatedHours),
+        });
+      } else {
+        if (
+          !beforeDate ||
+          !estimatedHours ||
+          isNaN(Number(estimatedHours)) ||
+          Number(estimatedHours) <= 0
+        ) {
+          throw new Error(
+            'Please select a valid date and enter a positive number for estimated hours.',
+          );
+        }
+
+        await updateTask(taskId, {
+          schedule_mode: 'Before a Date',
+          scheduled_start_time: new Date(
+            beforeDate +
+              'T' +
+              (dayPeriod === 'morning' ? '08:00:00' : '14:00:00'),
+          ).toISOString(),
+          scheduled_start_date: beforeDate,
+          scheduled_period: dayPeriod === 'morning' ? 'Morning' : 'Afternoon',
+          estimated_hours: parseFloat(estimatedHours),
+        });
       }
-
-      const startTimeMinutes =
-        startTime.getHours() * 60 + startTime.getMinutes();
-      const [year, month, day] = exactDate.split('-').map(Number);
-      const dateObj = new Date(year, month - 1, day, 0, 0);
-      dateObj.setMinutes(startTimeMinutes);
-
-      await updateTask(taskId, {
-        schedule_mode: 'Exact Date',
-        scheduled_start_time: dateObj.toISOString(),
-        scheduled_start_date: exactDate,
-        scheduled_period: null,
-        estimated_hours: parseFloat(calculatedHours),
+      router.push({
+        pathname: '/(pages)/(createTask)/takePhotoPage',
+        params: { propertyId, taskId },
       });
-    } else {
-      if (
-        !beforeDate ||
-        !estimatedHours ||
-        isNaN(Number(estimatedHours)) ||
-        Number(estimatedHours) <= 0
-      ) {
-        return Alert.alert(
-          'Error',
-          'Please select a valid date and enter a valid estimated time in hours.',
-        );
-      }
-
-      await updateTask(taskId, {
-        schedule_mode: 'Before a Date',
-        scheduled_start_time: new Date(
-          beforeDate +
-            'T' +
-            (dayPeriod === 'morning' ? '08:00:00' : '14:00:00'),
-        ).toISOString(),
-        scheduled_start_date: beforeDate,
-        scheduled_period: dayPeriod === 'morning' ? 'Morning' : 'Afternoon',
-        estimated_hours: parseFloat(estimatedHours),
-      });
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        (error as Error).message || 'An unexpected error occurred.',
+      );
     }
-    router.push({
-      pathname: '/(pages)/(createTask)/takePhotoPage',
-      params: { propertyId, taskId },
-    });
   };
 
   return (
@@ -198,7 +218,7 @@ export default function DateSelection() {
                   </TouchableOpacity>
 
                   {/* Display calculated hours if both times are selected */}
-                  {startTime && endTime && (
+                  {startTime && endTime && calculatedHours && (
                     <View className="mt-2">
                       <Text className="mb-1 text-base">
                         {`Selected Time: ${startTime.toLocaleTimeString([], {
@@ -211,15 +231,14 @@ export default function DateSelection() {
                           hour12: true,
                         })}`}
                       </Text>
-                      {calculatedHours && (
-                        <Text className="text-base">
-                          The cleaning is expected to take{' '}
-                          <Text className="font-bold">
-                            {calculatedHours} hours
-                          </Text>
-                          .
+
+                      <Text className="text-base">
+                        The cleaning is expected to take{' '}
+                        <Text className="font-bold">
+                          {calculatedHours} hours
                         </Text>
-                      )}
+                        .
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -228,25 +247,28 @@ export default function DateSelection() {
                 <TimePickerModal
                   visible={showTimeModal}
                   title="Select Time"
-                  type={timePickerType} // Pass the type prop
                   onClose={() => setShowTimeModal(false)}
                   onConfirm={(selectedDate) => {
                     if (timePickerType === 'start') {
+                      // If end time is already set, calculate the difference
+                      if (endTime) {
+                        if (!validateTimeRange(selectedDate, endTime)) {
+                          return;
+                        }
+                      }
                       // Set start time
                       setStartTime(selectedDate);
                     } else if (timePickerType === 'end') {
+                      // If start time is already set, calculate the difference
+                      if (startTime) {
+                        if (!validateTimeRange(startTime, selectedDate)) {
+                          return;
+                        }
+                      }
                       // Set end time
                       setEndTime(selectedDate);
-
-                      // Calculate hours difference
-                      const diffHours =
-                        (startTime
-                          ? selectedDate.getTime() - startTime.getTime()
-                          : 0) / 3600000;
-                      // Set calculated hours
-                      setCalculatedHours(diffHours.toFixed(1));
                     }
-
+                    // Close the modal after selecting time
                     setShowTimeModal(false);
                   }}
                 />
