@@ -253,6 +253,52 @@
 			"description": "requests in this folder requires logging in first (user_login/login)\n\nthis has been deployed to supabase (test)\n\n`supabase functions deploy geodecode --project-ref qfnaeliuqkgylkbtufuv`"
 		},
 		{
+			"name": "payments-v2",
+			"item": [
+				{
+					"name": "payments-v2",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{supabase_access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \n    \"action\": \"additional-charges\",\n    \"amount\": 2199,\n    \"metadata\": {\n        \"task_id\": \"01D0C8\"\n    } \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SUPABASE_SERVER}}/functions/v1/payments-v2",
+							"host": [
+								"{{SUPABASE_SERVER}}"
+							],
+							"path": [
+								"functions",
+								"v1",
+								"payments-v2"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "requests in this folder requires logging in first (user_login/login)\n\nthis has been deployed to supabase (test)\n\n`supabase functions deploy geodecode --project-ref qfnaeliuqkgylkbtufuv`"
+		},
+		{
 			"name": "user_profile (deployed)",
 			"item": [
 				{
