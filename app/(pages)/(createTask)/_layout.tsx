@@ -30,7 +30,7 @@ function RootLayoutNav() {
         <Stack.Screen name="recyclingPage" options={{ title: 'Recycling' }} />
         <Stack.Screen
           name="dateSelection"
-          options={{ title: 'Choose a Time' }}
+          options={{ title: 'Choose date and time' }}
         />
         <Stack.Screen
           name="takePhotoPage"

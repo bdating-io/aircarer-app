@@ -80,6 +80,11 @@ export const useHomeViewModel = () => {
       return;
     }
 
+    if (!cleaningType) {
+      Alert.alert('Oops', 'Please select a cleaning type.');
+      return;
+    }
+
     try {
       // 2) Instead of .insert(), call the Postgres function
       const task = await supabaseDBClient.createTask(

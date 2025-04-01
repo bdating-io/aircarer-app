@@ -212,7 +212,7 @@ export const supabaseDBClient = {
     return data;
   },
 
-  updateTask: async (taskId: string, taskData: Partial<HouseOwnerTask>) => {
+  updateTaskById: async (taskId: string, taskData: Partial<HouseOwnerTask>) => {
     const { data, error } = await supabase
       .from('tasks')
       .update(taskData)
