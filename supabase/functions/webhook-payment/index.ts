@@ -46,7 +46,7 @@ Deno.serve(async (request) => {
         console.log(`Processing PaymentIntent for task_id: ${chargeEvent.metadata.task_id}`);
         const { data, error } = await supabase
           .from('tasks')
-          .select('task_id, budget')
+          .select('task_id, estimatedPrice')
           .eq('task_id', chargeEvent.metadata.task_id)
           .single();
 
@@ -54,8 +54,8 @@ Deno.serve(async (request) => {
           console.error('Error fetching task:', error)
         }
 
-        if (data.budget * 100 !== chargeEvent.amount) {
-          console.error('amount mismatch:', data.budget, chargeEvent.amount)
+        if (data.estimated_price * 100 !== chargeEvent.amount) {
+          console.error('amount mismatch:', data.estimated_price, chargeEvent.amount)
         }
 
         await updateTaskPaymentStatus(chargeEvent, supabase);

@@ -11,7 +11,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 //   action: "create-payment-intent|",
 // }
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
 const STRPIE_API_KEY = Deno.env.get('STRPIE_API_KEY')
 const ACTIONS = {
   CREATE_PAYMENT_INTENT: "create-payment-intent",
@@ -22,72 +22,74 @@ Deno.serve(async (req) => {
   const requestPayload = await req.json()
   let data = {};
   console.log('action =====> ' + requestPayload.action);
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  console.log('request metadata payload =====> ' + JSON.stringify(requestPayload.metadata));
+  const supabase = createClient(supabaseUrl, supabaseKey, { global: { headers: { Authorization: req.headers.get('Authorization')! } } });
   if (requestPayload.action === ACTIONS.CREATE_PAYMENT_INTENT) {
     console.log('preparing parameters ...');
 
-    const { taskData, error } = await supabase
+    const { data: taskData, error } = await supabase
       .from('tasks')
-      .select('task_id, estimated_price, customer_id, customer:customer_id (first_name, last_name, stripe_customer_id)')
+      .select('task_id, estimated_price, customer_id, customer:profiles!customer_id (first_name, last_name, stripe_customer_id)')
       .eq('task_id', requestPayload.metadata.task_id)
       .single();
 
     if (error) {
       console.error('Error fetching task:', error)
     } else {
-      if (taskData.customer.stripe_customer_id === null) {
+      const customerData = taskData.customer;
+      if (customerData.stripe_customer_id === null) {
         const customer = await stripe.customers.create({
-          name: taskData.customer.first_name + ' ' + taskData.customer.last_name,
+          name: customerData.first_name + ' ' + customerData.last_name,
           metadata: { aircarer_user_id: taskData.customer_id }
         });
         let { error } = await supabase
           .from('profiles')
           .update({ stripe_customer_id: customer.id })
           .eq('user_id', taskData.customer_id);
-        taskData.customer.stripe_customer_id = customer.id;
+        customerData.stripe_customer_id = customer.id;
+      }
+
+      let params: Stripe.PaymentIntentCreateParams;
+      params = {
+        //payment_method_types: requestPayload.paymentMethodType === 'link' ? ['link', 'card'] : [requestPayload.paymentMethodType],
+        amount: taskData.estimated_price * 100,
+        currency: 'AUD',
+        automatic_payment_methods: { enabled: true },
+        capture_method: 'automatic',
+        customer: customerData.stripe_customer_id,
+        setup_future_usage: 'off_session'
+      }
+
+      if (requestPayload.metadata) {
+        params.metadata = requestPayload.metadata;
+      }
+
+      if (requestPayload.description) {
+        params.description = requestPayload.description;
+      }
+
+      try {
+        console.log('creating payment intent ...');
+        const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
+          params
+        );
+
+        console.log('payment intent created...');
+        data = {
+          clientSecret: paymentIntent.client_secret,
+          nextAction: paymentIntent.next_action,
+        };
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ error: e.message }),
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        );
       }
     }
-
-    let params: Stripe.PaymentIntentCreateParams;
-    params = {
-      //payment_method_types: requestPayload.paymentMethodType === 'link' ? ['link', 'card'] : [requestPayload.paymentMethodType],
-      amount: taskData.estimatedPrice * 100,
-      currency: 'AUD',
-      automatic_payment_methods: { enabled: true },
-      capture_method: 'automatic',
-      customer: taskData.customer.stripe_customer_id,
-      setup_future_usage: 'off_session'
-    }
-
-    if (requestPayload.metadata) {
-      params.metadata = requestPayload.metadata;
-    }
-
-    if (requestPayload.description) {
-      params.description = requestPayload.description;
-    }
-
-    try {
-      console.log('creating payment intent ...');
-      const paymentIntent: Stripe.PaymentIntent = await stripe.paymentIntents.create(
-        params
-      );
-
-      console.log('payment intent created...');
-      data = {
-        clientSecret: paymentIntent.client_secret,
-        nextAction: paymentIntent.next_action,
-      };
-    } catch (e) {
-      return new Response(
-        JSON.stringify({ error: e.message }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
   } else if (requestPayload.action === ACTIONS.ADDITIONAL_CHARGES) {
-    const { taskData, error } = await supabase
+    const { data: taskData, error } = await supabase
       .from('tasks')
-      .select('task_id, estimatedPrice, customer_id, customer:customer_id (first_name, last_name, stripe_customer_id)')
+      .select('task_id, estimated_price, customer_id, customer:profiles!customer_id (first_name, last_name, stripe_customer_id)')
       .eq('task_id', requestPayload.metadata.task_id)
       .single();
 

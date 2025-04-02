@@ -22,7 +22,7 @@ const paymentMethods = [
   { id: '3', label: 'PayPal' },
 ];
 
-const PAYMENT_API_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/payments`;
+const PAYMENT_API_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/payments-v2`;
 
 export default function PaymentMethodScreen() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function PaymentMethodScreen() {
     try {
       const { data: taskData, error: taskError } = await supabase
         .from('tasks')
-        .select('budget, address, task_id')
+        .select('estimated_price, address, task_id')
         .eq('task_id', id)
         .single();
       if (taskError) throw taskError;
@@ -71,9 +71,10 @@ export default function PaymentMethodScreen() {
       returnURL: 'aircarer://stripe-redirect',
       intentConfiguration: {
         mode: {
-          amount: taskData.budget * 100,
+          amount: taskData.estimated_price * 100,
           currencyCode: 'AUD',
           captureMethod: 'Automatic',
+          setupFutureUsage: 'OffSession'
         },
         confirmHandler: confirmHandler,
       },
@@ -97,7 +98,7 @@ export default function PaymentMethodScreen() {
       body: JSON.stringify({
         action: 'create-payment-intent',
         paymentMethod,
-        amount: taskData.budget * 100,
+        amount: taskData.estimated_price * 100,
         currency: 'AUD',
         paymentMethodType: 'card',
         paymentMethodOptions: {},
