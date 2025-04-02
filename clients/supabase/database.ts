@@ -4,7 +4,7 @@ import { Property } from '@/types/property';
 import { User } from '@supabase/auth-js';
 import { Address } from '@/types/address';
 import { WorkPreference } from '@/types/workPreferences';
-import { HouseOwnerTask } from '@/types/task';
+import { Task } from '@/types/task';
 
 export const supabaseDBClient = {
   getUserById: async (userId: string): Promise<User> => {
@@ -199,10 +199,27 @@ export const supabaseDBClient = {
     }
   },
 
+  getTasks: async (): Promise<Task[]> => {
+    // 查询条件：
+    // 1. cleaner_id 为 null (未分配给清洁工)
+    // 2. customer_id 不等于当前用户ID (不是当前用户创建的任务)
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .is('cleaner_id', null) // 未分配给清洁工
+      .eq('status', 'Pending')
+      .eq('payment_status', 'Completed')
+      .order('scheduled_start_time', { ascending: true });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
   createTask: async (
     customerId: string,
     cleaningType: string,
-  ): Promise<HouseOwnerTask> => {
+  ): Promise<Task> => {
     const { data, error } = await supabase.rpc('create_task', {
       p_customer_id: customerId,
       p_cleaning_type: cleaningType,
@@ -213,7 +230,7 @@ export const supabaseDBClient = {
     return data;
   },
 
-  updateTaskById: async (taskId: string, taskData: Partial<HouseOwnerTask>) => {
+  updateTaskById: async (taskId: string, taskData: Partial<Task>) => {
     const { data, error } = await supabase
       .from('tasks')
       .update(taskData)
@@ -227,7 +244,7 @@ export const supabaseDBClient = {
     return data;
   },
 
-  getTaskById: async (taskId: string): Promise<HouseOwnerTask> => {
+  getTaskById: async (taskId: string): Promise<Task> => {
     const { data, error } = await supabase
       .from('tasks')
       .select('*')

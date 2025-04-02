@@ -10,8 +10,8 @@ type TaskType = 'Quick Cleaning' | 'Regular Cleaning' | 'Deep Cleaning';
 type TaskPaymentStatus = 'Not Paid' | 'Paid' | 'Completed';
 type TaskApprovalStatus = 'Pending' | 'Approved' | 'Rejected';
 
-export type HouseOwnerTask = {
-  task_id?: number;
+export type Task = {
+  task_id?: string;
   customer_id: string;
   status: TaskStatus;
   task_type: TaskType; // new row with icon
@@ -40,7 +40,7 @@ export type HouseOwnerTask = {
   special_requirements: SpecialRequirements;
 };
 
-export type CleanerTask = Partial<HouseOwnerTask>;
+export type CleanerTask = Partial<Task>;
 
 export type SpecialRequirements = {
   toggles: {

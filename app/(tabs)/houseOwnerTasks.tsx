@@ -11,11 +11,11 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/clients/supabase';
 import { AntDesign } from '@expo/vector-icons';
 import { format } from 'date-fns';
-import { HouseOwnerTask } from '@/types/task';
+import { Task } from '@/types/task';
 
 export default function HouseOwnerTasksScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<HouseOwnerTask[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -72,7 +72,7 @@ export default function HouseOwnerTasksScreen() {
   };
 
   // Open edit page
-  const handleEditTask = (task: HouseOwnerTask) => {
+  const handleEditTask = (task: Task) => {
     if (!task.task_id) {
       console.error('No task ID found');
       return;
@@ -87,7 +87,7 @@ export default function HouseOwnerTasksScreen() {
   };
 
   // Each list item
-  const renderTask = ({ item }: { item: HouseOwnerTask }) => {
+  const renderTask = ({ item }: { item: Task }) => {
     // Format scheduled_start_time or show "No date"
     let displayDate = 'No date';
     if (item.scheduled_start_time) {
