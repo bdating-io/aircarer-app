@@ -1,3 +1,5 @@
+import {BackgroundCheckStatus} from "@/types/backgroundChecks";
+
 export enum Role {
   LaundryPartner = 'Laundry Partner',
   Supervisor = 'Supervisor',
@@ -18,6 +20,7 @@ export type Profile = {
   bio?: string;
   location?: string;
   pricing?: string;
+  verification_status?: BackgroundCheckStatus;
 };
 
 export type TimeSlot = {

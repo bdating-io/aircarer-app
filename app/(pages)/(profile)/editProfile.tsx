@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useProfileModel } from '@/models/profileModel';
 import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
+import { BACKGROUND_CHECK_STATUSES } from '@/types/backgroundChecks';
+import { supabase } from "@/clients/supabase";
 
 export default function EditProfile() {
   const router = useRouter();
@@ -24,6 +26,53 @@ export default function EditProfile() {
     last_name: myProfile?.last_name || '',
     location: myProfile?.location,
   });
+
+  const checkVerificationStatus = async () => {
+    try {
+      const user = await supabaseAuthClient.getUser();
+      if (!user) {
+        Alert.alert('Error', 'User not authenticated');
+        console.error('AUTH ERROR: User not authenticated');
+        return;
+      }
+
+      const { data, error } = await supabase
+          .from('background_checks')
+          .select('status')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+
+      if (error) {
+        Alert.alert('Error', 'Failed to fetch verification status');
+        console.error('[Fetch Error]', error);
+        return;
+      }
+
+      const latestStatus = data?.[0]?.status;
+      if (latestStatus) {
+        const newStatus = latestStatus
+
+        // 同步更新 profiles 表中的 verification_status
+        await supabase
+            .from('profiles')
+            .update({ verification_status: newStatus, updated_at: new Date().toISOString() })
+            .eq('user_id', user.id);
+
+        setMyProfile({ ...myProfile!, verification_status: newStatus });
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+          error instanceof Error ? error.message : 'Failed to check verification status';
+      Alert.alert('Error', errorMessage);
+      console.error('[Check Verification]', error);
+    }
+  };
+
+  useEffect(() => {
+    checkVerificationStatus().then();
+  }, []);
+
 
   const updateProfile = async () => {
     try {
@@ -134,16 +183,45 @@ export default function EditProfile() {
         {/* Verifications */}
         <View className="mb-6">
           <Text className="font-semibold mb-2">Verifications</Text>
-          <TouchableOpacity className="flex-row items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <TouchableOpacity
+              onPress={() => router.push('/verification')}
+              disabled={
+                  myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.VERIFIED ||
+                  myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.PENDING
+              }
+              className={`flex-row items-center justify-between p-4 rounded-lg
+          ${myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.VERIFIED ? 'bg-green-100'
+                  : myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.PENDING ? 'bg-blue-50'
+                      : 'bg-gray-50'}`}
+          >
             <View className="flex-row items-center">
               <Ionicons
-                name="shield-checkmark-outline"
-                size={24}
-                color="#666"
+                  name="shield-checkmark-outline"
+                  size={24}
+                  color={
+                    myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.VERIFIED
+                        ? '#22c55e'
+                        : myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.PENDING
+                            ? '#3b82f6'
+                            : '#666'
+                  }
               />
-              <Text className="ml-2">Get Verified</Text>
+              <Text className="ml-2">
+                {myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.VERIFIED
+                    ? 'Verified ✅'
+                    : myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.PENDING
+                        ? 'Pending...'
+                        : 'Get Verified'}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
+
+            {myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.NOT_VERIFIED && (
+                <Ionicons name="chevron-forward" size={24} color="#666" />
+            )}
+
+            {myProfile?.verification_status === BACKGROUND_CHECK_STATUSES.PENDING && (
+                <Ionicons name="time-outline" size={24} color="#3b82f6" />
+            )}
           </TouchableOpacity>
         </View>
 

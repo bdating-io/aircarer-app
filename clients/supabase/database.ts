@@ -5,6 +5,7 @@ import { User } from '@supabase/auth-js';
 import { Address } from '@/types/address';
 import { WorkPreference } from '@/types/workPreferences';
 import { Task } from '@/types/task';
+import { BackgroundCheckStatus } from "@/types/backgroundChecks";
 
 export const supabaseDBClient = {
   getUserById: async (userId: string): Promise<User> => {
@@ -106,6 +107,34 @@ export const supabaseDBClient = {
       })
       .select()
       .single();
+    if (error) {
+      throw new Error(error.message);
+    }
+  },
+
+  getVerificationStatus: async (userId: string): Promise<BackgroundCheckStatus> => {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('verification_status')
+        .eq('user_id', userId)
+        .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data.verification_status as BackgroundCheckStatus;
+  },
+
+  updateVerificationStatus: async (userId: string, status: BackgroundCheckStatus) => {
+    const { error } = await supabase
+        .from('profiles')
+        .update({
+          verification_status: status,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+        .single();
+
     if (error) {
       throw new Error(error.message);
     }
