@@ -1,3 +1,4 @@
+import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
 import { Task } from '@/types/task';
 import { useRouter } from 'expo-router';
@@ -66,6 +67,7 @@ export const useTaskViewModel = () => {
   };
 
   const acceptTask = async (taskId: string) => {
+    const user = await supabaseAuthClient.getUser();
     Alert.alert('Accept Task', 'Are you sure you want to accept this task?', [
       { text: 'No', style: 'cancel' },
       {
@@ -74,7 +76,7 @@ export const useTaskViewModel = () => {
           try {
             // 更新任务，将当前用户设为清洁工
             await supabaseDBClient.updateTaskById(taskId, {
-              cleaner_id: 'currentUserId', // 替换为当前用户的ID
+              cleaner_id: user.id,
             });
 
             Alert.alert(
@@ -87,7 +89,7 @@ export const useTaskViewModel = () => {
                     // 刷新任务列表
                     fetchTasks();
                     // 可选：导航到任务详情页
-                    router.push(`/(pages)/(tasks)/task?id=${taskId}`);
+                    router.push(`/(pages)/(tasks)/task?taskId=${taskId}`);
                   },
                 },
               ],
