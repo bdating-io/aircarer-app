@@ -1,153 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/clients/supabase';
 import { format } from 'date-fns';
 import { AntDesign } from '@expo/vector-icons';
-
-// 定义任务类型
-type Task = {
-  task_id: string;
-  customer_id: string;
-  task_type: string;
-  estimated_price: number;
-  confirmed_price: number | null;
-  status: string;
-  payment_status: string;
-  scheduled_start_time: string;
-  actual_start_time: string | null;
-  completion_time: string | null;
-  address: string;
-  latitude: number;
-  longitude: number;
-  is_confirmed: boolean;
-  cleaner_id: string | null;
-  approval_status: string;
-};
+import { Task } from '@/types/task';
+import { useTaskViewModel } from '@/viewModels/taskViewModel';
+import { ActivityIndicator } from 'react-native-paper';
 
 export default function Opportunity() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  // 获取当前用户ID
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-      }
-    };
-
-    getCurrentUser();
-  }, []);
-
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-
-      // 获取当前用户
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        Alert.alert('Error', 'No user logged in.');
-        setLoading(false);
-        return;
-      }
-
-      // 查询条件：
-      // 1. cleaner_id 为 null (未分配给清洁工)
-      // 2. customer_id 不等于当前用户ID (不是当前用户创建的任务)
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .is('cleaner_id', null) // 未分配给清洁工
-        .eq('status', 'Pending') 
-        .eq('payment_status', 'Completed') 
-        .order('scheduled_start_time', { ascending: true });
-
-      if (error) {
-        console.error('Query error:', error);
-        throw error;
-      }
-
-      console.log(`Found ${data?.length || 0} available tasks`);
-      setTasks(data || []);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const { loading, tasks, fetchTasks, isError, setLoading, acceptTask } =
+    useTaskViewModel();
 
   useEffect(() => {
     fetchTasks();
   }, []);
 
   const onRefresh = () => {
-    setRefreshing(true);
+    setLoading(true);
     fetchTasks();
-  };
-
-  // 接受任务
-  const handleAcceptTask = async (taskId: number) => {
-    if (!currentUserId) {
-      Alert.alert('Error', 'You must be logged in to accept tasks');
-      return;
-    }
-
-    Alert.alert('Accept Task', 'Are you sure you want to accept this task?', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Yes',
-        onPress: async () => {
-          try {
-            // 更新任务，将当前用户设为清洁工
-            const { error } = await supabase
-              .from('tasks')
-              .update({
-                cleaner_id: currentUserId,
-              })
-              .eq('task_id', taskId);
-
-            if (error) throw error;
-
-            Alert.alert(
-              'Success',
-              'Task accepted! You can now view it in your task list and confirm it.',
-              [
-                {
-                  text: 'OK',
-                  onPress: () => {
-                    // 刷新任务列表
-                    fetchTasks();
-                    // 可选：导航到任务详情页
-                    router.push(`/(pages)/(tasks)/task?id=${taskId}`);
-                  },
-                },
-              ],
-            );
-          } catch (error) {
-            console.error('Error accepting task:', error);
-            Alert.alert('Error', 'Failed to accept task. Please try again.');
-          }
-        },
-      },
-    ]);
   };
 
   const renderTask = ({ item }: { item: Task }) => (
@@ -162,7 +39,9 @@ export default function Opportunity() {
       <View className="flex-row items-center mb-2">
         <AntDesign name="calendar" size={16} color="gray" />
         <Text className="ml-2 text-gray-600 flex-1">
-          {format(new Date(item.scheduled_start_time), 'MMM dd, yyyy HH:mm')}
+          {item.scheduled_start_time
+            ? format(new Date(item.scheduled_start_time), 'MMM dd, yyyy HH:mm')
+            : 'N/A'}
         </Text>
       </View>
 
@@ -178,10 +57,10 @@ export default function Opportunity() {
           <Text className="ml-2 text-gray-600">Status: {item.status}</Text>
         </View>
         <View className="flex-row items-center mb-2">
-        <Text className="ml-2 text-gray-600">ID: {item.task_id}</Text>
+          <Text className="ml-2 text-gray-600">ID: {item.task_id}</Text>
+        </View>
       </View>
-      </View>
-     
+
       <View className="flex-row justify-between mt-3">
         <TouchableOpacity
           className="bg-gray-200 py-2 px-3 rounded flex-1 mr-2 items-center"
@@ -194,7 +73,7 @@ export default function Opportunity() {
 
         <TouchableOpacity
           className="bg-blue-500 py-2 px-3 rounded flex-1 ml-2 items-center"
-          onPress={() => handleAcceptTask(item.task_id)}
+          onPress={() => acceptTask(item.task_id ?? '')}
         >
           <Text className="text-white font-medium">Accept Task</Text>
         </TouchableOpacity>
@@ -202,10 +81,22 @@ export default function Opportunity() {
     </View>
   );
 
+  if (isError) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-red-500">Error loading tasks</Text>
+        <TouchableOpacity onPress={onRefresh} className="mt-2">
+          <Text className="text-blue-500">Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text className="mt-2 text-gray-600">Loading tasks...</Text>
       </View>
     );
   }
@@ -225,9 +116,8 @@ export default function Opportunity() {
         className="p-4"
         data={tasks}
         renderItem={renderTask}
-        keyExtractor={(item) => item.task_id.toString()}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={loading} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
           <View className="p-6 items-center">

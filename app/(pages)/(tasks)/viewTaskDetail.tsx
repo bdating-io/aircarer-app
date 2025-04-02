@@ -11,7 +11,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 import { format } from 'date-fns';
 import { AntDesign } from '@expo/vector-icons';
-import { HouseOwnerTask } from '@/types/task';
+import { Task } from '@/types/task';
 import { useTaskViewModel } from '@/viewModels/taskViewModel';
 
 export default function ViewTaskDetailScreen() {
@@ -36,7 +36,7 @@ export default function ViewTaskDetailScreen() {
   useEffect(() => {
     if (taskDataString) {
       try {
-        const parsedTask = JSON.parse(taskDataString) as HouseOwnerTask;
+        const parsedTask = JSON.parse(taskDataString) as Task;
         setTask(parsedTask);
         setLoading(false);
       } catch (err) {
