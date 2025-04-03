@@ -9,7 +9,7 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen
-        name="cleanerProfile"
+        name="createAddress"
         options={{
           title: 'Profile',
         }}
