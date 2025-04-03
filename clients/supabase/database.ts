@@ -46,17 +46,41 @@ export const supabaseDBClient = {
   },
 
   updateUserAddress: async (userId: string, addressData: Address) => {
-    const { error } = await supabase
-      .from('addresses')
-      .upsert([
-        {
-          user_id: userId,
-          ...addressData,
-          updated_at: new Date().toISOString(),
-        },
-      ])
-      .select()
-      .single();
+    // 1. 查询是否已有地址记录
+    const { data: existing, error: fetchError } = await supabase
+        .from('addresses')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('type', 'USER_ADDRESS')
+        .maybeSingle();
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    let error;
+    if (existing) {
+      // 2. 已存在就 update
+      const res = await supabase
+          .from('addresses')
+          .update({
+            ...addressData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', userId)
+          .eq('type', 'USER_ADDRESS');
+      error = res.error;
+    } else {
+      // 3. 不存在就 insert
+      const res = await supabase
+          .from('addresses')
+          .insert([
+            {
+              user_id: userId,
+              ...addressData,
+              updated_at: new Date().toISOString(),
+            },
+          ]);
+      error = res.error;
+    }
     if (error) {
       throw new Error(error.message);
     }
