@@ -18,13 +18,6 @@ export default function AddressForm() {
   const router = useRouter();
   const { address, getAddress, setAddress, updateUserAddress, isLoading } =
     useProfileViewModel();
-  useEffect(() => {
-    supabaseAuthClient.getSession().then((session) => {
-      if (session?.user) {
-        getAddress(session.user.id);
-      }
-    });
-  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-[#4A90E2]">

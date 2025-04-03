@@ -295,7 +295,7 @@ export const useProfileViewModel = () => {
       switch (selectedRole) {
         case 'Cleaner':
           router.push({
-            pathname: '/(pages)/(profile)/(cleanerProfile)/cleanerProfile',
+            pathname: '/(pages)/(profile)/(cleanerProfile)/createAddress',
           });
           break;
         case 'House Owner':
