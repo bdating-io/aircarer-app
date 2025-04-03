@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import * as Location from 'expo-location';
 import { addressHelper } from '@/utils/addressHelper';
+import { useSessionModel } from '@/models/sessionModel';
 
 export const usePropertyViewModel = () => {
   const router = useRouter();
@@ -15,6 +16,7 @@ export const usePropertyViewModel = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<boolean>(false);
   const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
+  const { mySession } = useSessionModel();
 
   // New Property Form State
   const [unitNumber, setUnitNumber] = useState('');
@@ -134,43 +136,6 @@ export const usePropertyViewModel = () => {
     );
   };
 
-  const editProperty = async () => {
-    // Validate required fields
-    if (
-      !property ||
-      !property.street_number ||
-      !property.street_name ||
-      !property.suburb ||
-      !property.state ||
-      !property.postal_code ||
-      !property.entry_method
-    ) {
-      Alert.alert('Error', 'Please fill in all required fields');
-      return;
-    }
-    if (!property.property_id) {
-      throw new Error('Property ID not found');
-    }
-    const fullAddress = addressHelper.generateCompleteAddress(property);
-
-    try {
-      setLoading(true);
-
-      await supabaseDBClient.updateUserProperty(property.property_id, {
-        ...property,
-        address: fullAddress,
-      });
-
-      Alert.alert('Success', 'Property updated successfully!');
-      router.push('/(tabs)/propertyList');
-    } catch (error) {
-      Alert.alert('Error', (error as Error).message);
-    } finally {
-      await fetchUserAndProperties();
-      setLoading(false);
-    }
-  };
-
   const handleAddProperty = () => {
     router.push('/(pages)/(profile)/(houseOwner)/createProperty');
   };
@@ -227,81 +192,164 @@ export const usePropertyViewModel = () => {
     }
   };
 
-  const addProperty = async () => {
+  // validate address using the Supabase function
+  const validateAddress = async (address: string) => {
     try {
-      setLoading(true);
-      // Get current user ID
-      const user = await supabaseAuthClient.getUser();
-      // Validate required fields
-      if (
-        !streetNumber ||
-        !streetName ||
-        !suburb ||
-        !state ||
-        !postalCode ||
-        !entryMethod
-      ) {
-        Alert.alert(
-          'Incomplete Address',
-          'Please fill in all required address fields',
-        );
-        return;
+      if (!mySession) {
+        console.error('Authentication required');
+        throw new Error('Authentication required');
+      }
+      
+      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/geodecode`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${mySession.access_token}`
+        },
+        body: JSON.stringify({ address: address })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Validation error details:', errorData);
+        throw new Error(errorData.error?.message || 'Address validation failed');
       }
 
-      const fullAddress = `${
-        unitNumber ? unitNumber + '/' : ''
-      }${streetNumber} ${streetName}, ${suburb}, ${state} ${postalCode}`;
-
-      // 如果没有坐标，尝试获取坐标
-      if (!latitude || !longitude) {
-        try {
-          const geocodeResults = await Location.geocodeAsync(fullAddress);
-
-          if (geocodeResults && geocodeResults.length > 0) {
-            const { latitude, longitude } = geocodeResults[0];
-            setLatitude(latitude);
-            setLongitude(longitude);
-          }
-        } catch (geocodeError) {
-          console.error(
-            'Error getting coordinates during submission:',
-            geocodeError,
-          );
-        }
-      }
-
-      // Create new property object, including new special requirements
-      const newProperty: Property = {
-        address: fullAddress,
-        unit_number: unitNumber,
-        street_number: streetNumber,
-        street_name: streetName,
-        suburb,
-        state,
-        postal_code: postalCode,
-        latitude,
-        longitude,
-        bedrooms,
-        bathrooms,
-        living_rooms: livingRooms,
-        entry_method: entryMethod,
-        user_id: user.id,
-      };
-
-      await supabaseDBClient.addUserProperty(newProperty);
-      Alert.alert('Success', 'Property added successfully!');
-      router.push('/(tabs)/propertyList');
+      return await response.json();
     } catch (error) {
-      console.error('Submission error:', error);
-      Alert.alert(
-        'Error',
-        (error as Error).message || 'An unexpected error occurred',
-      );
-    } finally {
-      await fetchUserAndProperties();
-      setLoading(false);
+      console.error('Address validation error:', error);
+      throw error;
     }
   };
+
+// Then modify the addProperty function to use the validation:
+const addProperty = async () => {
+  try {
+    setLoading(true);
+    // Get current user ID
+    const user = await supabaseAuthClient.getUser();
+    
+    // Validate required fields
+    if (
+      !streetNumber ||
+      !streetName ||
+      !suburb ||
+      !state ||
+      !postalCode ||
+      !entryMethod
+    ) {
+      Alert.alert(
+        'Incomplete Address',
+        'Please fill in all required address fields'
+      );
+      return;
+    }
+
+    const fullAddress = `${
+      unitNumber ? unitNumber + '/' : ''
+    }${streetNumber} ${streetName}, ${suburb}, ${state} ${postalCode}`;
+
+    // Validate the address using our Supabase function
+    const validation = await validateAddress(fullAddress);
+    
+    if (!validation.valid) {
+      Alert.alert(
+        'Invalid Address',
+        'The address could not be validated. Please check and try again.'
+      );
+      return;
+    }
+
+    // Use the validated coordinates if available
+    const validatedLatitude = validation.coordinates?.lat;
+    const validatedLongitude = validation.coordinates?.lng;
+
+    // Create new property object
+    const newProperty: Property = {
+      address: validation.formatted_address || fullAddress, // Use formatted address if available
+      unit_number: unitNumber,
+      street_number: streetNumber,
+      street_name: streetName,
+      suburb,
+      state,
+      postal_code: postalCode,
+      latitude: validatedLatitude,
+      longitude: validatedLongitude,
+      bedrooms,
+      bathrooms,
+      living_rooms: livingRooms,
+      entry_method: entryMethod,
+      user_id: user.id,
+    };
+
+    await supabaseDBClient.addUserProperty(newProperty);
+    Alert.alert('Success', 'Property added successfully!');
+    router.push('/(tabs)/propertyList');
+  } catch (error) {
+    console.error('Submission error:', error);
+    Alert.alert(
+      'Error',
+      (error as Error).message || 'An unexpected error occurred'
+    );
+  } finally {
+    await fetchUserAndProperties();
+    setLoading(false);
+  }
+};
+
+const editProperty = async () => {
+  // Validate required fields
+  if (
+    !property ||
+    !property.street_number ||
+    !property.street_name ||
+    !property.suburb ||
+    !property.state ||
+    !property.postal_code ||
+    !property.entry_method
+  ) {
+    Alert.alert('Error', 'Please fill in all required fields');
+    return;
+  }
+  if (!property.property_id) {
+    throw new Error('Property ID not found');
+  }
+  
+  const fullAddress = addressHelper.generateCompleteAddress(property);
+
+  try {
+    setLoading(true);
+
+    // Validate the address
+    const validation = await validateAddress(fullAddress);
+    
+    if (!validation.valid) {
+      Alert.alert(
+        'Invalid Address',
+        validation.error?.message || 'The address could not be validated. Please check and try again.'
+      );
+      return;
+    }
+
+    // Update with validated data
+    const updatedProperty = {
+      ...property,
+      address: validation.formatted_address || fullAddress,
+      latitude: validation.coordinates?.lat,
+      longitude: validation.coordinates?.lng,
+    };
+
+    await supabaseDBClient.updateUserProperty(property.property_id, updatedProperty);
+
+    Alert.alert('Success', 'Property updated successfully!');
+    router.push('/(tabs)/propertyList');
+  } catch (error) {
+    Alert.alert('Error', (error as Error).message);
+  } finally {
+    await fetchUserAndProperties();
+    setLoading(false);
+  }
+};
 
   return {
     // Values
