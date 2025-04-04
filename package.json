@@ -57,6 +57,7 @@
     "react-native-gesture-handler": "~2.20.2",
     "react-native-get-random-values": "^1.11.0",
     "react-native-google-places-autocomplete": "^2.5.7",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-maps": "1.18.0",
     "react-native-paper": "^5.13.1",
     "react-native-phone-number-input": "^2.1.0",

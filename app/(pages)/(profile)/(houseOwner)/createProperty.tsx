@@ -4,15 +4,13 @@ import {
   Text,
   SafeAreaView,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import { usePropertyViewModel } from '@/viewModels/propertyViewModel';
 import PropertyAddressForm from '@/components/property/PropertyAddressForm';
 import BedroomsBathroomsForm from '@/components/property/BedroomsBathroomsForm';
 import EntryMethodForm from '@/components/property/EntryMethodForm';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function CreateProperty() {
   const {
@@ -50,12 +48,16 @@ export default function CreateProperty() {
   } = usePropertyViewModel();
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <ScrollView className="flex-1 px-4">
+      <SafeAreaView className="flex-1 bg-white">
+        <KeyboardAwareScrollView
+            enableOnAndroid={true}
+            keyboardShouldPersistTaps="handled"
+            extraScrollHeight={50}
+            keyboardOpeningTime={0}
+            enableResetScrollToCoords={false}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+            viewIsInsideTabBar={true}
+        >
           {/* Address Details */}
           <PropertyAddressForm
             unitNumber={unitNumber}
@@ -103,8 +105,7 @@ export default function CreateProperty() {
             entryMethod={entryMethod}
             setEntryMethod={setEntryMethod}
           />
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
 
       {/* Submit Button */}
       <View className="px-4 py-4 border-t border-gray-200">
