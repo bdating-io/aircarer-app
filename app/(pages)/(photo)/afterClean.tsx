@@ -214,8 +214,9 @@ export default function AfterCleaning() {
           text: 'OK',
           onPress: () => {
             // 导航回任务详情页面
-              router.push({
-                pathname: '/(pages)/(tasks)/task',
+              router.replace({
+                // pathname: '/(pages)/(tasks)/task',
+                pathname: '/(pages)/(tasks)/task', // 使用replace而不是push，用户点击返回时就不会回到照片上传页面
                 params: { taskId: taskId },
               })
           },
