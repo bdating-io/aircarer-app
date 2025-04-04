@@ -294,21 +294,45 @@ export default function Task() {
   // 打开导航
   const handleNavigate = () => {
     if (!task) return;
-
+  
     const latLng = `${task.latitude},${task.longitude}`;
-    const url = Platform.select({
-      ios: `maps://app?daddr=${latLng}`,
-      android: `google.navigation:q=${latLng}`,
-    });
-
-    Linking.canOpenURL(url as string).then((supported) => {
-      if (supported) {
-        Linking.openURL(url as string);
-      } else {
-        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latLng}`;
-        Linking.openURL(googleMapsUrl);
-      }
-    });
+    const address = encodeURIComponent(task.address);
+  
+    if (Platform.OS === 'ios') {
+      // iOS: Allow the user to choose between Apple Maps and Google Maps
+      Alert.alert(
+        'Choose Map',
+        'Where would you like to navigate?',
+        [
+          {
+            text: 'Apple Maps',
+            onPress: () => {
+              const url = `maps://app?daddr=${latLng}`;
+              Linking.canOpenURL(url).then((supported) => {
+                if (supported) {
+                  Linking.openURL(url);
+                } else {
+                  Alert.alert('Error', 'Unable to open Apple Maps.');
+                }
+              });
+            },
+          },
+          {
+            text: 'Google Maps',
+            onPress: () => {
+              const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+              Linking.openURL(googleMapsUrl);
+            },
+          },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+        { cancelable: true }
+      );
+    } else if (Platform.OS === 'android') {
+      // Android: Directly open in Google Maps
+      const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+      Linking.openURL(googleMapsUrl);
+    }
   };
 
   // 取消任务
