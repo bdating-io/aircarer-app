@@ -152,8 +152,7 @@ let counter =0;
     >
       <View style={{ flex: 1, padding: 16 }}>
         <Text style={styles.header}>Cleaning Fee Quote</Text>
-        <Text style={styles.priceItemText}>{cleaningType} cleaning for {propertyType}</Text>
-        <Text style={styles.priceItemText}></Text>
+        <Text style={styles.priceItemText}>{propertyType}</Text>
         {/* show estimated price */}
         {quote && quote.line_items.length > 0 && (
           <View> 
