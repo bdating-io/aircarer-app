@@ -12,11 +12,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/clients/supabase';
 import { format, differenceInHours } from 'date-fns';
 import { AntDesign } from '@expo/vector-icons';
-import { CleanerTask } from '@/types/task';
+import { Task } from '@/types/task';
 
 export default function CleanerTasksScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<CleanerTask[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -48,17 +48,17 @@ export default function CleanerTasksScreen() {
       console.log(`Found ${data?.length || 0} tasks accepted by current user`);
       // 过滤掉状态为 Pending 且超过 4 小时的任务
       const now = new Date();
-      const filteredTasks =data;
-        // data?.filter((task) => {
-        //   // 如果任务状态不是 Pending，保留该任务
-        //   if (task.status !== 'Pending') return true;
+      const filteredTasks = data;
+      // data?.filter((task) => {
+      //   // 如果任务状态不是 Pending，保留该任务
+      //   if (task.status !== 'Pending') return true;
 
-        //   // 计算时间差（小时）
-        //   const taskTime = new Date(task.scheduled_start_time);
-        //   const hoursDifference = differenceInHours(now, taskTime);
-        //   // 如果时间差小于等于 4 小时，保留该任务
-        //   return hoursDifference <= 4;
-        // }) || [];
+      //   // 计算时间差（小时）
+      //   const taskTime = new Date(task.scheduled_start_time);
+      //   const hoursDifference = differenceInHours(now, taskTime);
+      //   // 如果时间差小于等于 4 小时，保留该任务
+      //   return hoursDifference <= 4;
+      // }) || [];
 
       setTasks(filteredTasks);
     } catch (error) {
@@ -152,7 +152,7 @@ export default function CleanerTasksScreen() {
   };
 
   // 获取任务状态的颜色 (Tailwind classes or inline)
-  const getStatusColor = (status: CleanerTask['status']) => {
+  const getStatusColor = (status: Task['status']) => {
     switch (status) {
       case 'Pending':
         return 'bg-yellow-500';
@@ -168,7 +168,7 @@ export default function CleanerTasksScreen() {
   };
 
   // 获取任务类型的图标
-  const getTaskTypeIcon = (type: CleanerTask['task_type']) => {
+  const getTaskTypeIcon = (type: Task['task_type']) => {
     switch (type) {
       case 'Quick Cleaning':
         return 'clockcircle';
@@ -182,14 +182,14 @@ export default function CleanerTasksScreen() {
   };
 
   // 渲染单个任务项
-  const renderTask = ({ item }: { item: CleanerTask }) => (
+  const renderTask = ({ item }: { item: Task }) => (
     <View className="bg-white p-4 mb-2 rounded-lg shadow-sm">
       {/* 整个区域可点击跳转详情 
         如果你不想这个功能，可以去掉 onPress & Wrap */}
       <TouchableOpacity
         onPress={() =>
           router.push({
-            pathname: '/(pages)/(tasks)/task',
+            pathname: '/(pages)/(tasks)/taskDetailScreen',
             params: { taskId: item.task_id },
           })
         }
@@ -203,9 +203,11 @@ export default function CleanerTasksScreen() {
                 color="#4A90E2"
                 style={{ marginRight: 8 }}
               />
-              <Text className="text-lg font-semibold">{item.cleaning_type}</Text>
+              <Text className="text-lg font-semibold">
+                {item.cleaning_type}
+              </Text>
             </View>
-       
+
             <Text className="text-gray-600 mt-1">
               {format(
                 new Date(item.scheduled_start_time),
@@ -231,21 +233,22 @@ export default function CleanerTasksScreen() {
             >
               <Text className="text-white text-sm">{item.status}</Text>
             </View>
-           
+
             <Text></Text>
           </View>
         </View>
       </TouchableOpacity>
 
       {item.status !== 'Completed' && (
-      <View className="flex-row justify-end mt-2">
-        <TouchableOpacity
-          className="px-3 py-2 bg-blue-500 rounded-md"
-          onPress={() => handleCancelTask(item.task_id)}
-        >
-          <Text className="text-white font-semibold">Cancel</Text>
-        </TouchableOpacity>
-      </View>)}
+        <View className="flex-row justify-end mt-2">
+          <TouchableOpacity
+            className="px-3 py-2 bg-blue-500 rounded-md"
+            onPress={() => handleCancelTask(item.task_id)}
+          >
+            <Text className="text-white font-semibold">Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 

@@ -10,7 +10,7 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="beforeClean" options={{ headerShown: false }} />
       <Stack.Screen name="task" options={{ headerShown: false }} />
-      <Stack.Screen name="taskDetails" options={{ headerShown: false }} />
+      <Stack.Screen name="cleaningGuide" options={{ headerShown: false }} />
     </Stack>
   );
 }

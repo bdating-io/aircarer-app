@@ -65,7 +65,9 @@ export default function Opportunity() {
         <TouchableOpacity
           className="bg-gray-200 py-2 px-3 rounded flex-1 mr-2 items-center"
           onPress={() =>
-            router.push(`/(pages)/(tasks)/task?taskId=${item.task_id}`)
+            router.push(
+              `/(pages)/(tasks)/taskDetailScreen?taskId=${item.task_id}`,
+            )
           }
         >
           <Text className="text-gray-800 font-medium">View Details</Text>

@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { AntDesign } from '@expo/vector-icons';
 import { Profile } from '@/types/profile';
 import { useProfileViewModel } from '@/viewModels/profileViewModel';
-import { imagePicker } from '@/utils/imagePicker';
+import { useImagePicker } from '@/utils/imagePicker';
 
 export default function CreateProfile() {
   const router = useRouter();
@@ -38,6 +38,7 @@ export default function CreateProfile() {
     handleAbnChange,
     validateAndSubmitProfile,
   } = useProfileViewModel();
+  const imagePicker = useImagePicker();
 
   useEffect(() => {
     if (myProfile) {
@@ -51,7 +52,7 @@ export default function CreateProfile() {
   // 请求相机权限
   useEffect(() => {
     (async () => {
-      await imagePicker.requestImagePermission();
+      await imagePicker.checkPermissions();
     })();
   }, []);
 

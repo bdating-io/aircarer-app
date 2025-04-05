@@ -14,7 +14,14 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
 
-type RoomType = 'entrance' | 'living_room' | 'bedroom' | 'kitchen' | 'bathroom' | 'laundry' | 'other';
+type RoomType =
+  | 'entrance'
+  | 'living_room'
+  | 'bedroom'
+  | 'kitchen'
+  | 'bathroom'
+  | 'laundry'
+  | 'other';
 
 interface RoomPhotos {
   [key: string]: string[];
@@ -35,7 +42,7 @@ export default function AfterCleaning() {
   const router = useRouter();
 
   const rooms = [
-   {
+    {
       id: 'entrance' as RoomType,
       label: 'Entrance',
       description: '1) Entrance area. 2) lock.',
@@ -60,7 +67,7 @@ export default function AfterCleaning() {
       label: 'Bathrooms',
       description: '1) Toilet bowl, 2) Sink, 3) Shower screen. 4) Shower drain',
     },
-     {
+    {
       id: 'laundry' as RoomType,
       label: 'Laundry/Balcony',
       description: '1) Washing machine/dryer, 2) Balcony.',
@@ -144,9 +151,11 @@ export default function AfterCleaning() {
     setIsUploading(true);
 
     try {
-      for (const [roomId, uris] of Object.entries(uploadedImages)) {//per roomtype
+      for (const [roomId, uris] of Object.entries(uploadedImages)) {
+        //per roomtype
         if (uris.length === 0) continue;
-        for (const uri of uris) {//per image
+        for (const uri of uris) {
+          //per image
           try {
             // 读取文件内容为 base64
             const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -170,7 +179,6 @@ export default function AfterCleaning() {
               console.error('Upload error:', uploadError);
               continue; // 继续处理其他照片
             }
-  
 
             // 获取公共 URL
             const {
@@ -178,14 +186,16 @@ export default function AfterCleaning() {
             } = supabase.storage.from('cleaning-photos').getPublicUrl(fileName);
 
             // 保存照片记录
-            const { error: insertError } = await supabase.from('room_photos').insert([
-              {
-                task_id: taskId,
-                room_type: roomId,
-                photo_type: 'after',
-                photo_url: publicUrl,
-              },
-            ]);
+            const { error: insertError } = await supabase
+              .from('room_photos')
+              .insert([
+                {
+                  task_id: taskId,
+                  room_type: roomId,
+                  photo_type: 'after',
+                  photo_url: publicUrl,
+                },
+              ]);
             if (insertError) {
               console.error('Insert room_photos error:', insertError);
               continue; // 继续处理其他照片
@@ -198,26 +208,26 @@ export default function AfterCleaning() {
       }
 
       //TODO: update task status to completed
-       const { error: updateError } = await supabase
-              .from('tasks')
-              .update({
-                status: 'Completed', // 更新状态为 Completed
-              })
-              .eq('task_id', taskId);
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update({
+          status: 'Completed', // 更新状态为 Completed
+        })
+        .eq('task_id', taskId);
 
-            if (updateError) {
-              console.error('Error updating task:', updateError);
-              throw updateError;
-            }
+      if (updateError) {
+        console.error('Error updating task:', updateError);
+        throw updateError;
+      }
       Alert.alert('Success', 'After cleaning photos uploaded successfully', [
         {
           text: 'OK',
           onPress: () => {
             // 导航回任务详情页面
-              router.push({
-                pathname: '/(pages)/(tasks)/task',
-                params: { taskId: taskId },
-              })
+            router.push({
+              pathname: '/(pages)/(tasks)/taskDetailScreen',
+              params: { taskId: taskId },
+            });
           },
         },
       ]);

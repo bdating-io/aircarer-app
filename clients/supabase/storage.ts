@@ -3,7 +3,7 @@ import { supabase } from '.';
 import { ImagePickerAsset } from 'expo-image-picker';
 
 export const supabaseStorageClient = {
-  uploadImage: async (
+  uploadBackgroundCheckImage: async (
     path: string,
     imageAsset: ImagePickerAsset,
     fileExt?: string,
@@ -29,5 +29,17 @@ export const supabaseStorageClient = {
       .from('profile-documents')
       .getPublicUrl(path);
     return urlData;
+  },
+
+  uploadCleaningPhoto: async (fileName: string, base64: string) => {
+    const { error } = await supabase.storage
+      .from('cleaning-photos')
+      .upload(fileName, decode(base64), {
+        contentType: 'image/jpeg',
+        cacheControl: '3600',
+      });
+    if (error) {
+      throw new Error(error.message);
+    }
   },
 };

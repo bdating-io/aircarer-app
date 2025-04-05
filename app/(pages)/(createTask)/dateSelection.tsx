@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import TimePickerModal from '@/components/timePickerModal';
-import CustomCalendar from '@/components/CalendarWithTitle';
 import { useTaskViewModel } from '@/viewModels/taskViewModel';
+import CustomCalendar from '@/components/task/CalendarWithTitle';
+import TimePickerModal from '@/components/task/timePickerModal';
 
 export default function DateSelection() {
   const router = useRouter();
@@ -130,7 +130,7 @@ export default function DateSelection() {
           schedule_mode: 'Exact Date',
           scheduled_start_time: dateObj.toISOString(),
           scheduled_start_date: exactDate,
-          scheduled_period: null,
+          scheduled_period: undefined,
           estimated_hours: parseFloat(calculatedHours),
         });
       } else {

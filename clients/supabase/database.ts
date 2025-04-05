@@ -5,6 +5,7 @@ import { User } from '@supabase/auth-js';
 import { Address } from '@/types/address';
 import { WorkPreference } from '@/types/workPreferences';
 import { Task } from '@/types/task';
+import { RoomPhoto } from '@/types/photo';
 
 export const supabaseDBClient = {
   getUserById: async (userId: string): Promise<User> => {
@@ -254,5 +255,35 @@ export const supabaseDBClient = {
       throw new Error(error.message);
     }
     return data;
+  },
+
+  getTaskPhotosById: async (taskId: string): Promise<RoomPhoto[]> => {
+    const { data, error } = await supabase
+      .from('room_photos')
+      .select('*')
+      .eq('task_id', taskId);
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  },
+
+  insertRoomPhoto: async (
+    taskId: string,
+    roomType: string,
+    photoType: string,
+    photoUrl: string,
+  ) => {
+    const { error } = await supabase.from('room_photos').insert([
+      {
+        task_id: taskId,
+        room_type: roomType,
+        photo_type: photoType,
+        photo_url: photoUrl,
+      },
+    ]);
+    if (error) {
+      throw new Error(error.message);
+    }
   },
 };

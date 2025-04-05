@@ -2,7 +2,6 @@ import { supabaseAuthClient } from '@/clients/supabase/auth';
 import { supabaseDBClient } from '@/clients/supabase/database';
 import { supabaseStorageClient } from '@/clients/supabase/storage';
 import { Profile, Role, TimeSlot } from '@/types/profile';
-import { imagePicker } from '@/utils/imagePicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
@@ -12,6 +11,7 @@ import { useProfileModel } from '@/models/profileModel';
 import { useSessionModel } from '@/models/sessionModel';
 import { useAddressModel } from '@/models/addressModel';
 import { useWorkPreferenceModel } from '@/models/workPreferenceModel';
+import { useImagePicker } from '@/utils/imagePicker';
 
 const DEFAULT_WORK_DISTANCE = 10;
 
@@ -33,7 +33,7 @@ export const useProfileViewModel = () => {
   const { setMyWorkPreference } = useWorkPreferenceModel();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-
+  const { pickImage } = useImagePicker();
   const [workDistance, setWorkDistance] = useState(DEFAULT_WORK_DISTANCE);
   const [coordinates, setCoordinates] = useState<
     | {
@@ -113,7 +113,7 @@ export const useProfileViewModel = () => {
       setUploadingImage(true);
 
       // 打开图片选择器
-      const result = await imagePicker.pickImage();
+      const result = await pickImage();
 
       if (!result.canceled && result.assets && result.assets[0]) {
         const imageAsset = result.assets[0];
@@ -126,7 +126,11 @@ export const useProfileViewModel = () => {
         const fileName = `${user.id}-background-check-${Date.now()}.${fileExt}`;
         const filePath = `background-checks/${fileName}`;
         // 上传到Supabase Storage
-        await supabaseStorageClient.uploadImage(filePath, imageAsset, fileExt);
+        await supabaseStorageClient.uploadBackgroundCheckImage(
+          filePath,
+          imageAsset,
+          fileExt,
+        );
         console.log('Image uploaded successfully');
         // 获取公共URL
         const urlData = supabaseStorageClient.getPublicUrl(filePath);

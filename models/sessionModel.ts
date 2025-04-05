@@ -8,7 +8,7 @@ type sessionState = {
 };
 
 export const useSessionModel = create<sessionState>((set) => ({
-  session: undefined,
+  mySession: undefined,
   setMySession: (session) => set({ mySession: session }),
   clearMySession: () => set({ mySession: undefined }),
 }));

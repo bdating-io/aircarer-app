@@ -15,18 +15,18 @@ export type Task = {
   customer_id: string;
   status: TaskStatus;
   task_type: TaskType; // new row with icon
-  scheduled_start_date: string | null;
-  scheduled_start_time: string | null;
-  scheduled_period: string | null;
+  scheduled_start_date: string;
+  scheduled_start_time: string;
+  scheduled_period?: string;
   estimated_price: number;
   budget: number;
-  confirmed_price: number | null;
+  confirmed_price?: number;
   payment_status: TaskPaymentStatus;
   date_updated: string;
   approval_status: TaskApprovalStatus;
   address: string;
-  latitude: number | null;
-  longitude: number | null;
+  latitude: number;
+  longitude: number;
   is_confirmed: boolean;
   cleaner_id: string | null;
   check_in_time: string | null;
@@ -39,8 +39,6 @@ export type Task = {
   schedule_mode: string;
   special_requirements: SpecialRequirements;
 };
-
-export type CleanerTask = Partial<Task>;
 
 export type SpecialRequirements = {
   toggles: {
@@ -63,3 +61,16 @@ export enum PaymentStatus {
   Paid = 'Paid',
   Completed = 'Completed',
 }
+
+export type RoomType =
+  | 'entrance'
+  | 'living_room'
+  | 'bedroom'
+  | 'kitchen'
+  | 'bathroom'
+  | 'laundry'
+  | 'other';
+
+export type RoomPhotos = {
+  [key: string]: string[];
+};

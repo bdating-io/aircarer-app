@@ -6,11 +6,11 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/clients/supabase';
-import { Ionicons } from '@expo/vector-icons';
+import { Task } from '@/types/task';
+import { RoomPhoto } from '@/types/photo';
 
 type RoomType = 'living_room' | 'bedroom' | 'kitchen' | 'bathroom' | 'other';
 
@@ -20,15 +20,14 @@ interface CleaningTip {
   tips: string[];
 }
 
-export default function TaskDetail() {
+export default function CleaningGuide() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [task, setTask] = useState<any>(null);
-  const [beforePhotos, setBeforePhotos] = useState<any[]>([]);
+  const [task, setTask] = useState<Task | null>(null);
+  const [beforePhotos, setBeforePhotos] = useState<RoomPhoto[]>([]);
   const { taskId } = useLocalSearchParams();
 
   useEffect(() => {
-   
     fetchTaskData();
   }, [taskId]);
 
@@ -57,7 +56,7 @@ export default function TaskDetail() {
       if (photoError) throw photoError;
       setBeforePhotos(photos || []);
     } catch (error) {
-      console.error('Error fetching task data:', error + ", taskId="+ taskId);
+      console.error('Error fetching task data:', error + ', taskId=' + taskId);
     } finally {
       setLoading(false);
     }
@@ -145,17 +144,14 @@ export default function TaskDetail() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
-      <View className="p-4">
-        <View className="mb-6">
-          <Text className="text-xl font-bold text-gray-800">
-            Cleaning Guide
-          </Text>
-          <Text className="text-gray-600 mt-1">
-            Follow these tips for each room
-          </Text>
-        </View>
-
+    <View className="flex-1 bg-gray-50">
+      <View className="bg-blue-500 p-4 pt-16">
+        <Text className="text-white text-xl font-semibold">Cleaning Guide</Text>
+        <Text className="text-white text-lg font-normal">
+          Follow these tips for each room
+        </Text>
+      </View>
+      <ScrollView className="p-4">
         {/* 任务信息 */}
         <View className="mb-6 bg-white p-4 rounded-lg shadow-sm">
           <Text className="text-lg font-semibold text-gray-800">
@@ -183,7 +179,11 @@ export default function TaskDetail() {
               {beforePhotos.map((photo, index) => (
                 <View key={index} className="mr-2">
                   <Image
-                    source={{ uri: photo.photo_url }}
+                    source={{
+                      uri: Array.isArray(photo.photo_url)
+                        ? photo.photo_url[0]
+                        : photo.photo_url,
+                    }}
                     style={{ width: 120, height: 120, borderRadius: 8 }}
                     resizeMode="cover"
                   />
@@ -220,8 +220,8 @@ export default function TaskDetail() {
               router.push({
                 pathname: '/afterClean',
                 params: { taskId: taskId },
-              })}
-            }
+              });
+            }}
           >
             <Text className="text-white font-bold">
               Complete Cleaning & Take Photos
@@ -235,7 +235,7 @@ export default function TaskDetail() {
             <Text className="text-white font-bold">Back to Task</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
