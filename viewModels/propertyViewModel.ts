@@ -30,7 +30,7 @@ export const usePropertyViewModel = () => {
   const [livingRooms, setLivingRooms] = useState(1);
 
   const [entryMethod, setEntryMethod] = useState('');
-
+  const [propertyType, setPropertyType] = useState('');
   // 请求位置权限
   useEffect(() => {
     (async () => {
@@ -286,6 +286,7 @@ export const usePropertyViewModel = () => {
         living_rooms: livingRooms,
         entry_method: entryMethod,
         user_id: user.id,
+        property_type: propertyType
       };
 
       await supabaseDBClient.addUserProperty(newProperty);
@@ -323,7 +324,7 @@ export const usePropertyViewModel = () => {
     bathrooms,
     livingRooms,
     entryMethod,
-
+    propertyType,
     // Setters
     setProperty,
     setUnitNumber,
@@ -338,6 +339,7 @@ export const usePropertyViewModel = () => {
     setBathrooms,
     setLivingRooms,
     setEntryMethod,
+    setPropertyType,
 
     // Functions
     fetchProperty,

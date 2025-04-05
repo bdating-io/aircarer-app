@@ -53,18 +53,18 @@ export default function SpecialRequestPage() {
     }
 
     // If no toggles selected, no numeric inputs, and no custom text, show error
-    if (
-      selectedToggles.length === 0 &&
-      glassCleaning === 0 &&
-      wallStainRemoval === 0 &&
-      !customRequest.trim()
-    ) {
-      Alert.alert(
-        'Error',
-        'Please select at least one special request or enter a custom request.',
-      );
-      return;
-    }
+    // if (
+    //   selectedToggles.length === 0 &&
+    //   glassCleaning === 0 &&
+    //   wallStainRemoval === 0 &&
+    //   !customRequest.trim()
+    // ) {
+    //   Alert.alert(
+    //     'Error',
+    //     'Please select at least one special request or enter a custom request.',
+    //   );
+    //   return;
+    // }
 
     // Build one JSON object with all options
     const specialRequirements = {
@@ -92,7 +92,7 @@ export default function SpecialRequestPage() {
       if (error) throw error;
 
       console.debug('Success, your special requests have been saved!');
-      router.push(`/(pages)/(createTask)/budgetPage?taskId=${taskId}`);
+      router.push(`/(pages)/(createTask)/quotePage?taskId=${taskId}`);
     } catch (err) {
       Alert.alert('Error', (err as Error).message);
     }
