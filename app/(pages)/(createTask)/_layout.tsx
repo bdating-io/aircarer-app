@@ -40,7 +40,7 @@ function RootLayoutNav() {
           name="specialRequestPage"
           options={{ title: 'Special Request' }}
         />
-        <Stack.Screen name="budgetPage" options={{ title: 'Budget' }} />
+        <Stack.Screen name="quotePage" options={{ title: 'Quote' }} />
         <Stack.Screen
           name="paymentMethodScreen"
           options={{ title: 'Payment' }}

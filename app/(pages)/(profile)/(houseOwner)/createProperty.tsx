@@ -21,13 +21,14 @@ export default function CreateProperty() {
     suburb,
     state,
     postalCode,
+    propertyType,
     setUnitNumber,
     setStreetNumber,
     setStreetName,
     setSuburb,
     setState,
     setPostalCode,
-
+    setPropertyType,
     // Rooms
     bedrooms,
     setBedrooms,
@@ -66,13 +67,16 @@ export default function CreateProperty() {
             suburb={suburb}
             state={state}
             postalCode={postalCode}
+            propertyType={propertyType}
             isGettingLocation={isGettingLocation}
+            
             setUnitNumber={setUnitNumber}
             setStreetNumber={setStreetNumber}
             setStreetName={setStreetName}
             setSuburb={setSuburb}
             setState={setState}
             setPostalCode={setPostalCode}
+            setPropertyType={setPropertyType}
             getCurrentLocation={getCurrentLocation}
           />
 

@@ -6,6 +6,7 @@ import { Address } from '@/types/address';
 import { WorkPreference } from '@/types/workPreferences';
 import { Task } from '@/types/task';
 import { BackgroundCheckStatus } from "@/types/backgroundChecks";
+import { Quote } from '@/constants/quoteGenerator';
 
 export const supabaseDBClient = {
   getUserById: async (userId: string): Promise<User> => {
@@ -307,5 +308,18 @@ export const supabaseDBClient = {
       throw new Error(error.message);
     }
     return data;
+  },
+  saveNewQuote: async (newQuote: Quote) => {
+    const { error } = await supabase.from('quotes').insert({
+      task_id: newQuote.task_id,
+      grand_total: newQuote.grand_total,
+      sub_total: newQuote.sub_total,
+      total_tax: newQuote.total_tax,
+      line_items: newQuote.line_items
+    });
+    if (error) {
+      console.error('Error saving quote:', error);
+      throw new Error(error.message);
+    }
   },
 };

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
+import Dropdown from '../Dropdown';
 
 interface PropertyAddressFormProps {
   unitNumber: string;
@@ -16,15 +17,17 @@ interface PropertyAddressFormProps {
   state: string;
   postalCode: string;
   isGettingLocation?: boolean;
+  propertyType: string;
   setUnitNumber: (text: string) => void;
   setStreetNumber: (text: string) => void;
   setStreetName: (text: string) => void;
   setSuburb: (text: string) => void;
   setState: (text: string) => void;
   setPostalCode: (text: string) => void;
+  setPropertyType: (text: string) => void;
   getCurrentLocation?: () => void;
 }
-
+const propertyTypes = ['House', 'Apartment', 'Townhouse/Unit'];
 const PropertyAddressForm = ({
   unitNumber,
   streetNumber,
@@ -33,12 +36,14 @@ const PropertyAddressForm = ({
   state,
   postalCode,
   isGettingLocation,
+  propertyType,
   setUnitNumber,
   setStreetNumber,
   setStreetName,
   setSuburb,
   setState,
   setPostalCode,
+  setPropertyType,
   getCurrentLocation,
 }: PropertyAddressFormProps) => (
   <View className="mt-4">
@@ -67,6 +72,15 @@ const PropertyAddressForm = ({
     )}
 
     <View className="flex-row space-x-2 mb-4">
+      <View className="flex-1">
+        <Dropdown
+          title="Property type"
+          options={propertyTypes}
+          selectedOption={propertyType || 'House'}
+          onSelect={setPropertyType}
+          placeholder={'Select your property type here'}
+        />
+      </View>
       <View className="flex-1">
         <Text className="text-gray-600 mb-2">Unit/Apt (optional)</Text>
         <TextInput

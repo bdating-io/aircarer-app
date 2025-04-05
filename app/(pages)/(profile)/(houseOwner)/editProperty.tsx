@@ -91,6 +91,7 @@ export default function EditProperty() {
             suburb={property.suburb}
             state={property.state}
             postalCode={property.postal_code}
+            propertyType={property.property_type ?? 'House'}
             setUnitNumber={(text) =>
               setProperty({ ...property, unit_number: text })
             }
@@ -104,6 +105,9 @@ export default function EditProperty() {
             setState={(text) => setProperty({ ...property, state: text })}
             setPostalCode={(text) =>
               setProperty({ ...property, postal_code: text })
+            }
+            setPropertyType={(text) =>
+              setProperty({ ...property, property_type: text })
             }
           />
 
