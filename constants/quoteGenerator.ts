@@ -53,28 +53,40 @@ interface PriceConfig {
 }
 const PRICE_CONFIG: PriceConfig = {
   "End-of-Lease/Sale": [
-    { category: "basePackage", name: "base", unitPrice: 270, label: "Base Cleaning Package", description: "Includes:\n1 Bedroom, 1 Bathroom, 1 Living Room, 1 Dining area, 1 Kitchen (with 1 Oven and 1 Rangehood)", unit: "each", isToBePricedLater: false},
+    { category: "basePackage", name: "base", unitPrice: 270, label: "End-of-Lease Base Cleaning Package", description: "Includes:\n1 Bedroom, 1 Bathroom, 1 Living Room, 1 Dining area, 1 Kitchen (with 1 Oven and 1 Rangehood)", unit: "each", isToBePricedLater: false},
     //
     { category: "extraRoom", name: "bedroom", unitPrice: 40, label: "Additional Bedroom", unit: "each", isToBePricedLater: false },
     { category: "extraRoom", name: "bathroom", unitPrice: 40, label: "Additional Bathroom", unit: "each", isToBePricedLater: false },
     { category: "extraRoom", name: "kitchen", unitPrice: 40, label: "Additional Kitchen", unit: "each", isToBePricedLater: false },
-    { category: "extraRoom", name: "livingroom", unitPrice: 40, label: "Additional Living room", unit: "each", isToBePricedLater: false },
+    // { category: "extraRoom", name: "livingroom", unitPrice: 40, label: "Additional Living room", unit: "each", isToBePricedLater: false },
     { category: "extraRoom", name: "diningroom", unitPrice: 40, label: "Additional Dining room", unit: "each", isToBePricedLater: false },
     { category: "extraRoom", name: "laundry", unitPrice: 40, label: "Laundry", unit: "each", isToBePricedLater: false },
     { category: "extraRoom", name: "balcony", unitPrice: 40, label: "Balcony", unit: "each", isToBePricedLater: false },
-    // 
-    { category: "extraItem", name: "oven", unitPrice: 60, unit: "Each", label: "Oven Cleaning", isToBePricedLater: false },
-    { category: "extraItem", name: "rangehood", unitPrice: 60, unit: "Each", label: "Range Hood (Grease Removal)", isToBePricedLater: false},
-    { category: "extraItem", name: "fridge", unitPrice: 60, unit: "Each", label: "Fridge Cleaning", isToBePricedLater: false },
+    //  End of Lease Cleaning Add-ons
     { category: "extraItem", name: "rubbish", unitPrice: 30, unit: "Per bin", label: "Rubbish Disposal", isToBePricedLater: false },
-    { category: "extraItem", name: "garagestorage", unitPrice: 50, unit: "Per 15-40m²", label: "Oven Garage / Storage Cleaning", isToBePricedLater: false },
     { category: "extraItem", name: "wallspot", unitPrice: 50, unit: "Per section (2m x 2m)", label: "Wall Spot Cleaning", isToBePricedLater: false },
     { category: "toBePricedExtraItem", name: "carpet", unitPrice: 0, unitPriceText: "Based on property size", unit: "Per room", label: "Carpet Steam Cleaning", isToBePricedLater: true },
     { category: "toBePricedExtraItem", name: "parking", unitPrice: 0, unitPriceText: "Based on hourly rate", unit: "Per hour", label: "Parking Fee (If applicable)", isToBePricedLater: true  }
     ],
-  // "AirBnB": [
-  //   { category: "basePrice", name: "base", unitPrice: 270, quantity: 1, label: "Base Cleaning Package", description: "Includes:\n1 Bedroom, 1 Bathroom, 1 Living Room, 1 Dining area, 1 Kitchen (with 1 Oven and 1 Rangehood)"}
-  // ]
+  "AirBnB": [
+    { category: "basePackage", name: "base", unitPrice: 45, label: "AirBnB Base Cleaning Package", description: "Includes:\n1 Bedroom, 1 Bathroom, 1 Living Room, 1 Dining area, 1 Kitchen", unit: "", isToBePricedLater: false },
+    //
+    { category: "extraRoom", name: "bedroom", unitPrice: 10, label: "Additional Bedroom", unit: "each", isToBePricedLater: false },
+    { category: "extraRoom", name: "bathroom", unitPrice: 10, label: "Additional Bathroom", unit: "each", isToBePricedLater: false },
+    { category: "extraRoom", name: "kitchen", unitPrice: 10, label: "Additional Kitchen", unit: "each", isToBePricedLater: false },
+    // { category: "extraRoom", name: "livingroom", unitPrice: 10, label: "Additional Living room", unit: "each", isToBePricedLater: false },
+    { category: "extraRoom", name: "diningroom", unitPrice: 10, label: "Additional Dining room", unit: "each", isToBePricedLater: false },
+    { category: "extraRoom", name: "laundry", unitPrice: 10, label: "Laundry", unit: "each", isToBePricedLater: false },
+    { category: "extraRoom", name: "balcony", unitPrice: 10, label: "Balcony", unit: "each", isToBePricedLater: false },
+    // Airbnb Cleaning Add-ons
+    { category: "extraItem", name: "linen", unitPrice: 10, unit: "Per bed", label: "Linen Change (Bed Making & Towels Setup)", isToBePricedLater: false },
+    { category: "extraItem", name: "oven", unitPrice: 30, unit: "Per oven", label: "Oven Cleaning", isToBePricedLater: false },
+    { category: "extraItem", name: "rangehood", unitPrice: 30, unit: "Per range hood", label: "Range Hood (Grease Removal)", isToBePricedLater: false},
+    { category: "extraItem", name: "fridge", unitPrice: 30, unit: "Per fridge", label: "Fridge Cleaning", isToBePricedLater: false },
+    { category: "extraItem", name: "rubbish", unitPrice: 15, unit: "Per bin", label: "Rubbish Disposal", isToBePricedLater: false },
+    //
+    { category: "toBePricedExtraItem", name: "parking", unitPrice: 0, unitPriceText: "Based on hourly rate", unit: "Per hour", label: "Parking Fee (If applicable)", isToBePricedLater: true  }
+  ]
 }
 
 export const createQuote = (numBedrooms: number,
